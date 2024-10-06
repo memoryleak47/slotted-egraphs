@@ -6,9 +6,6 @@ pub use symbol_table::GlobalSymbol as Symbol;
 mod lamcalc;
 pub use lamcalc::*;
 
-mod small;
-pub use small::*;
-
 mod arith;
 pub use arith::*;
 

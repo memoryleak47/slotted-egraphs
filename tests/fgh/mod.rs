@@ -2,6 +2,7 @@
 #![allow(non_snake_case)]
 
 use slotted_egraphs::*;
+use crate::*;
 
 #[derive(Clone, Hash, PartialEq, Eq, PartialOrd, Ord, Debug)]
 pub enum FghENode {
@@ -47,4 +48,13 @@ impl Language for FghENode {
             _ => None,
         }
     }
+}
+
+#[test]
+fn fgh_test() {
+    let eg: &mut EGraph<FghENode> = &mut EGraph::new();
+    equate("(f s1 s2)", "(g s2 s1)", eg);
+    equate("(g s1 s2)", "(h s1 s2)", eg);
+    eg.dump();
+    explain("(f s1 s2)", "(h s2 s1)", eg);
 }
