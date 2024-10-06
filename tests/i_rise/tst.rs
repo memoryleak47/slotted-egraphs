@@ -1,5 +1,4 @@
 use crate::*;
-use crate::i_rise::build::*;
 
 fn assert_reaches(start: &str, goal: &str, steps: usize) {
     let start = RecExpr::parse(start).unwrap();

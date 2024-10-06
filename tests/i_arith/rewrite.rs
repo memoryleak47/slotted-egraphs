@@ -1,5 +1,4 @@
 use crate::*;
-use crate::i_arith::build::*;
 
 pub fn rewrite_arith(eg: &mut EGraph<ArithENode>) {
     apply_rewrites(eg, &[

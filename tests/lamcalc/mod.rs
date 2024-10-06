@@ -15,7 +15,8 @@ pub use display::*;
 mod realization;
 pub use realization::*;
 
-pub mod build;
+mod build;
+pub use build::*;
 
 mod tst;
 pub use tst::*;
