@@ -48,74 +48,74 @@ pub fn rise_rules(subst_m: SubstMethod) -> Vec<Rewrite<RiseENode>> {
 }
 
 fn beta() -> Rewrite<RiseENode> {
-    let pat = Pattern::parse("(app (lam s1 ?body) ?e)").unwrap();
-    let outpat = Pattern::parse("(let s1 ?e ?body)").unwrap();
+    let pat = "(app (lam s1 ?body) ?e)";
+    let outpat = "(let s1 ?e ?body)";
 
-    mk_named_rewrite("beta", pat, outpat)
+    Rewrite::new("beta", pat, outpat)
 }
 
 fn eta() -> Rewrite<RiseENode> {
-    let pat = Pattern::parse("(lam s1 (app ?f (var s1)))").unwrap();
-    let outpat = Pattern::parse("?f").unwrap();
+    let pat = "(lam s1 (app ?f (var s1)))";
+    let outpat = "?f";
 
-    mk_named_rewrite_if("eta", pat, outpat, |subst| {
+    Rewrite::new_if("eta", pat, outpat, |subst| {
         !subst["f"].slots().contains(&Slot::new(1))
     })
 }
 
 fn eta_expansion() -> Rewrite<RiseENode> {
-    let pat = Pattern::parse("?f").unwrap();
-    let outpat = Pattern::parse("(lam s1 (app ?f (var s1)))").unwrap();
+    let pat = "?f";
+    let outpat = "(lam s1 (app ?f (var s1)))";
 
-    mk_named_rewrite("eta-expansion", pat, outpat)
+    Rewrite::new("eta-expansion", pat, outpat)
 }
 
 fn my_let_unused() -> Rewrite<RiseENode> {
-    let pat = Pattern::parse("(let s1 ?t ?b)").unwrap();
-    let outpat = Pattern::parse("?b").unwrap();
-    mk_named_rewrite_if("my-let-unused", pat, outpat, |subst| {
+    let pat = "(let s1 ?t ?b)";
+    let outpat = "?b";
+    Rewrite::new_if("my-let-unused", pat, outpat, |subst| {
         !subst["b"].slots().contains(&Slot::new(1))
     })
 }
 
 fn let_var_same() -> Rewrite<RiseENode> {
-    let pat = Pattern::parse("(let s1 ?e (var s1))").unwrap();
-    let outpat = Pattern::parse("?e").unwrap();
-    mk_named_rewrite("let-var-same", pat, outpat)
+    let pat = "(let s1 ?e (var s1))";
+    let outpat = "?e";
+    Rewrite::new("let-var-same", pat, outpat)
 }
 
 fn let_var_diff() -> Rewrite<RiseENode> {
-    let pat = Pattern::parse("(let s1 ?e (var s2))").unwrap();
-    let outpat = Pattern::parse("(var s2)").unwrap();
-    mk_named_rewrite("let-var-diff", pat, outpat)
+    let pat = "(let s1 ?e (var s2))";
+    let outpat = "(var s2)";
+    Rewrite::new("let-var-diff", pat, outpat)
 }
 
 fn let_app() -> Rewrite<RiseENode> {
-    let pat = Pattern::parse("(let s1 ?e (app ?a ?b))").unwrap();
-    let outpat = Pattern::parse("(app (let s1 ?e ?a) (let s1 ?e ?b))").unwrap();
-    mk_named_rewrite_if("let-app", pat, outpat, |subst| {
+    let pat = "(let s1 ?e (app ?a ?b))";
+    let outpat = "(app (let s1 ?e ?a) (let s1 ?e ?b))";
+    Rewrite::new_if("let-app", pat, outpat, |subst| {
         subst["a"].slots().contains(&Slot::new(1)) || subst["b"].slots().contains(&Slot::new(1))
     })
 }
 
 fn let_app_unopt() -> Rewrite<RiseENode> {
-    let pat = Pattern::parse("(let s1 ?e (app ?a ?b))").unwrap();
-    let outpat = Pattern::parse("(app (let s1 ?e ?a) (let s1 ?e ?b))").unwrap();
-    mk_named_rewrite("let-app-unopt", pat, outpat)
+    let pat = "(let s1 ?e (app ?a ?b))";
+    let outpat = "(app (let s1 ?e ?a) (let s1 ?e ?b))";
+    Rewrite::new("let-app-unopt", pat, outpat)
 }
 
 fn let_lam_diff() -> Rewrite<RiseENode> {
-    let pat = Pattern::parse("(let s1 ?e (lam s2 ?body))").unwrap();
-    let outpat = Pattern::parse("(lam s2 (let s1 ?e ?body))").unwrap();
-    mk_named_rewrite_if("let-lam-diff", pat, outpat, |subst| {
+    let pat = "(let s1 ?e (lam s2 ?body))";
+    let outpat = "(lam s2 (let s1 ?e ?body))";
+    Rewrite::new_if("let-lam-diff", pat, outpat, |subst| {
         subst["body"].slots().contains(&Slot::new(1))
     })
 }
 
 fn let_lam_diff_unopt() -> Rewrite<RiseENode> {
-    let pat = Pattern::parse("(let s1 ?e (lam s2 ?body))").unwrap();
-    let outpat = Pattern::parse("(lam s2 (let s1 ?e ?body))").unwrap();
-    mk_named_rewrite("let-lam-diff-unopt", pat, outpat)
+    let pat = "(let s1 ?e (lam s2 ?body))";
+    let outpat = "(lam s2 (let s1 ?e ?body))";
+    Rewrite::new("let-lam-diff-unopt", pat, outpat)
 }
 
 fn let_const() -> Rewrite<RiseENode> {
@@ -140,83 +140,83 @@ fn let_const() -> Rewrite<RiseENode> {
 
 fn map_fusion() -> Rewrite<RiseENode> {
     let mfu = "s0";
-    let pat = Pattern::parse("(app (app sym_map ?f) (app (app sym_map ?g) ?arg))").unwrap();
-    let outpat = Pattern::parse(&format!("(app (app sym_map (lam {mfu} (app ?f (app ?g (var {mfu}))))) ?arg)")).unwrap();
-    mk_rewrite(pat, outpat)
+    let pat = "(app (app sym_map ?f) (app (app sym_map ?g) ?arg))";
+    let outpat = &format!("(app (app sym_map (lam {mfu} (app ?f (app ?g (var {mfu}))))) ?arg)");
+    Rewrite::new("map-fusion", pat, outpat)
 }
 
 fn map_fission() -> Rewrite<RiseENode> {
     let x = 0;
     let mfi = 1;
 
-    let pat = Pattern::parse(&format!(
+    let pat = &format!(
         "(app sym_map (lam s{x} (app ?f ?gx)))"
-    )).unwrap();
+    );
 
-    let outpat = Pattern::parse(&format!(
+    let outpat = &format!(
         "(lam s{mfi} (app (app sym_map ?f) (app (app sym_map (lam s{x} ?gx)) (var s{mfi}))))"
-    )).unwrap();
+    );
 
-    mk_rewrite_if(pat, outpat, move |subst| {
+    Rewrite::new_if("map-fission", pat, outpat, move |subst| {
         !subst["f"].slots().contains(&Slot::new(x))
     })
 }
 
 fn remove_transpose_pair() -> Rewrite<RiseENode> {
-    let pat = Pattern::parse("(app sym_transpose (app sym_transpose ?x))").unwrap();
-    let outpat = Pattern::parse("?x").unwrap();
-    mk_rewrite(pat, outpat)
+    let pat = "(app sym_transpose (app sym_transpose ?x))";
+    let outpat = "?x";
+    Rewrite::new("remove-transpose-pair", pat, outpat)
 }
 
 fn slide_before_map() -> Rewrite<RiseENode> {
-    let pat = Pattern::parse("(app (app (app sym_slide ?sz) ?sp) (app (app sym_map ?f) ?y))").unwrap();
-    let outpat = Pattern::parse("(app (app sym_map (app sym_map ?f)) (app (app (app sym_slide ?sz) ?sp) ?y))").unwrap();
-    mk_rewrite(pat, outpat)
+    let pat = "(app (app (app sym_slide ?sz) ?sp) (app (app sym_map ?f) ?y))";
+    let outpat = "(app (app sym_map (app sym_map ?f)) (app (app (app sym_slide ?sz) ?sp) ?y))";
+    Rewrite::new("slide-before-map", pat, outpat)
 }
 
 fn map_slide_before_transpose() -> Rewrite<RiseENode> {
-    let pat = Pattern::parse("(app sym_transpose (app (app sym_map (app (app sym_slide ?sz) ?sp)) ?y))").unwrap();
-    let outpat = Pattern::parse("(app (app sym_map sym_transpose) (app (app (app sym_slide ?sz) ?sp) (app sym_transpose ?y)))").unwrap();
-    mk_rewrite(pat, outpat)
+    let pat = "(app sym_transpose (app (app sym_map (app (app sym_slide ?sz) ?sp)) ?y))";
+    let outpat = "(app (app sym_map sym_transpose) (app (app (app sym_slide ?sz) ?sp) (app sym_transpose ?y)))";
+    Rewrite::new("map-slide-before-transpose", pat, outpat)
 }
 
 fn slide_before_map_map_f() -> Rewrite<RiseENode> {
-    let pat = Pattern::parse("(app (app sym_map (app sym_map ?f)) (app (app (app sym_slide ?sz) ?sp) ?y))").unwrap();
-    let outpat = Pattern::parse("(app (app (app sym_slide ?sz) ?sp) (app (app sym_map ?f) ?y))").unwrap();
-    mk_rewrite(pat, outpat)
+    let pat = "(app (app sym_map (app sym_map ?f)) (app (app (app sym_slide ?sz) ?sp) ?y))";
+    let outpat = "(app (app (app sym_slide ?sz) ?sp) (app (app sym_map ?f) ?y))";
+    Rewrite::new("slide-before-map-map-f", pat, outpat)
 }
 
 fn separate_dot_vh_simplified() -> Rewrite<RiseENode> {
     let x = "s0";
     let sdvh = "s1";
 
-    let pat = Pattern::parse(&format!(
+    let pat = &format!(
         "(app (app (app sym_reduce sym_add) num_0) (app (app sym_map (lam {x} (app (app sym_mul (app sym_fst (var {x}))) (app sym_snd (var {x})))))
          (app (app sym_zip (app sym_join sym_weights2d)) (app sym_join ?nbh))))
-        ")).unwrap();
-    let outpat = Pattern::parse(&format!(
+        ");
+    let outpat = &format!(
         "(app (app (app sym_reduce sym_add) num_0) (app (app sym_map (lam {x} (app (app sym_mul (app sym_fst (var {x}))) (app sym_snd (var {x})))))
          (app (app sym_zip sym_weightsH) (app (app sym_map (lam {sdvh} (app (app (app sym_reduce sym_add) num_0) (app (app sym_map (lam {x} (app (app sym_mul (app sym_fst (var {x}))) (app sym_snd (var {x})))))
          (app (app sym_zip sym_weightsV) (var {sdvh})))))) (app sym_transpose ?nbh)))))
-        ")).unwrap();
-    mk_rewrite(pat, outpat)
+        ");
+    Rewrite::new("separate-dot-vh-simplified", pat, outpat)
 }
 
 fn separate_dot_hv_simplified() -> Rewrite<RiseENode> {
     let x = "s0";
     let sdhv = "s1";
 
-    let pat = Pattern::parse(&format!(
+    let pat = &format!(
         "(app (app (app sym_reduce sym_add) num_0) (app (app sym_map (lam {x} (app (app sym_mul (app sym_fst (var {x}))) (app sym_snd (var {x})))))
          (app (app sym_zip (app sym_join sym_weights2d)) (app sym_join ?nbh))))
-        ")).unwrap();
-    let outpat = Pattern::parse(&format!(
+        ");
+    let outpat = &format!(
         "(app (app (app sym_reduce sym_add) num_0) (app (app sym_map (lam {x} (app (app sym_mul (app sym_fst (var {x}))) (app sym_snd (var {x})))))
          (app (app sym_zip sym_weightsV) (app (app sym_map (lam {sdhv} (app (app (app sym_reduce sym_add) num_0) (app (app sym_map (lam {x} (app (app sym_mul (app sym_fst (var {x}))) (app sym_snd (var {x})))))
          (app (app sym_zip sym_weightsH) (var {sdhv})))))) ?nbh))))
-        ")).unwrap();
+        ");
 
-    mk_rewrite(pat, outpat)
+    Rewrite::new("separate-dot-hv-simplified", pat, outpat)
 }
 
 // subst using extraction
@@ -244,7 +244,7 @@ fn beta_extr() -> Rewrite<RiseENode> {
             for (subst, res) in substs {
                 let orig = pattern_subst(eg, &pat, &subst);
                 let res = eg.add_expr(res);
-                eg.union(&orig, &res);
+                eg.union_justified(&orig, &res, Some("beta-expr".to_string()));
             }
         }),
     };
@@ -275,7 +275,7 @@ fn beta_extr_direct() -> Rewrite<RiseENode> {
             for (subst, res) in out {
                 let orig = pattern_subst(eg, &pat, &subst);
                 let res = eg.add_expr(res);
-                eg.union(&orig, &res);
+                eg.union_justified(&orig, &res, Some("betaoextr-direct".to_string()));
             }
         }),
     };
