@@ -41,7 +41,7 @@ fn assert_reaches(start: &str, goal: &str, steps: usize, extra_rules: &[&'static
     let mut eg = EGraph::new();
     let i1 = eg.add_expr(start.clone());
     for _ in 0..steps {
-        do_rewrites(&mut eg, &rules);
+        apply_rewrites(&mut eg, &rules);
         dbg!(eg.total_number_of_nodes());
         if let Some(i2) = lookup_rec_expr(&goal, &eg) {
             if eg.eq(&i1, &i2) {
