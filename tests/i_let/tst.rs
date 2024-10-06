@@ -16,7 +16,7 @@ impl Realization for LetReal {
 
     fn extract_ast(&self, id: Self::Id) -> Ast {
         let out = extract::<LetENode, AstSizeNoLet>(id, &self.0);
-        Ast::parse(&out.to_string())
+        Ast::parse(&out.to_string3())
     }
 
     fn find(&self, id: Self::Id) -> Self::Id {
