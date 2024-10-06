@@ -221,7 +221,7 @@ fn separate_dot_hv_simplified() -> Rewrite<RiseENode> {
 
 // subst using extraction
 fn beta_extr() -> Rewrite<RiseENode> {
-    let pat = app(lam(1, pvar("?b")), pvar("?t"));
+    let pat = Pattern::parse("(app (lam s1 ?b) ?t)").unwrap();
     let s = Slot::new(1);
 
     let a = pat.clone();
@@ -254,7 +254,7 @@ fn beta_extr() -> Rewrite<RiseENode> {
 // why is this faster than beta_extr?
 // Probably because it can extract smaller terms after more rewrites?
 fn beta_extr_direct() -> Rewrite<RiseENode> {
-    let pat = app(lam(1, pvar("?b")), pvar("?t"));
+    let pat = Pattern::parse("(app (lam s1 ?b) ?t)").unwrap();
     let s = Slot::new(1);
 
     let a = pat.clone();
