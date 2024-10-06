@@ -7,8 +7,8 @@ pub use array::*;
 mod lambda;
 pub use lambda::*;
 
-mod i_let;
-pub use i_let::*;
+mod lambda_let;
+pub use lambda_let::*;
 
 mod rise;
 pub use rise::*;
