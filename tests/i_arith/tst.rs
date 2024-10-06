@@ -147,7 +147,7 @@ fn arith_test6() { // z*(x+y) = z*(y+x)
         let mut eg = EGraph::new();
         eg.add_expr(start.clone());
         for _ in 0..steps {
-            add_comm(&mut eg);
+            apply_rewrites(&mut eg, &[add_comm()]);
             if let Some(i2) = lookup_rec_expr(&goal, &eg) {
                 let i1 = lookup_rec_expr(&start, &eg).unwrap();
                 if eg.eq(&i1, &i2) {
