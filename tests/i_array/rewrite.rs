@@ -17,14 +17,14 @@ pub fn array_rules(rules: &[&'static str]) -> Vec<Rewrite<ArrayENode>> {
             "map-fission" => map_fission(),
             "map-fusion" => map_fusion(),
 
-            "transpose-maps" => rew("(m ?n1 (m ?n2 ?f))", "(o T (o (m ?n2 (m ?n1 ?f)) T))"),
-            "split-map" => rew("(m (* ?n1 ?n2) ?f)", "(o j (o (m ?n1 (m ?n2 ?f)) (s ?n2)))"),
+            "transpose-maps" => rew("transpose-maps", "(m ?n1 (m ?n2 ?f))", "(o T (o (m ?n2 (m ?n1 ?f)) T))"),
+            "split-map" => rew("split-map", "(m (* ?n1 ?n2) ?f)", "(o j (o (m ?n1 (m ?n2 ?f)) (s ?n2)))"),
 
-            "o-map-fission" => rew("(m ?n (o ?f ?g))", "(o (m ?n ?f) (m ?n ?g))"),
-            "o-map-fusion" => rew("(o (m ?n ?f) (m ?n ?g))", "(m ?n (o ?f ?g))"),
+            "o-map-fission" => rew("o-map-fission", "(m ?n (o ?f ?g))", "(o (m ?n ?f) (m ?n ?g))"),
+            "o-map-fusion" => rew("o-map-fusion", "(o (m ?n ?f) (m ?n ?g))", "(m ?n (o ?f ?g))"),
 
-            "assoc1" => rew("(o ?a (o ?b ?c))", "(o (o ?a ?b) ?c)"),
-            "assoc2" => rew("(o (o ?a ?b) ?c)", "(o ?a (o ?b ?c))"),
+            "assoc1" => rew("assoc1", "(o ?a (o ?b ?c))", "(o (o ?a ?b) ?c)"),
+            "assoc2" => rew("assoc2", "(o (o ?a ?b) ?c)", "(o ?a (o ?b ?c))"),
             x => panic!("unknown rule: {x}"),
         };
         rewrites.push(rewrite);
@@ -33,63 +33,64 @@ pub fn array_rules(rules: &[&'static str]) -> Vec<Rewrite<ArrayENode>> {
     rewrites
 }
 
-fn rew(s1: &str, s2: &str) -> Rewrite<ArrayENode> {
-    let pat = array_parse_pattern(s1);
-    let outpat = array_parse_pattern(s2);
 
-    mk_rewrite(pat, outpat)
+fn rew(name: &str, s1: &str, s2: &str) -> Rewrite<ArrayENode> {
+    let pat = &array_parse_pattern(s1).to_string();
+    let outpat = &array_parse_pattern(s2).to_string();
+
+    Rewrite::new(name, pat, outpat)
 }
 
 //////////////////////
 
 fn beta() -> Rewrite<ArrayENode> {
-    let pat = Pattern::parse("(app (lam s1 ?body) ?e)").unwrap();
-    let outpat = Pattern::parse("(let s1 ?e ?body)").unwrap();
+    let pat = "(app (lam s1 ?body) ?e)";
+    let outpat = "(let s1 ?e ?body)";
 
-    mk_rewrite(pat, outpat)
+    Rewrite::new("beta", pat, outpat)
 }
 
 fn eta() -> Rewrite<ArrayENode> {
-    let pat = Pattern::parse("(lam s1 (app ?f (var s1)))").unwrap();
-    let outpat = Pattern::parse("?f").unwrap();
+    let pat = "(lam s1 (app ?f (var s1)))";
+    let outpat = "?f";
 
-    mk_rewrite_if(pat, outpat, |subst| {
+    Rewrite::new_if("eta", pat, outpat, |subst| {
         !subst["f"].slots().contains(&Slot::new(1))
     })
 }
 
 fn my_let_unused() -> Rewrite<ArrayENode> {
-    let pat = Pattern::parse("(let s1 ?t ?b)").unwrap();
-    let outpat = Pattern::parse("?b").unwrap();
-    mk_rewrite_if(pat, outpat, |subst| {
+    let pat = "(let s1 ?t ?b)";
+    let outpat = "?b";
+    Rewrite::new_if("my-let-unused", pat, outpat, |subst| {
         !subst["b"].slots().contains(&Slot::new(1))
     })
 }
 
 fn let_var_same() -> Rewrite<ArrayENode> {
-    let pat = Pattern::parse("(let s1 ?e (var s1))").unwrap();
-    let outpat = Pattern::parse("?e").unwrap();
-    mk_rewrite(pat, outpat)
+    let pat = "(let s1 ?e (var s1))";
+    let outpat = "?e";
+    Rewrite::new("let-var-same", pat, outpat)
 }
 
 fn let_var_diff() -> Rewrite<ArrayENode> {
-    let pat = Pattern::parse("(let s1 ?e (var s2))").unwrap();
-    let outpat = Pattern::parse("(var s2)").unwrap();
-    mk_rewrite(pat, outpat)
+    let pat = "(let s1 ?e (var s2))";
+    let outpat = "(var s2)";
+    Rewrite::new("let-var-diff", pat, outpat)
 }
 
 fn let_app() -> Rewrite<ArrayENode> {
-    let pat = Pattern::parse("(let s1 ?e (app ?a ?b))").unwrap();
-    let outpat = Pattern::parse("(app (let s1 ?e ?a) (let s1 ?e ?b))").unwrap();
-    mk_rewrite_if(pat, outpat, |subst| {
+    let pat = "(let s1 ?e (app ?a ?b))";
+    let outpat = "(app (let s1 ?e ?a) (let s1 ?e ?b))";
+    Rewrite::new_if("let-app", pat, outpat, |subst| {
         subst["a"].slots().contains(&Slot::new(1)) || subst["b"].slots().contains(&Slot::new(1))
     })
 }
 
 fn let_lam_diff() -> Rewrite<ArrayENode> {
-    let pat = Pattern::parse("(let s1 ?e (lam s2 ?body))").unwrap();
-    let outpat = Pattern::parse("(lam s2 (let s1 ?e ?body))").unwrap();
-    mk_rewrite_if(pat, outpat, |subst| {
+    let pat = "(let s1 ?e (lam s2 ?body))";
+    let outpat = "(lam s2 (let s1 ?e ?body))";
+    Rewrite::new_if("let-lam-diff", pat, outpat, |subst| {
         subst["body"].slots().contains(&Slot::new(1))
     })
 }
@@ -98,24 +99,24 @@ fn let_lam_diff() -> Rewrite<ArrayENode> {
 
 fn map_fusion() -> Rewrite<ArrayENode> {
     let mfu = "s0";
-    let pat = Pattern::parse("(app (app (app m ?nn) ?f) (app (app (app m ?nn) ?g) ?arg))").unwrap();
-    let outpat = Pattern::parse(&format!("(app (app (app m ?nn) (lam {mfu} (app ?f (app ?g (var {mfu}))))) ?arg)")).unwrap();
-    mk_rewrite(pat, outpat)
+    let pat = "(app (app (app m ?nn) ?f) (app (app (app m ?nn) ?g) ?arg))";
+    let outpat = &format!("(app (app (app m ?nn) (lam {mfu} (app ?f (app ?g (var {mfu}))))) ?arg)");
+    Rewrite::new("map-fusion", pat, outpat)
 }
 
 fn map_fission() -> Rewrite<ArrayENode> {
     let x = 0;
     let mfi = 1;
 
-    let pat = Pattern::parse(&format!(
+    let pat = &format!(
         "(app (app m ?nn) (lam s{x} (app ?f ?gx)))"
-    )).unwrap();
+    );
 
-    let outpat = Pattern::parse(&format!(
+    let outpat = &format!(
         "(lam s{mfi} (app (app (app m ?nn) ?f) (app (app (app m ?nn) (lam s{x} ?gx)) (var s{mfi}))))"
-    )).unwrap();
+    );
 
-    mk_rewrite_if(pat, outpat, move |subst| {
+    Rewrite::new_if("map-fission", pat, outpat, move |subst| {
         !subst["f"].slots().contains(&Slot::new(x))
     })
 }
