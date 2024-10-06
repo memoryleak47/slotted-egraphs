@@ -3,6 +3,8 @@ use crate::i_rise::build::*;
 
 fn assert_reaches(start: RecExpr<RiseENode>, goal: RecExpr<RiseENode>, steps: usize) {
     let rules = rise_rules(SubstMethod::SmallStep);
+    dbg!(&start);
+    dbg!(&goal);
 
     let mut eg = EGraph::new();
     let i1 = eg.add_expr(start.clone());
@@ -23,61 +25,13 @@ fn assert_reaches(start: RecExpr<RiseENode>, goal: RecExpr<RiseENode>, steps: us
     assert!(false);
 }
 
-// REDUCTION //
-
-fn reduction_re1() -> RecExpr<RiseENode> {
-    let comp = 0;
-    let add1 = 1;
-    let y = 2;
-    let f = 3;
-    let g = 4;
-    let x = 5;
-
-    let comp_re = lam(f,
-                    lam(g,
-                        lam(x,
-                            app(var(f),
-                                app(
-                                    var(g),
-                                    var(x)
-                                )
-                            )
-                        )
-                    )
-                );
-
-    let add1_re = lam(y, add2(var(y), num(1)));
-    let mut it = var(add1);
-    for _ in 0..6 {
-        it = app(app(var(comp), var(add1)), it);
-    }
-
-    let out = app(lam(comp,
-            app(lam(add1, it),
-                add1_re,
-            )
-        ),
-        comp_re
-    );
-
-    pattern_to_re(&out)
-}
-
-fn reduction_re2() -> RecExpr<RiseENode> {
-    let x = 0;
-    let mut it = var(x);
-    for _ in 0..7 {
-        it = add2(it, num(1));
-    }
-
-    let out = lam(x, it);
-
-    pattern_to_re(&out)
-}
-
 #[test]
 fn test_reduction() {
-    assert_reaches(reduction_re1(), reduction_re2(), 40);
+    let a = "(app (lam s0 (app (lam s1 (app (app (var s0) (var s1)) (app (app (var s0) (var s1)) (app (app (var s0) (var s1)) (app (app (var s0) (var s1)) (app (app (var s0) (var s1)) (app (app (var s0) (var s1)) (var s1)))))))) (lam s2 (app (app sym_add (var s2)) num_1)))) (lam s3 (lam s4 (lam s5 (app (var s3) (app (var s4) (var s5)))))))";
+    let b = "(lam s0 (app (app sym_add (app (app sym_add (app (app sym_add (app (app sym_add (app (app sym_add (app (app sym_add (app (app sym_add (var s0)) num_1)) num_1)) num_1)) num_1)) num_1)) num_1)) num_1))";
+    let a = RecExpr::parse(a).unwrap();
+    let b = RecExpr::parse(b).unwrap();
+    assert_reaches(a, b, 40);
 }
 
 // FISSION //
