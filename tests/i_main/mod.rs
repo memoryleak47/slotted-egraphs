@@ -2,12 +2,12 @@ use crate::*;
 
 fn main() {
     let eg: &mut EGraph<RiseENode> = &mut EGraph::new();
-    equate("(app sym_a (var s0))", "(app sym_b (var s0))", eg); // a(x) = b(x)
+    equate("(app a (var s0))", "(app b (var s0))", eg); // a(x) = b(x)
 
     // Removing this equation, makes it work.
-    equate("(app sym_s (app sym_a (var s0)))", "sym_c", eg); // s(a(x)) = c
+    equate("(app s (app a (var s0)))", "c", eg); // s(a(x)) = c
     eg.dump();
-    explain("(app sym_s (app sym_a (var s0)))", "(app sym_s (app sym_b (var s0)))", eg); // s(a(x)) = s(b(x))
+    explain("(app s (app a (var s0)))", "(app s (app b (var s0)))", eg); // s(a(x)) = s(b(x))
 }
 
 #[test]
@@ -16,7 +16,7 @@ fn main14() {
     equate("(app (var s0) (var s1))", "(app (var s1) (var s2))", eg);
     eg.dump();
     eg.check();
-    explain("(app (app (var s0) (var s1)) sym_x)", "(app (app (var s2) (var s3)) sym_x)", eg);
+    explain("(app (app (var s0) (var s1)) x)", "(app (app (var s2) (var s3)) x)", eg);
 }
 
 #[test]
@@ -24,13 +24,13 @@ fn main13() {
     let eg: &mut EGraph<RiseENode> = &mut EGraph::new();
     equate("(app (var s0) (var s1))", "(app (var s1) (var s0))", eg);
     eg.dump();
-    explain("(app (app (var s0) (var s1)) sym_x)", "(app (app (var s1) (var s0)) sym_x)", eg);
+    explain("(app (app (var s0) (var s1)) x)", "(app (app (var s1) (var s0)) x)", eg);
 }
 
 #[test]
 fn main12() {
     let eg: &mut EGraph<RiseENode> = &mut EGraph::new();
-    equate("(var s0)", "sym_y", eg);
+    equate("(var s0)", "y", eg);
     eg.dump();
     explain("(lam s1 (var s1))", "(lam s0 (var s0))", eg);
     explain("(lam s1 (var s1))", "(lam s0 (var s2))", eg);
@@ -40,7 +40,7 @@ fn main12() {
 fn main11() {
     let eg: &mut EGraph<RiseENode> = &mut EGraph::new();
 
-    equate("(app (var s0) (var s1))", "(app (var s0) sym_x)", eg);
+    equate("(app (var s0) (var s1))", "(app (var s0) x)", eg);
     equate("(app (var s0) (var s1))", "(app (var s1) (var s0))", eg);
     eg.dump();
     explain("(app (var s0) (var s1))", "(app (var s3) (var s4))", eg);
@@ -49,7 +49,7 @@ fn main11() {
 #[test]
 fn main10() {
     let eg: &mut EGraph<RiseENode> = &mut EGraph::new();
-    equate("(app (var s0) (var s1))", "sym_x", eg);
+    equate("(app (var s0) (var s1))", "x", eg);
     eg.dump();
     explain("(app (var s0) (var s1))", "(app (var s1) (var s0))", eg);
 }
@@ -57,19 +57,19 @@ fn main10() {
 #[test]
 fn main9() {
     let eg: &mut EGraph<RiseENode> = &mut EGraph::new();
-    equate("(app (var s0) sym_x)", "sym_y", eg);
+    equate("(app (var s0) x)", "y", eg);
     eg.dump();
-    explain("(app (var s0) sym_x)", "(app (var s1) sym_x)", eg);
+    explain("(app (var s0) x)", "(app (var s1) x)", eg);
 }
 
 #[test]
 fn main8() {
     let eg: &mut EGraph<RiseENode> = &mut EGraph::new();
-    equate("(app (app (var s0) (var s1)) sym_x)", "(app (app (var s1) (var s0)) sym_x)", eg);
-    equate("(app (app (var s0) (var s1)) sym_y)", "(app (app (var s1) (var s0)) sym_y)", eg);
-    equate("(app (app (var s0) (var s1)) sym_x)", "(app (app (var s0) (var s1)) sym_y)", eg);
+    equate("(app (app (var s0) (var s1)) x)", "(app (app (var s1) (var s0)) x)", eg);
+    equate("(app (app (var s0) (var s1)) y)", "(app (app (var s1) (var s0)) y)", eg);
+    equate("(app (app (var s0) (var s1)) x)", "(app (app (var s0) (var s1)) y)", eg);
     eg.dump();
-    explain("(app (app (var s0) (var s1)) sym_x)", "(app (app (var s1) (var s0)) sym_y)", eg);
+    explain("(app (app (var s0) (var s1)) x)", "(app (app (var s1) (var s0)) y)", eg);
 }
 
 #[test]
@@ -97,10 +97,10 @@ fn main6() {
 #[test]
 fn main5() {
     let eg: &mut EGraph<RiseENode> = &mut EGraph::new();
-    equate("(var s0)", "(app (var s0) sym_x)", eg);
-    equate("sym_x", "sym_y", eg);
+    equate("(var s0)", "(app (var s0) x)", eg);
+    equate("x", "y", eg);
     eg.dump();
-    explain("(var s2)", "(app (var s2) sym_y)", eg);
+    explain("(var s2)", "(app (var s2) y)", eg);
 }
 
 #[test]
@@ -115,10 +115,10 @@ fn main4() {
 #[test]
 fn main3() {
     let eg: &mut EGraph<RiseENode> = &mut EGraph::new();
-    let x1 = id("sym_x1", eg);
-    let x2 = id("sym_x2", eg);
-    let x1x3 = term("(app sym_x1 sym_x3)", eg);
-    let x2x3 = term("(app sym_x2 sym_x3)", eg);
+    let x1 = id("x1", eg);
+    let x2 = id("x2", eg);
+    let x1x3 = term("(app x1 x3)", eg);
+    let x2x3 = term("(app x2 x3)", eg);
     eg.union(&x1, &x2);
     eg.dump();
     dbg!(&x1x3);
@@ -129,10 +129,10 @@ fn main3() {
 #[test]
 fn main2() {
     let p = |s| RecExpr::parse(s).unwrap();
-    let x1 = p("sym_x1");
-    let x2 = p("sym_x2");
-    let x3 = p("sym_x3");
-    let x4 = p("sym_x4");
+    let x1 = p("x1");
+    let x2 = p("x2");
+    let x3 = p("x3");
+    let x4 = p("x4");
     let mut eg: EGraph<RiseENode> = EGraph::new();
     let y1 = eg.add_expr(x1.clone());
     let y2 = eg.add_expr(x2.clone());
