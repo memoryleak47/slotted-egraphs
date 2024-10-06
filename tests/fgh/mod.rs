@@ -5,26 +5,26 @@ use slotted_egraphs::*;
 use crate::*;
 
 #[derive(Clone, Hash, PartialEq, Eq, PartialOrd, Ord, Debug)]
-pub enum FghENode {
+pub enum Fgh {
     F(Slot, Slot),
     G(Slot, Slot),
     H(Slot, Slot),
 }
 
-impl Language for FghENode {
+impl Language for Fgh {
     fn all_slot_occurences_mut(&mut self) -> Vec<&mut Slot> {
         match self {
-            FghENode::F(x, y) => vec![x, y],
-            FghENode::G(x, y) => vec![x, y],
-            FghENode::H(x, y) => vec![x, y],
+            Fgh::F(x, y) => vec![x, y],
+            Fgh::G(x, y) => vec![x, y],
+            Fgh::H(x, y) => vec![x, y],
         }
     }
 
     fn public_slot_occurences_mut(&mut self) -> Vec<&mut Slot> {
         match self {
-            FghENode::F(x, y) => vec![x, y],
-            FghENode::G(x, y) => vec![x, y],
-            FghENode::H(x, y) => vec![x, y],
+            Fgh::F(x, y) => vec![x, y],
+            Fgh::G(x, y) => vec![x, y],
+            Fgh::H(x, y) => vec![x, y],
         }
     }
 
@@ -34,17 +34,17 @@ impl Language for FghENode {
 
     fn to_op(&self) -> (String, Vec<Child>) {
         match self.clone() {
-            FghENode::F(x, y) => (String::from("f"), vec![Child::Slot(x), Child::Slot(y)]),
-            FghENode::G(x, y) => (String::from("g"), vec![Child::Slot(x), Child::Slot(y)]),
-            FghENode::H(x, y) => (String::from("h"), vec![Child::Slot(x), Child::Slot(y)]),
+            Fgh::F(x, y) => (String::from("f"), vec![Child::Slot(x), Child::Slot(y)]),
+            Fgh::G(x, y) => (String::from("g"), vec![Child::Slot(x), Child::Slot(y)]),
+            Fgh::H(x, y) => (String::from("h"), vec![Child::Slot(x), Child::Slot(y)]),
         }
     }
 
     fn from_op(op: &str, children: Vec<Child>) -> Option<Self> {
         match (op, &*children) {
-            ("f", [Child::Slot(x), Child::Slot(y)]) => Some(FghENode::F(*x, *y)),
-            ("g", [Child::Slot(x), Child::Slot(y)]) => Some(FghENode::G(*x, *y)),
-            ("h", [Child::Slot(x), Child::Slot(y)]) => Some(FghENode::H(*x, *y)),
+            ("f", [Child::Slot(x), Child::Slot(y)]) => Some(Fgh::F(*x, *y)),
+            ("g", [Child::Slot(x), Child::Slot(y)]) => Some(Fgh::G(*x, *y)),
+            ("h", [Child::Slot(x), Child::Slot(y)]) => Some(Fgh::H(*x, *y)),
             _ => None,
         }
     }
@@ -52,7 +52,7 @@ impl Language for FghENode {
 
 #[test]
 fn fgh_test() {
-    let eg: &mut EGraph<FghENode> = &mut EGraph::new();
+    let eg: &mut EGraph<Fgh> = &mut EGraph::new();
     equate("(f s1 s2)", "(g s2 s1)", eg);
     equate("(g s1 s2)", "(h s1 s2)", eg);
     eg.dump();

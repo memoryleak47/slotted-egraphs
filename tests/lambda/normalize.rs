@@ -1,12 +1,12 @@
 use crate::lambda::*;
 
-pub fn lam_normalize(re: &RecExpr<LetENode>) -> RecExpr<LetENode> {
+pub fn lam_normalize(re: &RecExpr<Lambda>) -> RecExpr<Lambda> {
     lam_normalize_impl(re, &mut 0, Default::default())
 }
 
 
 // map :: original name -> normalized name.
-fn lam_normalize_impl(re: &RecExpr<LetENode>, counter: &mut usize, map: HashMap<Slot, Slot>) -> RecExpr<LetENode> {
+fn lam_normalize_impl(re: &RecExpr<Lambda>, counter: &mut usize, map: HashMap<Slot, Slot>) -> RecExpr<Lambda> {
     let mut alloc_slot = || {
         let out = Slot::new(*counter);
         *counter += 1;
@@ -14,7 +14,7 @@ fn lam_normalize_impl(re: &RecExpr<LetENode>, counter: &mut usize, map: HashMap<
     };
 
     match &re.node {
-        LetENode::Lam(x, _) => {
+        Lambda::Lam(x, _) => {
             let [b] = &*re.children else { panic!() };
 
             let mut map = map.clone();
@@ -24,29 +24,29 @@ fn lam_normalize_impl(re: &RecExpr<LetENode>, counter: &mut usize, map: HashMap<
             let b = lam_normalize_impl(b, counter, map);
 
             RecExpr {
-                node: LetENode::Lam(norm_x, AppliedId::null()),
+                node: Lambda::Lam(norm_x, AppliedId::null()),
                 children: vec![b],
             }
         },
-        LetENode::App(_, _) => {
+        Lambda::App(_, _) => {
             let [l, r] = &*re.children else { panic!() };
 
             let l = lam_normalize_impl(l, counter, map.clone());
             let r = lam_normalize_impl(r, counter, map.clone());
 
             RecExpr {
-                node: LetENode::App(AppliedId::null(), AppliedId::null()),
+                node: Lambda::App(AppliedId::null(), AppliedId::null()),
                 children: vec![l, r],
             }
         },
-        LetENode::Var(x) => {
+        Lambda::Var(x) => {
             let norm_x = map[x];
 
             RecExpr {
-                node: LetENode::Var(norm_x),
+                node: Lambda::Var(norm_x),
                 children: vec![],
             }
         },
-        LetENode::Let(..) => panic!(),
+        Lambda::Lambda(..) => panic!(),
     }
 }

@@ -13,7 +13,7 @@ mod my_cost;
 pub use my_cost::*;
 
 #[derive(Clone, Hash, PartialEq, Eq, PartialOrd, Ord)]
-pub enum RiseENode {
+pub enum Rise {
     // lambda calculus:
     Lam(Slot, AppliedId),
     App(AppliedId, AppliedId),
@@ -25,28 +25,28 @@ pub enum RiseENode {
     Symbol(Symbol),
 }
 
-impl Language for RiseENode {
+impl Language for Rise {
     fn all_slot_occurences_mut(&mut self) -> Vec<&mut Slot> {
         let mut out = Vec::new();
         match self {
-            RiseENode::Lam(x, b) => {
+            Rise::Lam(x, b) => {
                 out.push(x);
                 out.extend(b.slots_mut());
             }
-            RiseENode::App(l, r) => {
+            Rise::App(l, r) => {
                 out.extend(l.slots_mut());
                 out.extend(r.slots_mut());
             }
-            RiseENode::Var(x) => {
+            Rise::Var(x) => {
                 out.push(x);
             }
-            RiseENode::Let(x, t, b) => {
+            Rise::Let(x, t, b) => {
                 out.push(x);
                 out.extend(t.slots_mut());
                 out.extend(b.slots_mut());
             }
-            RiseENode::Number(_) => {}
-            RiseENode::Symbol(_) => {}
+            Rise::Number(_) => {}
+            Rise::Symbol(_) => {}
         }
         out
     }
@@ -54,60 +54,60 @@ impl Language for RiseENode {
     fn public_slot_occurences_mut(&mut self) -> Vec<&mut Slot> {
         let mut out = Vec::new();
         match self {
-            RiseENode::Lam(x, b) => {
+            Rise::Lam(x, b) => {
                 out.extend(b.slots_mut().into_iter().filter(|y| *y != x));
             }
-            RiseENode::App(l, r) => {
+            Rise::App(l, r) => {
                 out.extend(l.slots_mut());
                 out.extend(r.slots_mut());
             }
-            RiseENode::Var(x) => {
+            Rise::Var(x) => {
                 out.push(x);
             }
-            RiseENode::Let(x, t, b) => {
+            Rise::Let(x, t, b) => {
                 out.extend(b.slots_mut().into_iter().filter(|y| *y != x));
                 out.extend(t.slots_mut());
             }
-            RiseENode::Number(_) => {}
-            RiseENode::Symbol(_) => {}
+            Rise::Number(_) => {}
+            Rise::Symbol(_) => {}
         }
         out
     }
 
     fn applied_id_occurences_mut(&mut self) -> Vec<&mut AppliedId> {
         match self {
-            RiseENode::Lam(_, b) => vec![b],
-            RiseENode::App(l, r) => vec![l, r],
-            RiseENode::Var(_) => vec![],
-            RiseENode::Let(_, t, b) => vec![t, b],
-            RiseENode::Number(_) => vec![],
-            RiseENode::Symbol(_) => vec![],
+            Rise::Lam(_, b) => vec![b],
+            Rise::App(l, r) => vec![l, r],
+            Rise::Var(_) => vec![],
+            Rise::Let(_, t, b) => vec![t, b],
+            Rise::Number(_) => vec![],
+            Rise::Symbol(_) => vec![],
         }
     }
 
     fn to_op(&self) -> (String, Vec<Child>) {
         match self.clone() {
-            RiseENode::Lam(s, a) => (String::from("lam"), vec![Child::Slot(s), Child::AppliedId(a)]),
-            RiseENode::App(l, r) => (String::from("app"), vec![Child::AppliedId(l), Child::AppliedId(r)]),
-            RiseENode::Var(s) => (String::from("var"), vec![Child::Slot(s)]),
-            RiseENode::Let(s, t, b) => (String::from("let"), vec![Child::Slot(s), Child::AppliedId(t), Child::AppliedId(b)]),
-            RiseENode::Number(n) => (format!("{}", n), vec![]),
-            RiseENode::Symbol(s) => (format!("{}", s), vec![]),
+            Rise::Lam(s, a) => (String::from("lam"), vec![Child::Slot(s), Child::AppliedId(a)]),
+            Rise::App(l, r) => (String::from("app"), vec![Child::AppliedId(l), Child::AppliedId(r)]),
+            Rise::Var(s) => (String::from("var"), vec![Child::Slot(s)]),
+            Rise::Let(s, t, b) => (String::from("let"), vec![Child::Slot(s), Child::AppliedId(t), Child::AppliedId(b)]),
+            Rise::Number(n) => (format!("{}", n), vec![]),
+            Rise::Symbol(s) => (format!("{}", s), vec![]),
         }
     }
 
     fn from_op(op: &str, children: Vec<Child>) -> Option<Self> {
         match (op, &*children) {
-            ("lam", [Child::Slot(s), Child::AppliedId(a)]) => Some(RiseENode::Lam(*s, a.clone())),
-            ("app", [Child::AppliedId(l), Child::AppliedId(r)]) => Some(RiseENode::App(l.clone(), r.clone())),
-            ("var", [Child::Slot(s)]) => Some(RiseENode::Var(*s)),
-            ("let", [Child::Slot(s), Child::AppliedId(t), Child::AppliedId(b)]) => Some(RiseENode::Let(*s, t.clone(), b.clone())),
+            ("lam", [Child::Slot(s), Child::AppliedId(a)]) => Some(Rise::Lam(*s, a.clone())),
+            ("app", [Child::AppliedId(l), Child::AppliedId(r)]) => Some(Rise::App(l.clone(), r.clone())),
+            ("var", [Child::Slot(s)]) => Some(Rise::Var(*s)),
+            ("let", [Child::Slot(s), Child::AppliedId(t), Child::AppliedId(b)]) => Some(Rise::Let(*s, t.clone(), b.clone())),
             (op, []) => {
                 if let Ok(u) = op.parse::<u32>() {
-                    Some(RiseENode::Number(u))
+                    Some(Rise::Number(u))
                 } else {
                     let s: Symbol = op.parse().ok()?;
-                    Some(RiseENode::Symbol(s))
+                    Some(Rise::Symbol(s))
                 }
             },
             _ => None,
@@ -119,15 +119,15 @@ impl Language for RiseENode {
 
 use std::fmt::*;
 
-impl Debug for RiseENode {
+impl Debug for Rise {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
         match self {
-            RiseENode::Lam(s, b) => write!(f, "(lam {s:?} {b:?})"),
-            RiseENode::App(l, r) => write!(f, "(app {l:?} {r:?})"),
-            RiseENode::Var(s) => write!(f, "{s:?}"),
-            RiseENode::Let(x, t, b) => write!(f, "(let {x:?} {t:?} {b:?})"),
-            RiseENode::Number(i) => write!(f, "{i}"),
-            RiseENode::Symbol(i) => write!(f, "symb{i:?}"),
+            Rise::Lam(s, b) => write!(f, "(lam {s:?} {b:?})"),
+            Rise::App(l, r) => write!(f, "(app {l:?} {r:?})"),
+            Rise::Var(s) => write!(f, "{s:?}"),
+            Rise::Let(x, t, b) => write!(f, "(let {x:?} {t:?} {b:?})"),
+            Rise::Number(i) => write!(f, "{i}"),
+            Rise::Symbol(i) => write!(f, "symb{i:?}"),
         }
     }
 }

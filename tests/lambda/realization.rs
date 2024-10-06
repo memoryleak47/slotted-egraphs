@@ -4,7 +4,7 @@ const NO_ITERS: usize = 400;
 const NO_ENODES: usize = 10000;
 
 pub trait Realization {
-    fn step(eg: &mut EGraph<LetENode>);
+    fn step(eg: &mut EGraph<Lambda>);
 }
 
 // stops when the desired output has been reached.
@@ -92,7 +92,7 @@ pub fn check_eq<R: Realization>(s1: &str, s2: &str) {
 
 // Non-Realization functions:
 
-fn extract_ast(eg: &EGraph<LetENode>, i: AppliedId) -> RecExpr<LetENode> {
+fn extract_ast(eg: &EGraph<Lambda>, i: AppliedId) -> RecExpr<Lambda> {
     extract::<_, AstSizeNoLet>(i, eg)
 }
 

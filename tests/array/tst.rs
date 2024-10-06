@@ -1,6 +1,6 @@
 use crate::*;
 
-fn normalize(re: RecExpr<ArrayENode>) -> RecExpr<ArrayENode> {
+fn normalize(re: RecExpr<Array>) -> RecExpr<Array> {
     let rules = array_rules(&["beta", "eta"]);
 
     let mut eg = EGraph::new();

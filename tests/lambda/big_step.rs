@@ -3,7 +3,7 @@ use crate::*;
 pub struct LambdaRealBig;
 
 impl Realization for LambdaRealBig {
-    fn step(eg: &mut EGraph<LetENode>) {
+    fn step(eg: &mut EGraph<Lambda>) {
         rewrite_big_step(eg);
     }
 }
@@ -13,19 +13,19 @@ impl Realization for LambdaRealBig {
 
 
 // candidate for beta reduction.
-// Both LetENodes are computed by "sh.apply_slotmap(bij)", where (sh, bij) in EClass::nodes from their respective classes.
+// Both Lambdas are computed by "sh.apply_slotmap(bij)", where (sh, bij) in EClass::nodes from their respective classes.
 pub struct Candidate {
-    pub app: LetENode,
-    pub lam: LetENode,
+    pub app: Lambda,
+    pub lam: Lambda,
 }
 
 // applies rewrites (only beta-reduction) for all applicable situations.
-pub fn rewrite_big_step(eg: &mut EGraph<LetENode>) {
+pub fn rewrite_big_step(eg: &mut EGraph<Lambda>) {
     for cand in candidates(eg) {
         let app_id = eg.lookup(&cand.app).unwrap();
 
-        let LetENode::App(l, t) = cand.app.clone() else { panic!() };
-        let LetENode::Lam(x, b) = cand.lam.clone() else { panic!() };
+        let Lambda::App(l, t) = cand.app.clone() else { panic!() };
+        let Lambda::Lam(x, b) = cand.lam.clone() else { panic!() };
         assert_eq!(x, Slot::new(0));
 
         // l.m :: slots(lam) -> slots(app)
@@ -43,13 +43,13 @@ pub fn rewrite_big_step(eg: &mut EGraph<LetENode>) {
     }
 }
 
-pub fn candidates(eg: &EGraph<LetENode>) -> Vec<Candidate> {
+pub fn candidates(eg: &EGraph<Lambda>) -> Vec<Candidate> {
     // find all lambdas:
-    let mut lambdas: HashMap<Id, Vec<LetENode>> = Default::default();
+    let mut lambdas: HashMap<Id, Vec<Lambda>> = Default::default();
     for c in eg.ids() {
         let mut v = Vec::new();
         for enode in eg.enodes(c) {
-            if matches!(enode, LetENode::Lam(..)) {
+            if matches!(enode, Lambda::Lam(..)) {
                 v.push(enode.clone());
             }
         }
@@ -62,7 +62,7 @@ pub fn candidates(eg: &EGraph<LetENode>) -> Vec<Candidate> {
 
     for c in eg.ids() {
         for enode in eg.enodes(c) {
-            if let LetENode::App(l, _t) = &enode {
+            if let Lambda::App(l, _t) = &enode {
                 for lam in lambdas[&l.id].clone() {
                     candidates.push(Candidate { app: enode.clone(), lam });
                 }

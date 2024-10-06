@@ -16,7 +16,7 @@ mod tst;
 
 // This is a close-as possible to SymbolLang to be comparable with https://github.com/Bastacyclop/egg-sketches/blob/main/tests/maps.rs
 #[derive(Clone, Hash, PartialEq, Eq, PartialOrd, Ord, Debug)]
-pub enum ArrayENode {
+pub enum Array {
     Lam(Slot, AppliedId),
     App(AppliedId, AppliedId),
     Var(Slot),
@@ -25,27 +25,27 @@ pub enum ArrayENode {
     Symbol(Symbol),
 }
 
-impl Language for ArrayENode {
+impl Language for Array {
     fn all_slot_occurences_mut(&mut self) -> Vec<&mut Slot> {
         let mut out = Vec::new();
         match self {
-            ArrayENode::Lam(x, b) => {
+            Array::Lam(x, b) => {
                 out.push(x);
                 out.extend(b.slots_mut());
             }
-            ArrayENode::App(l, r) => {
+            Array::App(l, r) => {
                 out.extend(l.slots_mut());
                 out.extend(r.slots_mut());
             }
-            ArrayENode::Var(x) => {
+            Array::Var(x) => {
                 out.push(x);
             }
-            ArrayENode::Let(x, t, b) => {
+            Array::Let(x, t, b) => {
                 out.push(x);
                 out.extend(t.slots_mut());
                 out.extend(b.slots_mut());
             }
-            ArrayENode::Symbol(_) => {}
+            Array::Symbol(_) => {}
         }
         out
     }
@@ -53,54 +53,54 @@ impl Language for ArrayENode {
     fn public_slot_occurences_mut(&mut self) -> Vec<&mut Slot> {
         let mut out = Vec::new();
         match self {
-            ArrayENode::Lam(x, b) => {
+            Array::Lam(x, b) => {
                 out.extend(b.slots_mut().into_iter().filter(|y| *y != x));
             }
-            ArrayENode::App(l, r) => {
+            Array::App(l, r) => {
                 out.extend(l.slots_mut());
                 out.extend(r.slots_mut());
             }
-            ArrayENode::Var(x) => {
+            Array::Var(x) => {
                 out.push(x);
             }
-            ArrayENode::Let(x, t, b) => {
+            Array::Let(x, t, b) => {
                 out.extend(b.slots_mut().into_iter().filter(|y| *y != x));
                 out.extend(t.slots_mut());
             }
-            ArrayENode::Symbol(_) => {}
+            Array::Symbol(_) => {}
         }
         out
     }
 
     fn applied_id_occurences_mut(&mut self) -> Vec<&mut AppliedId> {
         match self {
-            ArrayENode::Lam(_, b) => vec![b],
-            ArrayENode::App(l, r) => vec![l, r],
-            ArrayENode::Var(_) => vec![],
-            ArrayENode::Let(_, t, b) => vec![t, b],
-            ArrayENode::Symbol(_) => vec![],
+            Array::Lam(_, b) => vec![b],
+            Array::App(l, r) => vec![l, r],
+            Array::Var(_) => vec![],
+            Array::Let(_, t, b) => vec![t, b],
+            Array::Symbol(_) => vec![],
         }
     }
 
     fn to_op(&self) -> (String, Vec<Child>) {
         match self.clone() {
-            ArrayENode::Lam(s, a) => (String::from("lam"), vec![Child::Slot(s), Child::AppliedId(a)]),
-            ArrayENode::App(l, r) => (String::from("app"), vec![Child::AppliedId(l), Child::AppliedId(r)]),
-            ArrayENode::Var(s) => (String::from("var"), vec![Child::Slot(s)]),
-            ArrayENode::Let(s, t, b) => (String::from("let"), vec![Child::Slot(s), Child::AppliedId(t), Child::AppliedId(b)]),
-            ArrayENode::Symbol(s) => (s.to_string(), vec![]),
+            Array::Lam(s, a) => (String::from("lam"), vec![Child::Slot(s), Child::AppliedId(a)]),
+            Array::App(l, r) => (String::from("app"), vec![Child::AppliedId(l), Child::AppliedId(r)]),
+            Array::Var(s) => (String::from("var"), vec![Child::Slot(s)]),
+            Array::Let(s, t, b) => (String::from("let"), vec![Child::Slot(s), Child::AppliedId(t), Child::AppliedId(b)]),
+            Array::Symbol(s) => (s.to_string(), vec![]),
         }
     }
 
     fn from_op(op: &str, children: Vec<Child>) -> Option<Self> {
         match (op, &*children) {
-            ("lam", [Child::Slot(s), Child::AppliedId(a)]) => Some(ArrayENode::Lam(*s, a.clone())),
-            ("app", [Child::AppliedId(l), Child::AppliedId(r)]) => Some(ArrayENode::App(l.clone(), r.clone())),
-            ("var", [Child::Slot(s)]) => Some(ArrayENode::Var(*s)),
-            ("let", [Child::Slot(s), Child::AppliedId(t), Child::AppliedId(b)]) => Some(ArrayENode::Let(*s, t.clone(), b.clone())),
+            ("lam", [Child::Slot(s), Child::AppliedId(a)]) => Some(Array::Lam(*s, a.clone())),
+            ("app", [Child::AppliedId(l), Child::AppliedId(r)]) => Some(Array::App(l.clone(), r.clone())),
+            ("var", [Child::Slot(s)]) => Some(Array::Var(*s)),
+            ("let", [Child::Slot(s), Child::AppliedId(t), Child::AppliedId(b)]) => Some(Array::Let(*s, t.clone(), b.clone())),
             (op, []) => {
                 let s: Symbol = op.parse().ok()?;
-                Some(ArrayENode::Symbol(s))
+                Some(Array::Symbol(s))
             },
             _ => None,
         }

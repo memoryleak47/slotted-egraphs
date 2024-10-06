@@ -31,29 +31,29 @@ mod let_small_step;
 pub use let_small_step::*;
 
 #[derive(Clone, Hash, PartialEq, Eq, PartialOrd, Ord)]
-pub enum LetENode {
+pub enum Lambda {
     Lam(Slot, AppliedId),
     App(AppliedId, AppliedId),
     Var(Slot),
-    Let(Slot, AppliedId, AppliedId),
+    Lambda(Slot, AppliedId, AppliedId),
 }
 
-impl Language for LetENode {
+impl Language for Lambda {
     fn all_slot_occurences_mut(&mut self) -> Vec<&mut Slot> {
         let mut out = Vec::new();
         match self {
-            LetENode::Lam(x, b) => {
+            Lambda::Lam(x, b) => {
                 out.push(x);
                 out.extend(b.slots_mut());
             },
-            LetENode::App(l, r) => {
+            Lambda::App(l, r) => {
                 out.extend(l.slots_mut());
                 out.extend(r.slots_mut());
             }
-            LetENode::Var(x) => {
+            Lambda::Var(x) => {
                 out.push(x);
             }
-            LetENode::Let(x, t, b) => {
+            Lambda::Lambda(x, t, b) => {
                 out.push(x);
                 out.extend(t.slots_mut());
                 out.extend(b.slots_mut());
@@ -65,17 +65,17 @@ impl Language for LetENode {
     fn public_slot_occurences_mut(&mut self) -> Vec<&mut Slot> {
         let mut out = Vec::new();
         match self {
-            LetENode::Lam(x, b) => {
+            Lambda::Lam(x, b) => {
                 out.extend(b.slots_mut().into_iter().filter(|y| *y != x));
             },
-            LetENode::App(l, r) => {
+            Lambda::App(l, r) => {
                 out.extend(l.slots_mut());
                 out.extend(r.slots_mut());
             }
-            LetENode::Var(x) => {
+            Lambda::Var(x) => {
                 out.push(x);
             }
-            LetENode::Let(x, t, b) => {
+            Lambda::Lambda(x, t, b) => {
                 out.extend(b.slots_mut().into_iter().filter(|y| *y != x));
                 out.extend(t.slots_mut());
             }
@@ -85,28 +85,28 @@ impl Language for LetENode {
 
     fn applied_id_occurences_mut(&mut self) -> Vec<&mut AppliedId> {
         match self {
-            LetENode::Lam(_, b) => vec![b],
-            LetENode::App(l, r) => vec![l, r],
-            LetENode::Var(_) => vec![],
-            LetENode::Let(_, t, b) => vec![t, b],
+            Lambda::Lam(_, b) => vec![b],
+            Lambda::App(l, r) => vec![l, r],
+            Lambda::Var(_) => vec![],
+            Lambda::Lambda(_, t, b) => vec![t, b],
         }
     }
 
     fn to_op(&self) -> (String, Vec<Child>) {
         match self.clone() {
-            LetENode::Lam(s, a) => (String::from("lam"), vec![Child::Slot(s), Child::AppliedId(a)]),
-            LetENode::App(l, r) => (String::from("app"), vec![Child::AppliedId(l), Child::AppliedId(r)]),
-            LetENode::Var(s) => (String::from("var"), vec![Child::Slot(s)]),
-            LetENode::Let(s, t, b) => (String::from("let"), vec![Child::Slot(s), Child::AppliedId(t), Child::AppliedId(b)]),
+            Lambda::Lam(s, a) => (String::from("lam"), vec![Child::Slot(s), Child::AppliedId(a)]),
+            Lambda::App(l, r) => (String::from("app"), vec![Child::AppliedId(l), Child::AppliedId(r)]),
+            Lambda::Var(s) => (String::from("var"), vec![Child::Slot(s)]),
+            Lambda::Lambda(s, t, b) => (String::from("let"), vec![Child::Slot(s), Child::AppliedId(t), Child::AppliedId(b)]),
         }
     }
 
     fn from_op(op: &str, children: Vec<Child>) -> Option<Self> {
         match (op, &*children) {
-            ("lam", [Child::Slot(s), Child::AppliedId(a)]) => Some(LetENode::Lam(*s, a.clone())),
-            ("app", [Child::AppliedId(l), Child::AppliedId(r)]) => Some(LetENode::App(l.clone(), r.clone())),
-            ("var", [Child::Slot(s)]) => Some(LetENode::Var(*s)),
-            ("let", [Child::Slot(s), Child::AppliedId(t), Child::AppliedId(b)]) => Some(LetENode::Let(*s, t.clone(), b.clone())),
+            ("lam", [Child::Slot(s), Child::AppliedId(a)]) => Some(Lambda::Lam(*s, a.clone())),
+            ("app", [Child::AppliedId(l), Child::AppliedId(r)]) => Some(Lambda::App(l.clone(), r.clone())),
+            ("var", [Child::Slot(s)]) => Some(Lambda::Var(*s)),
+            ("let", [Child::Slot(s), Child::AppliedId(t), Child::AppliedId(b)]) => Some(Lambda::Lambda(*s, t.clone(), b.clone())),
             _ => None,
         }
     }
@@ -115,13 +115,13 @@ impl Language for LetENode {
 
 use std::fmt::*;
 
-impl Debug for LetENode {
+impl Debug for Lambda {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
         match self {
-            LetENode::Lam(s, b) => write!(f, "(lam {s:?} {b:?})"),
-            LetENode::App(l, r) => write!(f, "(app {l:?} {r:?})"),
-            LetENode::Var(s) => write!(f, "{s:?}"),
-            LetENode::Let(x, t, b) => write!(f, "(let {x:?} {t:?} {b:?})"),
+            Lambda::Lam(s, b) => write!(f, "(lam {s:?} {b:?})"),
+            Lambda::App(l, r) => write!(f, "(app {l:?} {r:?})"),
+            Lambda::Var(s) => write!(f, "{s:?}"),
+            Lambda::Lambda(x, t, b) => write!(f, "(let {x:?} {t:?} {b:?})"),
         }
     }
 }

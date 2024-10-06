@@ -15,8 +15,8 @@ pub use lambda::*;
 mod rise;
 pub use rise::*;
 
-mod symbol;
-pub use symbol::*;
+mod sym;
+pub use sym::*;
 
 mod var;
 pub use var::*;

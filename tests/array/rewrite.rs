@@ -1,6 +1,6 @@
 use crate::*;
 
-pub fn array_rules(rules: &[&'static str]) -> Vec<Rewrite<ArrayENode>> {
+pub fn array_rules(rules: &[&'static str]) -> Vec<Rewrite<Array>> {
     let mut rewrites = Vec::new();
 
     for r in rules {
@@ -34,7 +34,7 @@ pub fn array_rules(rules: &[&'static str]) -> Vec<Rewrite<ArrayENode>> {
 }
 
 
-fn rew(name: &str, s1: &str, s2: &str) -> Rewrite<ArrayENode> {
+fn rew(name: &str, s1: &str, s2: &str) -> Rewrite<Array> {
     let pat = &array_parse_pattern(s1).to_string();
     let outpat = &array_parse_pattern(s2).to_string();
 
@@ -43,14 +43,14 @@ fn rew(name: &str, s1: &str, s2: &str) -> Rewrite<ArrayENode> {
 
 //////////////////////
 
-fn beta() -> Rewrite<ArrayENode> {
+fn beta() -> Rewrite<Array> {
     let pat = "(app (lam s1 ?body) ?e)";
     let outpat = "(let s1 ?e ?body)";
 
     Rewrite::new("beta", pat, outpat)
 }
 
-fn eta() -> Rewrite<ArrayENode> {
+fn eta() -> Rewrite<Array> {
     let pat = "(lam s1 (app ?f (var s1)))";
     let outpat = "?f";
 
@@ -59,7 +59,7 @@ fn eta() -> Rewrite<ArrayENode> {
     })
 }
 
-fn my_let_unused() -> Rewrite<ArrayENode> {
+fn my_let_unused() -> Rewrite<Array> {
     let pat = "(let s1 ?t ?b)";
     let outpat = "?b";
     Rewrite::new_if("my-let-unused", pat, outpat, |subst| {
@@ -67,19 +67,19 @@ fn my_let_unused() -> Rewrite<ArrayENode> {
     })
 }
 
-fn let_var_same() -> Rewrite<ArrayENode> {
+fn let_var_same() -> Rewrite<Array> {
     let pat = "(let s1 ?e (var s1))";
     let outpat = "?e";
     Rewrite::new("let-var-same", pat, outpat)
 }
 
-fn let_var_diff() -> Rewrite<ArrayENode> {
+fn let_var_diff() -> Rewrite<Array> {
     let pat = "(let s1 ?e (var s2))";
     let outpat = "(var s2)";
     Rewrite::new("let-var-diff", pat, outpat)
 }
 
-fn let_app() -> Rewrite<ArrayENode> {
+fn let_app() -> Rewrite<Array> {
     let pat = "(let s1 ?e (app ?a ?b))";
     let outpat = "(app (let s1 ?e ?a) (let s1 ?e ?b))";
     Rewrite::new_if("let-app", pat, outpat, |subst| {
@@ -87,7 +87,7 @@ fn let_app() -> Rewrite<ArrayENode> {
     })
 }
 
-fn let_lam_diff() -> Rewrite<ArrayENode> {
+fn let_lam_diff() -> Rewrite<Array> {
     let pat = "(let s1 ?e (lam s2 ?body))";
     let outpat = "(lam s2 (let s1 ?e ?body))";
     Rewrite::new_if("let-lam-diff", pat, outpat, |subst| {
@@ -97,14 +97,14 @@ fn let_lam_diff() -> Rewrite<ArrayENode> {
 
 /////////////////////
 
-fn map_fusion() -> Rewrite<ArrayENode> {
+fn map_fusion() -> Rewrite<Array> {
     let mfu = "s0";
     let pat = "(app (app (app m ?nn) ?f) (app (app (app m ?nn) ?g) ?arg))";
     let outpat = &format!("(app (app (app m ?nn) (lam {mfu} (app ?f (app ?g (var {mfu}))))) ?arg)");
     Rewrite::new("map-fusion", pat, outpat)
 }
 
-fn map_fission() -> Rewrite<ArrayENode> {
+fn map_fission() -> Rewrite<Array> {
     let x = 0;
     let mfi = 1;
 

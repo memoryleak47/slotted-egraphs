@@ -1,6 +1,6 @@
 use crate::lambda::*;
 
-pub fn lam_run(re: &RecExpr<LetENode>) -> RecExpr<LetENode> {
+pub fn lam_run(re: &RecExpr<Lambda>) -> RecExpr<Lambda> {
     let mut re = re.clone();
     while let Some(x) = lam_step(&re) {
         re = x;
@@ -9,7 +9,7 @@ pub fn lam_run(re: &RecExpr<LetENode>) -> RecExpr<LetENode> {
     re
 }
 
-pub fn lam_run_n(re: &RecExpr<LetENode>, n: u32) -> RecExpr<LetENode> {
+pub fn lam_run_n(re: &RecExpr<Lambda>, n: u32) -> RecExpr<Lambda> {
     let mut re = re.clone();
     for _ in 0..n {
         if let Some(x) = lam_step(&re) {
@@ -20,9 +20,9 @@ pub fn lam_run_n(re: &RecExpr<LetENode>, n: u32) -> RecExpr<LetENode> {
     re
 }
 
-pub fn lam_step(re: &RecExpr<LetENode>) -> Option<RecExpr<LetENode>> {
+pub fn lam_step(re: &RecExpr<Lambda>) -> Option<RecExpr<Lambda>> {
     match &re.node {
-        LetENode::Lam(x, _) => {
+        Lambda::Lam(x, _) => {
             let [b] = &*re.children else { panic!() };
             let b = lam_step(b)?;
 
@@ -31,11 +31,11 @@ pub fn lam_step(re: &RecExpr<LetENode>) -> Option<RecExpr<LetENode>> {
                 children: vec![b],
             })
         },
-        LetENode::App(_, _) => {
+        Lambda::App(_, _) => {
             let [l, r] = &*re.children else { panic!() };
 
             // beta-reduce
-            if let LetENode::Lam(x, _) = &l.node {
+            if let Lambda::Lam(x, _) = &l.node {
                 let [b] = &*l.children else { panic!() };
                 return Some(lam_subst(b, *x, r));
             }
@@ -58,14 +58,14 @@ pub fn lam_step(re: &RecExpr<LetENode>) -> Option<RecExpr<LetENode>> {
 
             None
         },
-        LetENode::Var(_) => None,
-        LetENode::Let(..) => panic!(),
+        Lambda::Var(_) => None,
+        Lambda::Lambda(..) => panic!(),
     }
 }
 
-fn lam_subst(re: &RecExpr<LetENode>, x: Slot, t: &RecExpr<LetENode>) -> RecExpr<LetENode> {
+fn lam_subst(re: &RecExpr<Lambda>, x: Slot, t: &RecExpr<Lambda>) -> RecExpr<Lambda> {
     match &re.node {
-        LetENode::Lam(y, _) => {
+        Lambda::Lam(y, _) => {
             let [b] = &*re.children else { panic!() };
             if x == *y {
                 re.clone()
@@ -73,7 +73,7 @@ fn lam_subst(re: &RecExpr<LetENode>, x: Slot, t: &RecExpr<LetENode>) -> RecExpr<
                 let f = lam_free_variables(t);
 
                 let mut y: Slot = *y;
-                let mut b: RecExpr<LetENode> = b.clone();
+                let mut b: RecExpr<Lambda> = b.clone();
 
                 if f.contains(&y) {
                     let y2 = (0..).map(|i| Slot::new(i))
@@ -82,7 +82,7 @@ fn lam_subst(re: &RecExpr<LetENode>, x: Slot, t: &RecExpr<LetENode>) -> RecExpr<
                                   .unwrap();
 
                     let y2_node = RecExpr {
-                        node: LetENode::Var(y2),
+                        node: Lambda::Var(y2),
                         children: vec![],
                     };
 
@@ -95,35 +95,35 @@ fn lam_subst(re: &RecExpr<LetENode>, x: Slot, t: &RecExpr<LetENode>) -> RecExpr<
                 }
             }
         },
-        LetENode::App(_, _) => {
+        Lambda::App(_, _) => {
             let [l, r] = &*re.children else { panic!() };
             RecExpr {
                 node: re.node.clone(),
                 children: vec![lam_subst(l, x, t), lam_subst(r, x, t)],
             }
         },
-        LetENode::Var(y) => {
+        Lambda::Var(y) => {
             if x == *y {
                 t.clone()
             } else {
                 re.clone()
             }
         }
-        LetENode::Let(..) => panic!(),
+        Lambda::Lambda(..) => panic!(),
     }
 }
 
-fn lam_free_variables(re: &RecExpr<LetENode>) -> HashSet<Slot> {
+fn lam_free_variables(re: &RecExpr<Lambda>) -> HashSet<Slot> {
     match &re.node {
-        LetENode::Lam(x, _) => {
+        Lambda::Lam(x, _) => {
             let [b] = &*re.children else { panic!() };
             &lam_free_variables(b) - &singleton_set(*x)
         }
-        LetENode::App(_, _) => {
+        Lambda::App(_, _) => {
             let [l, r] = &*re.children else { panic!() };
             &lam_free_variables(l) | &lam_free_variables(r)
         },
-        LetENode::Var(x) => singleton_set(*x),
-        LetENode::Let(..) => panic!(),
+        Lambda::Var(x) => singleton_set(*x),
+        Lambda::Lambda(..) => panic!(),
     }
 }

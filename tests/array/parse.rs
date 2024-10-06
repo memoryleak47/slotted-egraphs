@@ -1,14 +1,14 @@
 use crate::*;
 
-pub fn array_parse(s: &str) -> RecExpr<ArrayENode> {
+pub fn array_parse(s: &str) -> RecExpr<Array> {
     pattern_to_re(&array_parse_pattern(s))
 }
 
-pub fn array_parse_pattern(s: &str) -> Pattern<ArrayENode> {
+pub fn array_parse_pattern(s: &str) -> Pattern<Array> {
     translate(Pattern::parse(s).unwrap())
 }
 
-fn translate(p: Pattern<SymbolENode>) -> Pattern<ArrayENode> {
+fn translate(p: Pattern<Sym>) -> Pattern<Array> {
     match p.node {
         ENodeOrPVar::PVar(x) => {
             RecExpr {
@@ -16,7 +16,7 @@ fn translate(p: Pattern<SymbolENode>) -> Pattern<ArrayENode> {
                 children: Vec::new(),
             }
         },
-        ENodeOrPVar::ENode(SymbolENode { op, children }) => {
+        ENodeOrPVar::ENode(Sym { op, children }) => {
             assert_eq!(children.len(), p.children.len());
             match (&*op.to_string(), &*p.children) {
                 ("o", [f, g]) => {
@@ -28,12 +28,12 @@ fn translate(p: Pattern<SymbolENode>) -> Pattern<ArrayENode> {
                 ("o", _) => panic!(),
                 (x, children) => {
                     let mut re = RecExpr {
-                        node: ENodeOrPVar::ENode(ArrayENode::Symbol(Symbol::from(x))),
+                        node: ENodeOrPVar::ENode(Array::Symbol(Symbol::from(x))),
                         children: Vec::new(),
                     };
                     for c in children {
                         re = RecExpr {
-                            node: ENodeOrPVar::ENode(ArrayENode::App(AppliedId::null(), AppliedId::null())),
+                            node: ENodeOrPVar::ENode(Array::App(AppliedId::null(), AppliedId::null())),
                             children: vec![re, translate(c.clone())],
                         };
                     }

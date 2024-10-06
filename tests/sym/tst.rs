@@ -1,6 +1,6 @@
 use crate::*;
 
-fn symbol_rules(extra_rules: &[&'static str]) -> Vec<Rewrite<SymbolENode>> {
+fn symbol_rules(extra_rules: &[&'static str]) -> Vec<Rewrite<Sym>> {
     let mut rewrites = Vec::new();
 
     // assoc:

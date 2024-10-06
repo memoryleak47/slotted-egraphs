@@ -6,7 +6,7 @@ pub enum SubstMethod {
     SmallStepUnoptimized,
 }
 
-pub fn rise_rules(subst_m: SubstMethod) -> Vec<Rewrite<RiseENode>> {
+pub fn rise_rules(subst_m: SubstMethod) -> Vec<Rewrite<Rise>> {
     let mut rewrites = Vec::new();
 
     rewrites.push(eta());
@@ -46,14 +46,14 @@ pub fn rise_rules(subst_m: SubstMethod) -> Vec<Rewrite<RiseENode>> {
     rewrites
 }
 
-fn beta() -> Rewrite<RiseENode> {
+fn beta() -> Rewrite<Rise> {
     let pat = "(app (lam s1 ?body) ?e)";
     let outpat = "(let s1 ?e ?body)";
 
     Rewrite::new("beta", pat, outpat)
 }
 
-fn eta() -> Rewrite<RiseENode> {
+fn eta() -> Rewrite<Rise> {
     let pat = "(lam s1 (app ?f (var s1)))";
     let outpat = "?f";
 
@@ -62,14 +62,14 @@ fn eta() -> Rewrite<RiseENode> {
     })
 }
 
-fn eta_expansion() -> Rewrite<RiseENode> {
+fn eta_expansion() -> Rewrite<Rise> {
     let pat = "?f";
     let outpat = "(lam s1 (app ?f (var s1)))";
 
     Rewrite::new("eta-expansion", pat, outpat)
 }
 
-fn my_let_unused() -> Rewrite<RiseENode> {
+fn my_let_unused() -> Rewrite<Rise> {
     let pat = "(let s1 ?t ?b)";
     let outpat = "?b";
     Rewrite::new_if("my-let-unused", pat, outpat, |subst| {
@@ -77,19 +77,19 @@ fn my_let_unused() -> Rewrite<RiseENode> {
     })
 }
 
-fn let_var_same() -> Rewrite<RiseENode> {
+fn let_var_same() -> Rewrite<Rise> {
     let pat = "(let s1 ?e (var s1))";
     let outpat = "?e";
     Rewrite::new("let-var-same", pat, outpat)
 }
 
-fn let_var_diff() -> Rewrite<RiseENode> {
+fn let_var_diff() -> Rewrite<Rise> {
     let pat = "(let s1 ?e (var s2))";
     let outpat = "(var s2)";
     Rewrite::new("let-var-diff", pat, outpat)
 }
 
-fn let_app() -> Rewrite<RiseENode> {
+fn let_app() -> Rewrite<Rise> {
     let pat = "(let s1 ?e (app ?a ?b))";
     let outpat = "(app (let s1 ?e ?a) (let s1 ?e ?b))";
     Rewrite::new_if("let-app", pat, outpat, |subst| {
@@ -97,13 +97,13 @@ fn let_app() -> Rewrite<RiseENode> {
     })
 }
 
-fn let_app_unopt() -> Rewrite<RiseENode> {
+fn let_app_unopt() -> Rewrite<Rise> {
     let pat = "(let s1 ?e (app ?a ?b))";
     let outpat = "(app (let s1 ?e ?a) (let s1 ?e ?b))";
     Rewrite::new("let-app-unopt", pat, outpat)
 }
 
-fn let_lam_diff() -> Rewrite<RiseENode> {
+fn let_lam_diff() -> Rewrite<Rise> {
     let pat = "(let s1 ?e (lam s2 ?body))";
     let outpat = "(lam s2 (let s1 ?e ?body))";
     Rewrite::new_if("let-lam-diff", pat, outpat, |subst| {
@@ -111,21 +111,21 @@ fn let_lam_diff() -> Rewrite<RiseENode> {
     })
 }
 
-fn let_lam_diff_unopt() -> Rewrite<RiseENode> {
+fn let_lam_diff_unopt() -> Rewrite<Rise> {
     let pat = "(let s1 ?e (lam s2 ?body))";
     let outpat = "(lam s2 (let s1 ?e ?body))";
     Rewrite::new("let-lam-diff-unopt", pat, outpat)
 }
 
-fn let_const() -> Rewrite<RiseENode> {
+fn let_const() -> Rewrite<Rise> {
     // is the const-detection at the same time as the baseline? probably not relevant.
     let pat = Pattern::parse("(let s1 ?t ?c)").unwrap();
 
-    let rt: RewriteT<RiseENode, ()> = RewriteT {
+    let rt: RewriteT<Rise, ()> = RewriteT {
         searcher: Box::new(|_| ()),
         applier: Box::new(move |(), eg| {
             for subst in ematch_all(eg, &pat) {
-                if eg.enodes_applied(&subst["c"]).iter().any(|n| matches!(n, RiseENode::Symbol(_) | RiseENode::Number(_))) {
+                if eg.enodes_applied(&subst["c"]).iter().any(|n| matches!(n, Rise::Symbol(_) | Rise::Number(_))) {
                     let orig = pattern_subst(eg, &pat, &subst);
                     eg.union_justified(&orig, &subst["c"], Some("let-const".to_string()));
                 }
@@ -137,14 +137,14 @@ fn let_const() -> Rewrite<RiseENode> {
 
 /////////////////////
 
-fn map_fusion() -> Rewrite<RiseENode> {
+fn map_fusion() -> Rewrite<Rise> {
     let mfu = "s0";
     let pat = "(app (app map ?f) (app (app map ?g) ?arg))";
     let outpat = &format!("(app (app map (lam {mfu} (app ?f (app ?g (var {mfu}))))) ?arg)");
     Rewrite::new("map-fusion", pat, outpat)
 }
 
-fn map_fission() -> Rewrite<RiseENode> {
+fn map_fission() -> Rewrite<Rise> {
     let x = 0;
     let mfi = 1;
 
@@ -161,31 +161,31 @@ fn map_fission() -> Rewrite<RiseENode> {
     })
 }
 
-fn remove_transpose_pair() -> Rewrite<RiseENode> {
+fn remove_transpose_pair() -> Rewrite<Rise> {
     let pat = "(app transpose (app transpose ?x))";
     let outpat = "?x";
     Rewrite::new("remove-transpose-pair", pat, outpat)
 }
 
-fn slide_before_map() -> Rewrite<RiseENode> {
+fn slide_before_map() -> Rewrite<Rise> {
     let pat = "(app (app (app slide ?sz) ?sp) (app (app map ?f) ?y))";
     let outpat = "(app (app map (app map ?f)) (app (app (app slide ?sz) ?sp) ?y))";
     Rewrite::new("slide-before-map", pat, outpat)
 }
 
-fn map_slide_before_transpose() -> Rewrite<RiseENode> {
+fn map_slide_before_transpose() -> Rewrite<Rise> {
     let pat = "(app transpose (app (app map (app (app slide ?sz) ?sp)) ?y))";
     let outpat = "(app (app map transpose) (app (app (app slide ?sz) ?sp) (app transpose ?y)))";
     Rewrite::new("map-slide-before-transpose", pat, outpat)
 }
 
-fn slide_before_map_map_f() -> Rewrite<RiseENode> {
+fn slide_before_map_map_f() -> Rewrite<Rise> {
     let pat = "(app (app map (app map ?f)) (app (app (app slide ?sz) ?sp) ?y))";
     let outpat = "(app (app (app slide ?sz) ?sp) (app (app map ?f) ?y))";
     Rewrite::new("slide-before-map-map-f", pat, outpat)
 }
 
-fn separate_dot_vh_simplified() -> Rewrite<RiseENode> {
+fn separate_dot_vh_simplified() -> Rewrite<Rise> {
     let x = "s0";
     let sdvh = "s1";
 
@@ -201,7 +201,7 @@ fn separate_dot_vh_simplified() -> Rewrite<RiseENode> {
     Rewrite::new("separate-dot-vh-simplified", pat, outpat)
 }
 
-fn separate_dot_hv_simplified() -> Rewrite<RiseENode> {
+fn separate_dot_hv_simplified() -> Rewrite<Rise> {
     let x = "s0";
     let sdhv = "s1";
 
@@ -219,18 +219,18 @@ fn separate_dot_hv_simplified() -> Rewrite<RiseENode> {
 }
 
 // subst using extraction
-fn beta_extr() -> Rewrite<RiseENode> {
+fn beta_extr() -> Rewrite<Rise> {
     let pat = Pattern::parse("(app (lam s1 ?b) ?t)").unwrap();
     let s = Slot::new(1);
 
     let a = pat.clone();
     let a2 = pat.clone();
 
-    let rt: RewriteT<RiseENode, Vec<(Subst, RecExpr<RiseENode>)>> = RewriteT {
+    let rt: RewriteT<Rise, Vec<(Subst, RecExpr<Rise>)>> = RewriteT {
         searcher: Box::new(move |eg| {
             let extractor = Extractor::<_, AstSize>::new(eg);
 
-            let mut out: Vec<(Subst, RecExpr<RiseENode>)> = Vec::new();
+            let mut out: Vec<(Subst, RecExpr<Rise>)> = Vec::new();
             for subst in ematch_all(eg, &a) {
                 let b = extractor.extract(subst["b"].clone(), eg);
                 let t = extractor.extract(subst["t"].clone(), eg);
@@ -252,19 +252,19 @@ fn beta_extr() -> Rewrite<RiseENode> {
 
 // why is this faster than beta_extr?
 // Probably because it can extract smaller terms after more rewrites?
-fn beta_extr_direct() -> Rewrite<RiseENode> {
+fn beta_extr_direct() -> Rewrite<Rise> {
     let pat = Pattern::parse("(app (lam s1 ?b) ?t)").unwrap();
     let s = Slot::new(1);
 
     let a = pat.clone();
     let a2 = pat.clone();
 
-    let rt: RewriteT<RiseENode, ()> = RewriteT {
+    let rt: RewriteT<Rise, ()> = RewriteT {
         searcher: Box::new(|_| ()),
         applier: Box::new(move |(), eg| {
             let extractor = Extractor::<_, AstSize>::new(eg);
 
-            let mut out: Vec<(Subst, RecExpr<RiseENode>)> = Vec::new();
+            let mut out: Vec<(Subst, RecExpr<Rise>)> = Vec::new();
             for subst in ematch_all(eg, &a) {
                 let b = extractor.extract(subst["b"].clone(), eg);
                 let t = extractor.extract(subst["t"].clone(), eg);
@@ -281,11 +281,11 @@ fn beta_extr_direct() -> Rewrite<RiseENode> {
     rt.into()
 }
 
-fn re_subst(s: Slot, b: RecExpr<RiseENode>, t: &RecExpr<RiseENode>) -> RecExpr<RiseENode> {
+fn re_subst(s: Slot, b: RecExpr<Rise>, t: &RecExpr<Rise>) -> RecExpr<Rise> {
     let new_node = match b.node {
-        RiseENode::Var(s2) if s == s2 => return t.clone(),
-        RiseENode::Lam(s2, _) if s == s2 => panic!("This shouldn't be possible!"),
-        RiseENode::Let(..) => panic!("This shouldn't be here!"),
+        Rise::Var(s2) if s == s2 => return t.clone(),
+        Rise::Lam(s2, _) if s == s2 => panic!("This shouldn't be possible!"),
+        Rise::Let(..) => panic!("This shouldn't be here!"),
         old => old,
     };
 

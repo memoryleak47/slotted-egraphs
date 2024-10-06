@@ -6,12 +6,12 @@ use crate::*;
 mod tst;
 
 #[derive(Clone, Hash, PartialEq, Eq, PartialOrd, Ord, Debug)]
-pub struct SymbolENode {
+pub struct Sym {
     pub op: Symbol,
     pub children: Vec<AppliedId>,
 }
 
-impl Language for SymbolENode {
+impl Language for Sym {
     fn all_slot_occurences_mut(&mut self) -> Vec<&mut Slot> {
         Vec::new()
     }
@@ -29,7 +29,7 @@ impl Language for SymbolENode {
     }
 
     fn from_op(op: &str, children: Vec<Child>) -> Option<Self> {
-        Some(SymbolENode {
+        Some(Sym {
             op: Symbol::from(op),
             children: children.iter().map(|x| {
                 let Child::AppliedId(i) = x else { panic!() };
@@ -44,6 +44,6 @@ impl Language for SymbolENode {
 fn symbol_lang_parse_roundtrip() {
     let s = "(foo 32 (❤ 32 (fooz ok)) (nice Σ))";
 
-    let x: RecExpr<SymbolENode> = RecExpr::parse(s).unwrap();
+    let x: RecExpr<Sym> = RecExpr::parse(s).unwrap();
     assert_eq!(s, &*x.to_string());
 }

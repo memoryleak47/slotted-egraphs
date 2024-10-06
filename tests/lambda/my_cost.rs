@@ -4,11 +4,11 @@ use std::cmp::Ordering;
 
 pub struct AstSizeNoLet;
 
-impl CostFunction<LetENode> for AstSizeNoLet {
+impl CostFunction<Lambda> for AstSizeNoLet {
     type Cost = MyCost;
 
-    fn cost<C>(enode: &LetENode, costs: C) -> MyCost where C: Fn(Id) -> MyCost {
-        if let LetENode::Let(..) = enode {
+    fn cost<C>(enode: &Lambda, costs: C) -> MyCost where C: Fn(Id) -> MyCost {
+        if let Lambda::Lambda(..) = enode {
             MyCost::Infinite
         } else {
             let mut s = MyCost::Finite(1);
