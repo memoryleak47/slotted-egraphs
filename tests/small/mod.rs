@@ -1,6 +1,7 @@
 use crate::*;
 
-fn main() {
+#[test]
+fn small15() {
     let eg: &mut EGraph<RiseENode> = &mut EGraph::new();
     equate("(app a (var s0))", "(app b (var s0))", eg); // a(x) = b(x)
 
@@ -11,7 +12,7 @@ fn main() {
 }
 
 #[test]
-fn main14() {
+fn small14() {
     let eg: &mut EGraph<RiseENode> = &mut EGraph::new();
     equate("(app (var s0) (var s1))", "(app (var s1) (var s2))", eg);
     eg.dump();
@@ -20,7 +21,7 @@ fn main14() {
 }
 
 #[test]
-fn main13() {
+fn small13() {
     let eg: &mut EGraph<RiseENode> = &mut EGraph::new();
     equate("(app (var s0) (var s1))", "(app (var s1) (var s0))", eg);
     eg.dump();
@@ -28,7 +29,7 @@ fn main13() {
 }
 
 #[test]
-fn main12() {
+fn small12() {
     let eg: &mut EGraph<RiseENode> = &mut EGraph::new();
     equate("(var s0)", "y", eg);
     eg.dump();
@@ -37,7 +38,7 @@ fn main12() {
 }
 
 #[test]
-fn main11() {
+fn small11() {
     let eg: &mut EGraph<RiseENode> = &mut EGraph::new();
 
     equate("(app (var s0) (var s1))", "(app (var s0) x)", eg);
@@ -47,7 +48,7 @@ fn main11() {
 }
 
 #[test]
-fn main10() {
+fn small10() {
     let eg: &mut EGraph<RiseENode> = &mut EGraph::new();
     equate("(app (var s0) (var s1))", "x", eg);
     eg.dump();
@@ -55,7 +56,7 @@ fn main10() {
 }
 
 #[test]
-fn main9() {
+fn small9() {
     let eg: &mut EGraph<RiseENode> = &mut EGraph::new();
     equate("(app (var s0) x)", "y", eg);
     eg.dump();
@@ -63,7 +64,7 @@ fn main9() {
 }
 
 #[test]
-fn main8() {
+fn small8() {
     let eg: &mut EGraph<RiseENode> = &mut EGraph::new();
     equate("(app (app (var s0) (var s1)) x)", "(app (app (var s1) (var s0)) x)", eg);
     equate("(app (app (var s0) (var s1)) y)", "(app (app (var s1) (var s0)) y)", eg);
@@ -73,7 +74,7 @@ fn main8() {
 }
 
 #[test]
-fn main7() {
+fn small7() {
     let eg: &mut EGraph<RiseENode> = &mut EGraph::new();
     equate("(app (app (var s0) (var s1)) (var s2))", "(app (app (var s1) (var s0)) (var s2))", eg);
     equate("(app (app (var s0) (var s1)) (var s2))", "(app (app (var s0) (var s2)) (var s1))", eg);
@@ -87,7 +88,7 @@ fn main7() {
 }
 
 #[test]
-fn main6() {
+fn small6() {
     let eg: &mut EGraph<RiseENode> = &mut EGraph::new();
     equate("(app (var s0) (var s1))", "(app (var s1) (var s0))", eg);
     eg.dump();
@@ -95,7 +96,7 @@ fn main6() {
 }
 
 #[test]
-fn main5() {
+fn small5() {
     let eg: &mut EGraph<RiseENode> = &mut EGraph::new();
     equate("(var s0)", "(app (var s0) x)", eg);
     equate("x", "y", eg);
@@ -104,7 +105,7 @@ fn main5() {
 }
 
 #[test]
-fn main4() {
+fn small4() {
     let eg: &mut EGraph<FghENode> = &mut EGraph::new();
     equate("(f s1 s2)", "(g s2 s1)", eg);
     equate("(g s1 s2)", "(h s1 s2)", eg);
@@ -113,7 +114,7 @@ fn main4() {
 }
 
 #[test]
-fn main3() {
+fn small3() {
     let eg: &mut EGraph<RiseENode> = &mut EGraph::new();
     let x1 = id("x1", eg);
     let x2 = id("x2", eg);
@@ -127,7 +128,7 @@ fn main3() {
 }
 
 #[test]
-fn main2() {
+fn small2() {
     let p = |s| RecExpr::parse(s).unwrap();
     let x1 = p("x1");
     let x2 = p("x2");
