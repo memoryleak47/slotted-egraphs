@@ -27,7 +27,7 @@ pub fn rewrite_big_step(eg: &mut EGraph<ENode>) {
         let b = b.apply_slotmap(&m);
 
         let new_id = subst(b, x, t, eg);
-        eg.union(&new_id, &app_id);
+        eg.union_justified(&new_id, &app_id, Some("big-step-beta-reduction".to_string()));
     }
 }
 
