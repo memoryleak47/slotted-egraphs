@@ -1,6 +1,3 @@
-#![allow(unused)]
-#![allow(non_snake_case)]
-
 use crate::*;
 
 mod tst;
