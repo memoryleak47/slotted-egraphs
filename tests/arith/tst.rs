@@ -23,7 +23,7 @@ fn assert_reaches(start: &str, goal: &str, steps: usize) {
 
 
 #[test]
-fn arith_test1() { // x+y = y+x
+fn t1() { // x+y = y+x
     let x = "s0";
     let y = "s1";
 
@@ -33,7 +33,7 @@ fn arith_test1() { // x+y = y+x
 }
 
 #[test]
-fn arith_test2() { // (x+y) * (x+y) = (x+y) * (y+x)
+fn t2() { // (x+y) * (x+y) = (x+y) * (y+x)
     let x = "s0";
     let y = "s1";
     let z = "s2";
@@ -45,7 +45,7 @@ fn arith_test2() { // (x+y) * (x+y) = (x+y) * (y+x)
 }
 
 #[test]
-fn arith_test3() { // (x+y) * (y+z) = (z+y) * (y+x)
+fn t3() { // (x+y) * (y+z) = (z+y) * (y+x)
     let x = "s0";
     let y = "s1";
     let z = "s2";
@@ -56,7 +56,7 @@ fn arith_test3() { // (x+y) * (y+z) = (z+y) * (y+x)
 }
 
 #[test]
-fn arith_test4() { // (x+y)**2 = x**2 + x*y + x*y + y**2
+fn t4() { // (x+y)**2 = x**2 + x*y + x*y + y**2
     let x = "s0";
     let y = "s1";
     let z = "s2";
@@ -80,7 +80,7 @@ fn add_chain(it: impl Iterator<Item=usize>) -> String {
 }
 
 #[test]
-fn arith_test5() { // x0+...+xN = xN+...+x0
+fn t5() { // x0+...+xN = xN+...+x0
     // This times out for larger N!
     // TODO reset N to 7.
     const N: usize = 4;
@@ -92,7 +92,7 @@ fn arith_test5() { // x0+...+xN = xN+...+x0
 }
 
 #[test]
-fn arith_test6() { // z*(x+y) = z*(y+x)
+fn t6() { // z*(x+y) = z*(y+x)
     let x = "s0";
     let y = "s1";
     let z = "s2";

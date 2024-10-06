@@ -51,7 +51,7 @@ impl Language for Fgh {
 }
 
 #[test]
-fn fgh_test() {
+fn transitive_symmetry() {
     let eg: &mut EGraph<Fgh> = &mut EGraph::new();
     equate("(f s1 s2)", "(g s2 s1)", eg);
     equate("(g s1 s2)", "(h s1 s2)", eg);

@@ -40,7 +40,7 @@ impl Language for Var {
 }
 
 #[test]
-fn test_var() {
+fn xy_eq_yz_causes_redundancy() {
     let mut eg = EGraph::<Var>::new();
     let a = eg.add_expr(RecExpr::parse("(f s0 s1)").unwrap());
     let b = eg.add_expr(RecExpr::parse("(f s1 s2)").unwrap());

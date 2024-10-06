@@ -4,7 +4,7 @@ use crate::lambda::*;
 macro_rules! unpack_tests {
     ($R:ty) => {
         #[test]
-        fn test_cannot_simplify() {
+        fn cannot_simplify() {
             use crate::lambda::*;
 
             let s = [
@@ -21,7 +21,7 @@ macro_rules! unpack_tests {
         }
 
         #[test]
-        fn test_self_rec() {
+        fn self_rec() {
             use lambda::*;
 
             // The intereting thing about this test is the following:
@@ -38,7 +38,7 @@ macro_rules! unpack_tests {
         }
 
         #[test]
-        fn test_t_shift() {
+        fn t_shift() {
             use lambda::*;
 
             // This caught a bug. The "lam 0" (aka "lam z z") was shifted to "lam 0 1" incorrectly.
@@ -49,7 +49,7 @@ macro_rules! unpack_tests {
         }
 
         #[test]
-        fn test_nested_identity1() {
+        fn nested_identity1() {
             use lambda::*;
 
             let p = "(app (lam s0 (var s0)) (lam s1 (var s1)))";
@@ -57,7 +57,7 @@ macro_rules! unpack_tests {
         }
 
         #[test]
-        fn test_nested_identity2() {
+        fn nested_identity2() {
             use lambda::*;
 
             let p = "(app (lam s0 (var s0)) (lam s1 (app (var s1) (var s1))))";
@@ -65,7 +65,7 @@ macro_rules! unpack_tests {
         }
 
         #[test]
-        fn test_nested_identity3() {
+        fn nested_identity3() {
             use lambda::*;
 
             let p = "(app (lam s0 (app (var s0) (var s0))) (lam s1 (var s1)))";
@@ -73,7 +73,7 @@ macro_rules! unpack_tests {
         }
 
         #[test]
-        fn test_simple_beta() {
+        fn simple_beta() {
             use lambda::*;
 
             let p = "(lam s0 (lam s1
@@ -85,7 +85,7 @@ macro_rules! unpack_tests {
         }
 
         #[test]
-        fn test_redundant_slot() {
+        fn redundant_slot() {
             use lambda::*;
 
             // y is unused, and hence x is effectively redundant.
@@ -94,7 +94,7 @@ macro_rules! unpack_tests {
         }
 
         #[test]
-        fn test_redundant_slot2() {
+        fn redundant_slot2() {
             use lambda::*;
 
             // y is unused, and hence x is effectively redundant.
@@ -103,7 +103,7 @@ macro_rules! unpack_tests {
         }
 
         #[test]
-        fn test_inf_loop() {
+        fn inf_loop() {
             use lambda::*;
 
             let p = "(app (lam s0 (app (var s0) (var s0))) (lam s1 (app (var s1) (var s1))))";
@@ -113,7 +113,7 @@ macro_rules! unpack_tests {
 
         // A y-combinator example that directly yields "f x = x" without looping.
         #[test]
-        fn test_y_identity() {
+        fn y_identity() {
             use lambda::*;
 
             let p = "(lam s0 (lam s1 (var s1)))";
@@ -124,7 +124,7 @@ macro_rules! unpack_tests {
         }
 
         #[test]
-        fn test_add00() {
+        fn add00() {
             use lambda::*;
 
             let s = app(app(add(), num(0)), num(0));
@@ -132,7 +132,7 @@ macro_rules! unpack_tests {
         }
 
         #[test]
-        fn test_add01() {
+        fn add01() {
             use lambda::*;
 
             let s = app(app(add(), num(0)), num(1));
@@ -140,7 +140,7 @@ macro_rules! unpack_tests {
         }
 
         #[test]
-        fn test_add_y_step() {
+        fn add_y_step() {
             use lambda::*;
 
             let s1 = app(add_impl(), add());
