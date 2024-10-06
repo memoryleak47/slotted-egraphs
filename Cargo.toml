@@ -12,8 +12,11 @@ checks = []
 
 [dependencies]
 fnv = "1.0.7"
-symbol_table = { version = "0.3", features = ["global"]}
 lazy_static = "1.5.0"
+
+[dev-dependencies]
+symbol_table = { version = "0.3", features = ["global"]}
+rand = "0.8.5"
 
 [profile.release]
 debug = true
