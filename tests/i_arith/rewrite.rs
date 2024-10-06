@@ -36,7 +36,7 @@ fn eta() -> Rewrite<ArithENode> {
     let outpat = "?b";
 
     Rewrite::new_if("eta", pat, outpat, |subst| {
-        !subst["?b"].slots().contains(&Slot::new(1))
+        !subst["b"].slots().contains(&Slot::new(1))
     })
 }
 
@@ -50,7 +50,7 @@ fn my_let_unused() -> Rewrite<ArithENode> {
     let pat = "(let s1 ?t ?b)";
     let outpat = "?b";
     Rewrite::new_if("my-let-unused", pat, outpat, |subst| {
-        !subst["?b"].slots().contains(&Slot::new(1))
+        !subst["b"].slots().contains(&Slot::new(1))
     })
 }
 
@@ -64,7 +64,7 @@ fn let_app() -> Rewrite<ArithENode> {
     let pat = "(let s1 ?e (app ?a ?b))";
     let outpat = "(app (let s1 ?e ?a) (let s1 ?e ?b))";
     Rewrite::new_if("let-app", pat, outpat, |subst| {
-        subst["?a"].slots().contains(&Slot::new(1)) || subst["?b"].slots().contains(&Slot::new(1))
+        subst["a"].slots().contains(&Slot::new(1)) || subst["b"].slots().contains(&Slot::new(1))
     })
 }
 
@@ -72,7 +72,7 @@ fn let_lam_diff() -> Rewrite<ArithENode> {
     let pat = "(let s1 ?e (lam s2 ?b))";
     let outpat = "(lam s2 (let s1 ?e ?b))";
     Rewrite::new_if("let-lam-diff", pat, outpat, |subst| {
-        subst["?b"].slots().contains(&Slot::new(1))
+        subst["b"].slots().contains(&Slot::new(1))
     })
 }
 

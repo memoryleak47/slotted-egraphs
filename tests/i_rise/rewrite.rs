@@ -233,8 +233,8 @@ fn beta_extr() -> Rewrite<RiseENode> {
 
             let mut out: Vec<(Subst, RecExpr<RiseENode>)> = Vec::new();
             for subst in ematch_all(eg, &a) {
-                let b = extractor.extract(subst["?b"].clone(), eg);
-                let t = extractor.extract(subst["?t"].clone(), eg);
+                let b = extractor.extract(subst["b"].clone(), eg);
+                let t = extractor.extract(subst["t"].clone(), eg);
                 let res = re_subst(s, b, &t);
                 out.push((subst, res));
             }
@@ -267,8 +267,8 @@ fn beta_extr_direct() -> Rewrite<RiseENode> {
 
             let mut out: Vec<(Subst, RecExpr<RiseENode>)> = Vec::new();
             for subst in ematch_all(eg, &a) {
-                let b = extractor.extract(subst["?b"].clone(), eg);
-                let t = extractor.extract(subst["?t"].clone(), eg);
+                let b = extractor.extract(subst["b"].clone(), eg);
+                let t = extractor.extract(subst["t"].clone(), eg);
                 let res = re_subst(s, b, &t);
                 out.push((subst, res));
             }
