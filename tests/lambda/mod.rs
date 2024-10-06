@@ -1,38 +1,62 @@
 use crate::*;
 
-mod big_step;
-pub use big_step::*;
+mod build;
+pub use build::*;
+
+mod my_cost;
+pub use my_cost::*;
+
+mod tst;
+pub use tst::*;
+
+mod normalize;
+pub use normalize::*;
+
+mod realization;
+pub use realization::*;
 
 mod subst;
 pub use subst::*;
 
-mod small_step;
-pub use small_step::*;
+mod step;
+pub use step::*;
 
-mod parse;
-pub use parse::*;
+mod big_step;
+pub use big_step::*;
+
+mod lambda_small_step;
+pub use lambda_small_step::*;
+
+mod let_small_step;
+pub use let_small_step::*;
 
 #[derive(Clone, Hash, PartialEq, Eq, PartialOrd, Ord)]
-pub enum ENode {
+pub enum LetENode {
     Lam(Slot, AppliedId),
     App(AppliedId, AppliedId),
     Var(Slot),
+    Let(Slot, AppliedId, AppliedId),
 }
 
-impl Language for ENode {
+impl Language for LetENode {
     fn all_slot_occurences_mut(&mut self) -> Vec<&mut Slot> {
         let mut out = Vec::new();
         match self {
-            ENode::Lam(x, b) => {
+            LetENode::Lam(x, b) => {
                 out.push(x);
                 out.extend(b.slots_mut());
             },
-            ENode::App(l, r) => {
+            LetENode::App(l, r) => {
                 out.extend(l.slots_mut());
                 out.extend(r.slots_mut());
             }
-            ENode::Var(x) => {
+            LetENode::Var(x) => {
                 out.push(x);
+            }
+            LetENode::Let(x, t, b) => {
+                out.push(x);
+                out.extend(t.slots_mut());
+                out.extend(b.slots_mut());
             }
         }
         out
@@ -41,15 +65,19 @@ impl Language for ENode {
     fn public_slot_occurences_mut(&mut self) -> Vec<&mut Slot> {
         let mut out = Vec::new();
         match self {
-            ENode::Lam(x, b) => {
+            LetENode::Lam(x, b) => {
                 out.extend(b.slots_mut().into_iter().filter(|y| *y != x));
             },
-            ENode::App(l, r) => {
+            LetENode::App(l, r) => {
                 out.extend(l.slots_mut());
                 out.extend(r.slots_mut());
             }
-            ENode::Var(x) => {
+            LetENode::Var(x) => {
                 out.push(x);
+            }
+            LetENode::Let(x, t, b) => {
+                out.extend(b.slots_mut().into_iter().filter(|y| *y != x));
+                out.extend(t.slots_mut());
             }
         }
         out
@@ -57,39 +85,43 @@ impl Language for ENode {
 
     fn applied_id_occurences_mut(&mut self) -> Vec<&mut AppliedId> {
         match self {
-            ENode::Lam(_, b) => vec![b],
-            ENode::App(l, r) => vec![l, r],
-            ENode::Var(_) => vec![],
+            LetENode::Lam(_, b) => vec![b],
+            LetENode::App(l, r) => vec![l, r],
+            LetENode::Var(_) => vec![],
+            LetENode::Let(_, t, b) => vec![t, b],
         }
     }
 
     fn to_op(&self) -> (String, Vec<Child>) {
         match self.clone() {
-            ENode::Lam(s, a) => (String::from("lam"), vec![Child::Slot(s), Child::AppliedId(a)]),
-            ENode::App(l, r) => (String::from("app"), vec![Child::AppliedId(l), Child::AppliedId(r)]),
-            ENode::Var(s) => (String::from("var"), vec![Child::Slot(s)]),
+            LetENode::Lam(s, a) => (String::from("lam"), vec![Child::Slot(s), Child::AppliedId(a)]),
+            LetENode::App(l, r) => (String::from("app"), vec![Child::AppliedId(l), Child::AppliedId(r)]),
+            LetENode::Var(s) => (String::from("var"), vec![Child::Slot(s)]),
+            LetENode::Let(s, t, b) => (String::from("let"), vec![Child::Slot(s), Child::AppliedId(t), Child::AppliedId(b)]),
         }
     }
 
     fn from_op(op: &str, children: Vec<Child>) -> Option<Self> {
         match (op, &*children) {
-            ("lam", [Child::Slot(s), Child::AppliedId(a)]) => Some(ENode::Lam(*s, a.clone())),
-            ("app", [Child::AppliedId(l), Child::AppliedId(r)]) => Some(ENode::App(l.clone(), r.clone())),
-            ("var", [Child::Slot(s)]) => Some(ENode::Var(*s)),
+            ("lam", [Child::Slot(s), Child::AppliedId(a)]) => Some(LetENode::Lam(*s, a.clone())),
+            ("app", [Child::AppliedId(l), Child::AppliedId(r)]) => Some(LetENode::App(l.clone(), r.clone())),
+            ("var", [Child::Slot(s)]) => Some(LetENode::Var(*s)),
+            ("let", [Child::Slot(s), Child::AppliedId(t), Child::AppliedId(b)]) => Some(LetENode::Let(*s, t.clone(), b.clone())),
             _ => None,
         }
     }
-
 }
+
 
 use std::fmt::*;
 
-impl Debug for ENode {
+impl Debug for LetENode {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
         match self {
-            ENode::Lam(s, b) => write!(f, "(lam {s:?} {b:?})"),
-            ENode::App(l, r) => write!(f, "(app {l:?} {r:?})"),
-            ENode::Var(s) => write!(f, "{s:?}"),
+            LetENode::Lam(s, b) => write!(f, "(lam {s:?} {b:?})"),
+            LetENode::App(l, r) => write!(f, "(app {l:?} {r:?})"),
+            LetENode::Var(s) => write!(f, "{s:?}"),
+            LetENode::Let(x, t, b) => write!(f, "(let {x:?} {t:?} {b:?})"),
         }
     }
 }

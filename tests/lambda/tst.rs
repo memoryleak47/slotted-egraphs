@@ -1,17 +1,17 @@
-use crate::lamcalc::*;
+use crate::lambda::*;
 
 #[macro_export]
 macro_rules! unpack_tests {
     ($R:ty) => {
         #[test]
         fn test_cannot_simplify() {
-            use lamcalc::*;
+            use crate::lambda::*;
 
             let s = [
-                "(lam x0 x0)",
-                "(lam x0 (lam x1 x0))",
-                "(lam x0 (lam x1 x1))",
-                "(lam x0 (lam x1 (app x0 x1)))",
+                "(lam s0 (var s0))",
+                "(lam s0 (lam s1 (var s0)))",
+                "(lam s0 (lam s1 (var s1)))",
+                "(lam s0 (lam s1 (app (var s0) (var s1))))",
             ];
 
             for p in s {
@@ -22,7 +22,7 @@ macro_rules! unpack_tests {
 
         #[test]
         fn test_self_rec() {
-            use lamcalc::*;
+            use lambda::*;
 
             // The intereting thing about this test is the following:
             // "\x. (\y. y) x -> \x. x" using beta reduction.
@@ -33,80 +33,80 @@ macro_rules! unpack_tests {
             // C = \y. y | \z. C z
             //
             // This sometimes causes infinite loops, if you iterate by depth-first-search.
-            let s = "(lam x (app (lam y y) x))";
+            let s = "(lam s0 (app (lam s1 (var s1)) (var s0)))";
             check_simplify_to_nf::<$R>(&s);
         }
 
         #[test]
         fn test_t_shift() {
-            use lamcalc::*;
+            use lambda::*;
 
             // This caught a bug. The "lam 0" (aka "lam z z") was shifted to "lam 0 1" incorrectly.
-            let l = "(lam x (lam a x))";
-            let r = "(lam z z)";
+            let l = "(lam s0 (lam s1 (var s0)))";
+            let r = "(lam s2 (var s2))";
             let s = format!("(app {l} {r})");
             check_simplify_to_nf::<$R>(&s);
         }
 
         #[test]
         fn test_nested_identity1() {
-            use lamcalc::*;
+            use lambda::*;
 
-            let p = "(app (lam x0 x0) (lam x1 x1))";
+            let p = "(app (lam s0 (var s0)) (lam s1 (var s1)))";
             check_simplify_to_nf::<$R>(p);
         }
 
         #[test]
         fn test_nested_identity2() {
-            use lamcalc::*;
+            use lambda::*;
 
-            let p = "(app (lam x0 x0) (lam x1 (app x1 x1)))";
+            let p = "(app (lam s0 (var s0)) (lam s1 (app (var s1) (var s1))))";
             check_simplify_to_nf::<$R>(p);
         }
 
         #[test]
         fn test_nested_identity3() {
-            use lamcalc::*;
+            use lambda::*;
 
-            let p = "(app (lam x0 (app x0 x0)) (lam x1 x1))";
+            let p = "(app (lam s0 (app (var s0) (var s0))) (lam s1 (var s1)))";
             check_simplify_to_nf::<$R>(p);
         }
 
         #[test]
         fn test_simple_beta() {
-            use lamcalc::*;
+            use lambda::*;
 
-            let p = "(lam x (lam y
+            let p = "(lam s0 (lam s1
                 (app
-                    (lam z (app x z))
-                y)
+                    (lam s2 (app (var s0) (var s2)))
+                (var s1))
             ))";
             check_simplify_to_nf::<$R>(p);
         }
 
         #[test]
         fn test_redundant_slot() {
-            use lamcalc::*;
+            use lambda::*;
 
             // y is unused, and hence x is effectively redundant.
-            let p = "(lam x (app (lam y (lam z z)) x))";
+            let p = "(lam s0 (app (lam s1 (lam s2 (var s2))) (var s0)))";
             check_simplify_to_nf::<$R>(p);
         }
 
         #[test]
         fn test_redundant_slot2() {
-            use lamcalc::*;
+            use lambda::*;
 
             // y is unused, and hence x is effectively redundant.
-            let p = "(lam x (lam z (app (lam y z) x)))";
+            let p = "(lam s0 (lam s2 (app (lam s1 (var s2)) (var s0))))";
             check_simplify_to_nf::<$R>(p);
         }
 
         #[test]
         fn test_inf_loop() {
-            use lamcalc::*;
+            use lambda::*;
 
-            let p = "(app (lam x0 (app x0 x0)) (lam x1 (app x1 x1)))";
+            let p = "(app (lam s0 (app (var s0) (var s0))) (lam s1 (app (var s1) (var s1))))";
             let out = simplify::<$R>(p);
             assert_alpha_eq(&out, p);
         }
@@ -114,18 +114,18 @@ macro_rules! unpack_tests {
         // A y-combinator example that directly yields "f x = x" without looping.
         #[test]
         fn test_y_identity() {
-            use lamcalc::*;
+            use lambda::*;
 
-            let p = "(lam f (lam arg arg))";
+            let p = "(lam s0 (lam s1 (var s1)))";
             let s = app(y(), String::from(p));
 
             let out = simplify::<$R>(&s);
-            assert_alpha_eq(&out, "(lam x x)");
+            assert_alpha_eq(&out, "(lam s0 (var s0))");
         }
 
         #[test]
         fn test_add00() {
-            use lamcalc::*;
+            use lambda::*;
 
             let s = app(app(add(), num(0)), num(0));
             check_simplify_to_nf::<$R>(&s);
@@ -133,7 +133,7 @@ macro_rules! unpack_tests {
 
         #[test]
         fn test_add01() {
-            use lamcalc::*;
+            use lambda::*;
 
             let s = app(app(add(), num(0)), num(1));
             check_simplify_to_nf::<$R>(&s);
@@ -141,7 +141,7 @@ macro_rules! unpack_tests {
 
         #[test]
         fn test_add_y_step() {
-            use lamcalc::*;
+            use lambda::*;
 
             let s1 = app(add_impl(), add());
             let s2 = add();

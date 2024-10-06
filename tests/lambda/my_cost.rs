@@ -20,8 +20,6 @@ impl CostFunction<LetENode> for AstSizeNoLet {
     }
 }
 
-
-
 #[derive(Clone, PartialEq, Eq, Debug)]
 pub enum MyCost {
     Finite(u32),

@@ -1,37 +1,28 @@
-use crate::lamcalc::*;
+use crate::lambda::*;
 
 const NO_ITERS: usize = 400;
 const NO_ENODES: usize = 10000;
 
-pub trait Realization: Sized {
-    type Id: Clone + Eq;
-
-    fn new() -> Self;
-    fn add_ast(&mut self, ast: &Ast) -> Self::Id;
-    fn extract_ast(&self, id: Self::Id) -> Ast;
-    fn find(&self, id: Self::Id) -> Self::Id;
-    fn step(&mut self);
-    fn enode_count(&self) -> usize;
-    fn eclass_count(&self) -> usize;
-    fn explain_equivalence(&mut self, ast: Ast, ast2: Ast);
+pub trait Realization {
+    fn step(eg: &mut EGraph<LetENode>);
 }
 
 // stops when the desired output has been reached.
 pub fn simplify_to_nf<R: Realization>(s: &str) -> String {
-    let orig_ast = Ast::parse(s);
-    let mut ast = orig_ast.clone();
-    let mut eg = R::new();
-    let i = eg.add_ast(&ast);
+    let orig_re = RecExpr::parse(s).unwrap();
+    let mut re = orig_re.clone();
+    let mut eg = EGraph::new();
+    let i = eg.add_syn_expr(re.clone());
     for _ in 0..NO_ITERS {
-        eg.step();
+        R::step(&mut eg);
 
-        ast = eg.extract_ast(i.clone());
-        if ast.step().is_none() {
-            eg.explain_equivalence(orig_ast, ast.clone());
-            return ast.to_string();
+        re = extract_ast(&eg, i.clone());
+        if lam_step(&re).is_none() {
+            eg.explain_equivalence(orig_re, re.clone());
+            return re.to_string();
         };
 
-        if eg.enode_count() > NO_ENODES {
+        if eg.total_number_of_nodes() > NO_ENODES {
             break;
         }
     }
@@ -40,18 +31,18 @@ pub fn simplify_to_nf<R: Realization>(s: &str) -> String {
 
 
 pub fn simplify<R: Realization>(s: &str) -> String {
-    let ast = Ast::parse(s);
-    let mut eg = R::new();
-    let i = eg.add_ast(&ast);
+    let re = RecExpr::parse(s).unwrap();
+    let mut eg = EGraph::new();
+    let i = eg.add_syn_expr(re.clone());
     for _ in 0..NO_ITERS {
-        eg.step();
-        if eg.enode_count() > NO_ENODES {
+        R::step(&mut eg);
+        if eg.total_number_of_nodes() > NO_ENODES {
             break;
         }
     }
-    let out = eg.extract_ast(i.clone());
+    let out = extract_ast(&eg, i.clone());
 
-    eg.explain_equivalence(ast.clone(), out.clone());
+    eg.explain_equivalence(re.clone(), out.clone());
 
     let out = out.to_string();
 
@@ -79,20 +70,20 @@ pub fn check_simplify_incomplete<R: Realization>(p: &str) {
 }
 
 pub fn check_eq<R: Realization>(s1: &str, s2: &str) {
-    let s1 = Ast::parse(s1);
-    let s2 = Ast::parse(s2);
-    let mut eg = R::new();
-    let i1 = eg.add_ast(&s1);
-    let i2 = eg.add_ast(&s2);
+    let s1 = RecExpr::parse(s1).unwrap();
+    let s2 = RecExpr::parse(s2).unwrap();
+    let mut eg = EGraph::new();
+    let i1 = eg.add_syn_expr(s1.clone());
+    let i2 = eg.add_syn_expr(s2.clone());
     for _ in 0..NO_ITERS {
-        if eg.find(i1.clone()) == eg.find(i2.clone()) {
+        if eg.eq(&i1, &i2) {
             eg.explain_equivalence(s1.clone(), s2.clone());
             return;
         }
 
-        eg.step();
+        R::step(&mut eg);
 
-        if eg.enode_count() > NO_ENODES {
+        if eg.total_number_of_nodes() > NO_ENODES {
             break;
         }
     }
@@ -101,12 +92,21 @@ pub fn check_eq<R: Realization>(s1: &str, s2: &str) {
 
 // Non-Realization functions:
 
+fn extract_ast(eg: &EGraph<LetENode>, i: AppliedId) -> RecExpr<LetENode> {
+    extract::<_, AstSizeNoLet>(i, eg)
+}
+
 pub fn norm(s: &str) -> String {
-    Ast::parse(s).normalize().to_string()
+    let s = RecExpr::parse(s).unwrap();
+    let s = lam_normalize(&s);
+    s.to_string()
 }
 
 pub fn run(s: &str) -> String {
-    Ast::parse(s).run().normalize().to_string()
+    let s = RecExpr::parse(s).unwrap();
+    let s = lam_run(&s);
+    let s = lam_normalize(&s);
+    s.to_string()
 }
 
 pub fn assert_alpha_eq(s1: &str, s2: &str) {

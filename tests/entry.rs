@@ -3,9 +3,6 @@ pub use slotted_egraphs::*;
 
 pub use symbol_table::GlobalSymbol as Symbol;
 
-mod lamcalc;
-pub use lamcalc::*;
-
 mod arith;
 pub use arith::*;
 
@@ -14,9 +11,6 @@ pub use array::*;
 
 mod lambda;
 pub use lambda::*;
-
-mod lambda_let;
-pub use lambda_let::*;
 
 mod rise;
 pub use rise::*;

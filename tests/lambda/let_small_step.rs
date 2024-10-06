@@ -1,5 +1,16 @@
 use crate::*;
 
+pub struct LambdaRealLet;
+
+impl Realization for LambdaRealLet {
+    fn step(eg: &mut EGraph<LetENode>) {
+        rewrite_let(eg);
+    }
+}
+
+unpack_tests!(LambdaRealLet);
+
+
 pub fn rewrite_let(eg: &mut EGraph<LetENode>) {
     apply_rewrites(eg, &[
         beta(),
