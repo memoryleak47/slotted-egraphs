@@ -105,7 +105,7 @@ fn main5() {
 
 #[test]
 fn main4() {
-    let eg: &mut EGraph<TstENode> = &mut EGraph::new();
+    let eg: &mut EGraph<FghENode> = &mut EGraph::new();
     equate("(f s1 s2)", "(g s2 s1)", eg);
     equate("(g s1 s2)", "(h s1 s2)", eg);
     eg.dump();

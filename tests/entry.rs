@@ -27,6 +27,12 @@ pub use i_rise::*;
 mod i_symbol;
 pub use i_symbol::*;
 
+mod i_var;
+pub use i_var::*;
+
+mod i_fgh;
+pub use i_fgh::*;
+
 pub fn singleton_set<T: Eq + Hash>(t: T) -> HashSet<T> {
     [t].into_iter().collect()
 }

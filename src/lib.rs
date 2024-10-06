@@ -24,12 +24,6 @@ pub use parse::*;
 mod lang;
 pub use lang::*;
 
-mod tst;
-pub use tst::*;
-
-mod tst2;
-pub use tst2::*;
-
 mod slotmap;
 pub use slotmap::*;
 
