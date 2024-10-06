@@ -4,32 +4,25 @@ fn symbol_rules(extra_rules: &[&'static str]) -> Vec<Rewrite<SymbolENode>> {
     let mut rewrites = Vec::new();
 
     // assoc:
-    rewrites.push(rew("(o (o ?f ?g) ?h)", "(o ?f (o ?g ?h))"));
-    rewrites.push(rew("(o ?f (o ?g ?h))", "(o (o ?f ?g) ?h)"));
+    rewrites.push(Rewrite::new("assoc1", "(o (o ?f ?g) ?h)", "(o ?f (o ?g ?h))"));
+    rewrites.push(Rewrite::new("assoc2", "(o ?f (o ?g ?h))", "(o (o ?f ?g) ?h)"));
 
     // map-fusion:
-    // rewrites.push(rew("(o (m ?n ?f) (m ?n ?g))", "(m ?n (o ?f ?g))"));
+    // rewrites.push(Rewrite::new("map-fusion", "(o (m ?n ?f) (m ?n ?g))", "(m ?n (o ?f ?g))"));
 
     // map-fission:
-    rewrites.push(rew("(m ?n (o ?f ?g))", "(o (m ?n ?f) (m ?n ?g))"));
+    rewrites.push(Rewrite::new("map-fission", "(m ?n (o ?f ?g))", "(o (m ?n ?f) (m ?n ?g))"));
 
     for r in extra_rules {
         let rewrite = match *r {
-            "transpose-maps" => rew("(m ?n1 (m ?n2 ?f))", "(o T (o (m ?n2 (m ?n1 ?f)) T))"),
-            "split-map" => rew("(m (* ?n1 ?n2) ?f)", "(o j (o (m ?n1 (m ?n2 ?f)) (s ?n2)))"),
+            "transpose-maps" => Rewrite::new("transpose-maps", "(m ?n1 (m ?n2 ?f))", "(o T (o (m ?n2 (m ?n1 ?f)) T))"),
+            "split-map" => Rewrite::new("split-map", "(m (* ?n1 ?n2) ?f)", "(o j (o (m ?n1 (m ?n2 ?f)) (s ?n2)))"),
             x => panic!("unknown rule: {x}"),
         };
         rewrites.push(rewrite);
     }
 
     rewrites
-}
-
-fn rew(s1: &str, s2: &str) -> Rewrite<SymbolENode> {
-    let pat = Pattern::parse(s1).unwrap();
-    let outpat = Pattern::parse(s2).unwrap();
-
-    mk_rewrite(pat, outpat)
 }
 
 fn assert_reaches(start: &str, goal: &str, steps: usize, extra_rules: &[&'static str]) {
