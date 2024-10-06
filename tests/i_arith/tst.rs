@@ -1,7 +1,10 @@
 use crate::*;
 use crate::i_arith::build::*;
 
-fn assert_reaches(start: RecExpr<ArithENode>, goal: RecExpr<ArithENode>, steps: usize) {
+fn assert_reaches(start: &str, goal: &str, steps: usize) {
+    let start = RecExpr::parse(start).unwrap();
+    let goal = RecExpr::parse(goal).unwrap();
+
     let mut eg = EGraph::new();
     eg.add_expr(start.clone());
     for _ in 0..steps {
@@ -22,92 +25,57 @@ fn assert_reaches(start: RecExpr<ArithENode>, goal: RecExpr<ArithENode>, steps: 
 
 #[test]
 fn arith_test1() { // x+y = y+x
-    let x = 0;
-    let y = 1;
+    let x = "s0";
+    let y = "s1";
 
-    let a = add2(var(x), var(y));
-    let a = pattern_to_re(&a);
-
-    let b = add2(var(y), var(x));
-    let b = pattern_to_re(&b);
-
+    let a = &format!("(add (var {x}) (var {y}))");
+    let b = &format!("(add (var {y}) (var {x}))");
     assert_reaches(a, b, 3);
 }
 
 #[test]
 fn arith_test2() { // (x+y) * (x+y) = (x+y) * (y+x)
-    let x = 0;
-    let y = 1;
-    let z = 2;
+    let x = "s0";
+    let y = "s1";
+    let z = "s2";
 
-    let a = mul2(
-                add2(var(x), var(y)),
-                add2(var(x), var(y))
-            );
-    let a = pattern_to_re(&a);
-
-    let b = mul2(
-                add2(var(x), var(y)),
-                add2(var(y), var(x))
-            );
-    let b = pattern_to_re(&b);
+    let a = &format!("(mul (add (var {x}) (var {y})) (add (var {x}) (var {y})))");
+    let b = &format!("(mul (add (var {x}) (var {y})) (add (var {y}) (var {x})))");
 
     assert_reaches(a, b, 3);
 }
 
 #[test]
 fn arith_test3() { // (x+y) * (y+z) = (z+y) * (y+x)
-    let x = 0;
-    let y = 1;
-    let z = 2;
+    let x = "s0";
+    let y = "s1";
+    let z = "s2";
 
-    let a = mul2(
-                add2(var(x), var(y)),
-                add2(var(y), var(z))
-            );
-    let a = pattern_to_re(&a);
-
-    let b = mul2(
-                add2(var(z), var(y)),
-                add2(var(y), var(x))
-            );
-    let b = pattern_to_re(&b);
-
+    let a = &format!("(mul (add (var {x}) (var {y})) (add (var {y}) (var {z})))");
+    let b = &format!("(mul (add (var {z}) (var {y})) (add (var {y}) (var {x})))");
     assert_reaches(a, b, 3);
 }
 
 #[test]
 fn arith_test4() { // (x+y)**2 = x**2 + x*y + x*y + y**2
-    let x = 0;
-    let y = 1;
-    let z = 2;
+    let x = "s0";
+    let y = "s1";
+    let z = "s2";
 
-    let a = mul2(
-                add2(var(x), var(y)),
-                add2(var(x), var(y))
-            );
-    let a = pattern_to_re(&a);
-
-    let b = add2(
-                mul2(var(x), var(x)),
-                add2(
-                    mul2(var(x), var(y)),
-                    add2(
-                        mul2(var(x), var(y)),
-                        mul2(var(y), var(y)),
-                    ),
-                )
-            );
-    let b = pattern_to_re(&b);
-
+    let a = "(mul (add (var {x}) (var {y})) (add (var {x}) (var {y})))";
+    let b = "(add (mul (var {x}) (var {x}))
+             (add (mul (var {x}) (var {y}))
+             (add (mul (var {x}) (var {y}))
+                  (mul (var {y}) (var {y}))
+             )))";
     assert_reaches(a, b, 10);
 }
 
-fn add_chain(it: impl Iterator<Item=usize>) -> Pattern<ArithENode> {
-    let mut it = it.map(var);
-    let mut x = it.next().unwrap();
+fn add_chain(it: impl Iterator<Item=usize>) -> String {
+    let mut it = it.map(|u| format!("(var s{u})"));
+    let mut x = format!("{}", it.next().unwrap());
     for y in it {
-        x = add2(x, y);
+        x = format!("(add {x} {y})");
     }
     x
 }
@@ -118,32 +86,28 @@ fn arith_test5() { // x0+...+xN = xN+...+x0
     // TODO reset N to 7.
     const N: usize = 4;
 
-    let a = add_chain(0..=N);
-    let a = pattern_to_re(&a);
-
-    let b = add_chain((0..=N).rev());
-    let b = pattern_to_re(&b);
+    let a = &add_chain(0..=N);
+    let b = &add_chain((0..=N).rev());
 
     assert_reaches(a, b, 10);
 }
 
 #[test]
 fn arith_test6() { // z*(x+y) = z*(y+x)
-    let x = 0;
-    let y = 1;
-    let z = 2;
+    let x = "s0";
+    let y = "s1";
+    let z = "s2";
 
-    let a = mul2(var(z), add2(var(x), var(y)));
-    let a = pattern_to_re(&a);
-
-    let b = mul2(var(z), add2(var(y), var(x)));
-    let b = pattern_to_re(&b);
-
+    let a = &format!("(mul (var {z}) (add (var {x}) (var {y})))");
+    let b = &format!("(mul (var {z}) (add (var {y}) (var {x})))");
     assert_reaches2(a, b, 10);
 
 
     // assert_reaches, but only using add_comm!
-    fn assert_reaches2(start: RecExpr<ArithENode>, goal: RecExpr<ArithENode>, steps: usize) {
+    fn assert_reaches2(start: &str, goal: &str, steps: usize) {
+        let start = RecExpr::parse(start).unwrap();
+        let goal = RecExpr::parse(goal).unwrap();
+
         let mut eg = EGraph::new();
         eg.add_expr(start.clone());
         for _ in 0..steps {
