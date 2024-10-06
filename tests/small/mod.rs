@@ -144,37 +144,3 @@ fn small2() {
     eg.union(&y2, &y3);
     eg.explain_equivalence(x1, x4).show_expr(&eg);
 }
-
-
-// misc functions.
-
-fn id<L: Language>(s: &str, eg: &mut EGraph<L>) -> AppliedId {
-    eg.check();
-    let re = RecExpr::parse(s).unwrap();
-    let out = eg.add_syn_expr(re.clone());
-    eg.check();
-    out
-}
-
-fn term<L: Language>(s: &str, eg: &mut EGraph<L>) -> RecExpr<L> {
-    let re = RecExpr::parse(s).unwrap();
-    re
-}
-
-fn equate<L: Language>(s1: &str, s2: &str, eg: &mut EGraph<L>) {
-    eg.check();
-    let s1 = id(s1, eg);
-    eg.check();
-    let s2 = id(s2, eg);
-    eg.check();
-    eg.union(&s1, &s2);
-    eg.check();
-}
-
-fn explain<L: Language>(s1: &str, s2: &str, eg: &mut EGraph<L>) {
-    eg.check();
-    let s1 = term(s1, eg);
-    let s2 = term(s2, eg);
-    eg.explain_equivalence(s1, s2).show_expr(eg);
-    eg.check();
-}
