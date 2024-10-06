@@ -41,7 +41,7 @@ impl Language for Sym {
 
 
 #[test]
-fn symbol_lang_parse_roundtrip() {
+fn parse_roundtrip() {
     let s = "(foo 32 (❤ 32 (fooz ok)) (nice Σ))";
 
     let x: RecExpr<Sym> = RecExpr::parse(s).unwrap();
