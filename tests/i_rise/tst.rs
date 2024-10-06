@@ -34,37 +34,13 @@ fn test_reduction() {
     assert_reaches(a, b, 40);
 }
 
-// FISSION //
-
-fn fchain(fs: impl Iterator<Item=usize>) -> Pattern<RiseENode> {
-    let x = 42;
-    let mut it = var(x);
-    for i in fs {
-        let f_i = symb(&format!("f{}", i));
-        it = app(f_i, it);
-    }
-    lam(x, it)
-}
-
-fn fission_re1() -> RecExpr<RiseENode> {
-    let out = app(symb("map"), fchain(1..=5));
-    pattern_to_re(&out)
-}
-
-fn fission_re2() -> RecExpr<RiseENode> {
-    let y = 1;
-
-    let left = map1(fchain(3..=5));
-    let right = map2(fchain(1..=2), var(y));
-
-    let out = lam(y, app(left, right));
-
-    pattern_to_re(&out)
-}
-
 #[test]
 fn test_fission() {
-    assert_reaches(fission_re1(), fission_re2(), 40);
+    let a = "(app sym_map (lam s42 (app sym_f5 (app sym_f4 (app sym_f3 (app sym_f2 (app sym_f1 (var s42))))))))";
+    let b = "(lam s1 (app (app sym_map (lam s42 (app sym_f5 (app sym_f4 (app sym_f3 (var s42)))))) (app (app sym_map (lam s42 (app sym_f2 (app sym_f1 (var s42))))) (var s1))))";
+    let a = RecExpr::parse(a).unwrap();
+    let b = RecExpr::parse(b).unwrap();
+    assert_reaches(a, b, 40);
 }
 
 // BINOMIAL //
