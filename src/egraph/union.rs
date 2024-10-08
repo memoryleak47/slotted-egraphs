@@ -313,6 +313,7 @@ impl<L: Language> EGraph<L> {
         self.shrink_slots(&leader, &cap, prf);
     }
 
+    // TODO get rid of semantic_add, in favor of "handle_pending".
     pub fn semantic_add(&mut self, enode: &L, i_orig: &AppliedId, src_id: AppliedId) {
         let mut enode = self.find_enode(&enode);
         let mut i = self.find_applied_id(i_orig);
