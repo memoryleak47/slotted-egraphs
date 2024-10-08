@@ -197,7 +197,3 @@ fn find_lowest_nonstab<P: Permutation>(generators: &HashSet<P>) -> Option<Slot> 
     }
     min
 }
-
-pub fn singleton_set<T: Eq + Hash>(t: T) -> HashSet<T> {
-    [t].into_iter().collect()
-}
