@@ -22,6 +22,22 @@ impl<L: Language> Hash for ProvenNode<L> {
     }
 }
 
+impl<L: Language> ProvenNode<L> {
+    // checks that `proofs` brings us from `base` to `elem`.
+    pub fn check_base(&self, base: &L) {
+        let l = base.applied_id_occurences();
+        let r = self.elem.applied_id_occurences();
+        let n = self.proofs.len();
+        assert_eq!(n, l.len());
+        assert_eq!(n, r.len());
+        for i in 0..n {
+            let l = l[i].clone();
+            let r = r[i].clone();
+            let eq = Equation { l, r };
+            assert_proves_equation(&self.proofs[i], &eq);
+        }
+    }
+}
 
 impl<L: Language> EGraph<L> {
     pub fn refl_pn(&self, start: &L) -> ProvenNode<L> {

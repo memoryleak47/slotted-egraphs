@@ -270,13 +270,8 @@ impl<L: Language> EGraph<L> {
         // the proofs in `s` should express how its node changed relative to `enode`.
         let s_inv = |s: &HashSet<ProvenNode<L>>| {
             if CHECKS {
-                for ProvenNode { elem: new_enode, proofs: prfs } in s {
-                    for i in 0..n {
-                        let l = enode.applied_id_occurences()[i].clone();
-                        let r = new_enode.applied_id_occurences()[i].clone();
-                        let eq = Equation { l, r };
-                        assert_proves_equation(&prfs[i], &eq);
-                    }
+                for pn in s {
+                    pn.check_base(enode);
                 }
             }
         };
