@@ -254,13 +254,6 @@ impl<L: Language> EGraph<L> {
         (ProvenNode { elem: sh, proofs: out }, bij)
     }
 
-    fn refl_proof(&self, i: Id) -> ProvenEq {
-        let syn_slots = self.syn_slots(i);
-        let identity = SlotMap::identity(&syn_slots);
-        let app_id = AppliedId::new(i, identity);
-        self.prove_reflexivity(&app_id)
-    }
-
     // for all AppliedIds that are contained in `enode`, permute their arguments as their groups allow.
     // TODO every usage of this function hurts performance drastically. Which of them can I eliminate?
     pub fn proven_get_group_compatible_variants(&self, enode: &L) -> HashSet<ProvenNode<L>> {
@@ -288,13 +281,7 @@ impl<L: Language> EGraph<L> {
             }
         };
 
-
-        let mut init = Vec::new();
-        for x in enode.applied_id_occurences() {
-            init.push(self.refl_proof(x.id));
-        }
-
-        s.insert(ProvenNode { elem: enode.clone(), proofs: init });
+        s.insert(self.refl_pn(&enode));
 
         s_inv(&s);
 
