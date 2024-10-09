@@ -207,7 +207,7 @@ impl<L: Language> EGraph<L> {
         self.assert_ty(&map, &self.slots(to.id), &self.slots(from.id));
 
         let app_id = self.mk_sem_applied_id(to.id, map.clone());
-        self.unionfind_set(from.id, app_id, proof);
+        self.unionfind_set(from.id, ProvenAppliedId { elem: app_id, proof });
 
         // who updates the usages? raw_add_to_class & raw_remove_from_class do that.
 

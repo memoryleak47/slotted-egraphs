@@ -31,17 +31,13 @@ impl<L: Language> EGraph<L> {
         new
     }
 
-    pub fn unionfind_set(&self, i: Id, app: AppliedId, proof: ProvenEq) {
+    pub fn unionfind_set(&self, i: Id, pai: ProvenAppliedId) {
         if CHECKS {
-            proof.check(self);
-            assert_eq!(i, proof.l.id);
-            assert_eq!(app.id, proof.r.id);
+            pai.proof.check(self);
+            assert_eq!(i, pai.proof.l.id);
+            assert_eq!(pai.elem.id, pai.proof.r.id);
         }
         let mut lock = self.unionfind.try_lock().unwrap();
-        let pai = ProvenAppliedId {
-            elem: app,
-            proof,
-        };
         if lock.len() == i.0 {
             lock.push(pai);
         } else {

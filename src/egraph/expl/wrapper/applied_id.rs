@@ -19,4 +19,12 @@ impl<L: Language> EGraph<L> {
             proof: prove_transitivity(start.proof.clone(), next.proof.clone(), &self.proof_registry),
         }
     }
+
+    pub fn refl_pai(&self, app_id: &AppliedId) -> ProvenAppliedId {
+        ProvenAppliedId {
+            elem: app_id.clone(),
+            // @ghost
+            proof: prove_reflexivity(app_id, &self.proof_registry),
+        }
+    }
 }
