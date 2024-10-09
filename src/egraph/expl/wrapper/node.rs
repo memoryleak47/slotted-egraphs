@@ -5,6 +5,8 @@ use std::hash::*;
 // Should ProvenNode also contain the src-id?
 pub struct ProvenNode<L> {
     pub elem: L,
+
+    // @ghost
     pub proofs: Vec<ProvenEq>,
 }
 

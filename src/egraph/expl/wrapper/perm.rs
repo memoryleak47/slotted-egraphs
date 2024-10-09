@@ -22,7 +22,10 @@ impl Permutation for Perm {
 #[derive(Clone, Debug)]
 pub struct ProvenPerm {
     pub elem: Perm,
+
+    // @ghost
     pub proof: ProvenEq,
+    // @ghost
     pub reg: ProofRegistry
 }
 

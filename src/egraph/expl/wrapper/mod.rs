@@ -2,6 +2,8 @@
 // We can later opt-out of explanations by either a feature flag, or type-system arguments.
 // We want that all prove_X calls are used somewhere within this wrapper module.
 
+// We will for now use @ghost to annotate code that should be excluded if explanations are off.
+
 mod perm;
 pub use perm::*;
 
