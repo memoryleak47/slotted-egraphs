@@ -231,27 +231,13 @@ impl<L: Language> EGraph<L> {
     }
 
     pub fn proven_shape(&self, e: &L) -> (ProvenNode<L>, Bijection) {
-        let ProvenNode { elem: e, proofs: v1 } = self.proven_find_enode(e);
-        let (ProvenNode { elem: sh, proofs: v2 }, bij) = self.proven_get_group_compatible_variants(&e)
+        let e = self.proven_find_enode(e);
+        self.proven_proven_get_group_compatible_variants(&e)
             .into_iter()
-            .map(|ProvenNode { elem: x, proofs: prfs}| {
-                let (sh, bij) = x.weak_shape();
-                (ProvenNode { elem: sh, proofs: prfs}, bij)
-            }).min_by_key(|(ProvenNode { elem: x, ..}, _)| x.all_slot_occurences()).unwrap();
-
-        let mut out: Vec<ProvenEq> = Vec::new();
-
-        assert_eq!(v1.len(), e.applied_id_occurences().len());
-        assert_eq!(v2.len(), e.applied_id_occurences().len());
-
-        let v1 = v1.into_iter();
-        let v2 = v2.into_iter();
-
-        for (l, r) in v1.zip(v2) {
-            out.push(self.prove_transitivity(l, r));
-        }
-
-        (ProvenNode { elem: sh, proofs: out }, bij)
+            .map(|pn| {
+                let (sh, bij) = pn.elem.weak_shape();
+                (ProvenNode { elem: sh, proofs: pn.proofs}, bij)
+            }).min_by_key(|(pn, _)| pn.elem.all_slot_occurences()).unwrap()
     }
 
     pub fn proven_proven_get_group_compatible_variants(&self, enode: &ProvenNode<L>) -> HashSet<ProvenNode<L>> {
