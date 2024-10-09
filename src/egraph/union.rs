@@ -299,7 +299,7 @@ impl<L: Language> EGraph<L> {
         let identity = self.mk_syn_identity_applied_id(src_id);
         let syn_enode = self.get_syn_node(&identity);
         assert!(syn_enode.slots().is_subset(&src_syn_slots));
-        let (new_node, prfs) = self.proven_find_enode(&syn_enode);
+        let ProvenNode { elem: new_node, proofs: prfs } = self.proven_find_enode(&syn_enode);
         assert!(new_node.slots().is_subset(&src_syn_slots));
 
         let mut combined = Vec::new();
@@ -379,9 +379,9 @@ impl<L: Language> EGraph<L> {
             assert_eq!(&syn_slots, &syn_node.slots());
         }
 
-        let (enode, prfs) = self.proven_find_enode(&syn_node);
+        let ProvenNode { elem: enode, proofs: prfs } = self.proven_find_enode(&syn_node);
         let (weak, bij) = enode.weak_shape();
-        for (n, prfs2) in self.proven_get_group_compatible_variants(&enode) {
+        for ProvenNode { elem: n, proofs: prfs2 } in self.proven_get_group_compatible_variants(&enode) {
             let (weak2, bij2) = n.weak_shape();
             if weak == weak2 {
                 // I'm looking for an equation like i == i * BIJ to add BIJ to the group.
@@ -448,13 +448,15 @@ impl<L: Language> EGraph<L> {
     pub(in crate::egraph) fn handle_congruence(&mut self, a: Id) {
         let a = &self.mk_syn_identity_applied_id(a);
         let a_node = self.get_syn_node(a);
-        let (t, vec_p1) = self.proven_shape(&a_node);
+        let (ProvenNode { elem: sh1, proofs: vec_p1 }, bij1) = self.proven_shape(&a_node);
 
+        let t = (sh1.clone(), bij1.clone());
         let b = self.lookup_internal(&t).expect("handle_congruence should only be called on hashcons collision!");
         let ProvenSourceNode { elem: bij, src_id: c } = self.classes[&b.id].nodes[&t.0].clone();
         let c = c.apply_slotmap_fresh(&b.m); // TODO why on earth does it fail if I remove this? This should do literally nothing.
         let c_node = self.get_syn_node(&c);
-        let (t2, vec_p2) = self.proven_shape(&c_node);
+        let (ProvenNode { elem: sh2, proofs: vec_p2}, bij2) = self.proven_shape(&c_node);
+        let t2 = (sh2.clone(), bij2.clone());
         if CHECKS {
             assert_eq!(&t.0, &t2.0);
         }

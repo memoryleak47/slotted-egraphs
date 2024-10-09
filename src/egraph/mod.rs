@@ -226,15 +226,18 @@ impl<L: Language> EGraph<L> {
     }
 
     pub fn shape(&self, e: &L) -> (L, Bijection) {
-        self.proven_shape(e).0
+        let (pnode, bij) = self.proven_shape(e);
+        (pnode.elem, bij)
     }
 
-    pub fn proven_shape(&self, e: &L) -> ((L, Bijection), Vec<ProvenEq>) {
-        let (e, v1) = self.proven_find_enode(e);
-        let (t, v2) = self.proven_get_group_compatible_variants(&e)
+    pub fn proven_shape(&self, e: &L) -> (ProvenNode<L>, Bijection) {
+        let ProvenNode { elem: e, proofs: v1 } = self.proven_find_enode(e);
+        let (ProvenNode { elem: sh, proofs: v2 }, bij) = self.proven_get_group_compatible_variants(&e)
             .into_iter()
-            .map(|(x, prfs)| (x.weak_shape(), prfs))
-            .min_by_key(|((x, _), _)| x.all_slot_occurences()).unwrap();
+            .map(|ProvenNode { elem: x, proofs: prfs}| {
+                let (sh, bij) = x.weak_shape();
+                (ProvenNode { elem: sh, proofs: prfs}, bij)
+            }).min_by_key(|(ProvenNode { elem: x, ..}, _)| x.all_slot_occurences()).unwrap();
 
         let mut out: Vec<ProvenEq> = Vec::new();
 
@@ -248,7 +251,7 @@ impl<L: Language> EGraph<L> {
             out.push(self.prove_transitivity(l, r));
         }
 
-        (t, out)
+        (ProvenNode { elem: sh, proofs: out }, bij)
     }
 
     fn refl_proof(&self, i: Id) -> ProvenEq {
@@ -270,7 +273,7 @@ impl<L: Language> EGraph<L> {
 
     // for all AppliedIds that are contained in `enode`, permute their arguments as their groups allow.
     // TODO every usage of this function hurts performance drastically. Which of them can I eliminate?
-    pub fn proven_get_group_compatible_variants(&self, enode: &L) -> HashSet<(L, Vec<ProvenEq>)> {
+    pub fn proven_get_group_compatible_variants(&self, enode: &L) -> HashSet<ProvenNode<L>> {
         // should only be called with an up-to-date e-node.
         if CHECKS {
             for x in enode.applied_id_occurences() {
@@ -279,12 +282,12 @@ impl<L: Language> EGraph<L> {
         }
 
         let n = enode.applied_id_occurences().len();
-        let mut s: HashSet<(L, Vec<ProvenEq>)> = HashSet::default();
+        let mut s: HashSet<ProvenNode<L>> = HashSet::default();
 
         // the proofs in `s` should express how its node changed relative to `enode`.
-        let s_inv = |s: &HashSet<(L, Vec<ProvenEq>)>| {
+        let s_inv = |s: &HashSet<ProvenNode<L>>| {
             if CHECKS {
-                for (new_enode, prfs) in s {
+                for ProvenNode { elem: new_enode, proofs: prfs } in s {
                     for i in 0..n {
                         let l = enode.applied_id_occurences()[i].clone();
                         let r = new_enode.applied_id_occurences()[i].clone();
@@ -301,7 +304,7 @@ impl<L: Language> EGraph<L> {
             init.push(self.refl_proof(x.id));
         }
 
-        s.insert((enode.clone(), init));
+        s.insert(ProvenNode { elem: enode.clone(), proofs: init });
 
         s_inv(&s);
 
@@ -309,7 +312,7 @@ impl<L: Language> EGraph<L> {
             let grp_perms = self.classes[&app_id.id].group.all_perms();
             let mut next = HashSet::default();
             s_inv(&s);
-            for (x, x_prfs) in s {
+            for ProvenNode { elem: x, proofs: x_prfs} in s {
                 for proven_perm in &grp_perms {
                     proven_perm.check();
                     let x_i = x.applied_id_occurences()[i].clone();
@@ -326,7 +329,7 @@ impl<L: Language> EGraph<L> {
                     let mut x_prfs2 = x_prfs.clone();
                     x_prfs2[i] = prf;
 
-                    next.insert((x2, x_prfs2));
+                    next.insert(ProvenNode { elem: x2, proofs: x_prfs2});
                 }
             }
             s = next;
@@ -337,7 +340,7 @@ impl<L: Language> EGraph<L> {
     }
 
     pub fn get_group_compatible_variants(&self, enode: &L) -> HashSet<L> {
-        self.proven_get_group_compatible_variants(enode).into_iter().map(|(x, _)| x).collect()
+        self.proven_get_group_compatible_variants(enode).into_iter().map(|pnode| pnode.elem).collect()
     }
 
     pub fn get_group_compatible_weak_variants(&self, enode: &L) -> HashSet<L> {
