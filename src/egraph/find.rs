@@ -25,10 +25,7 @@ impl<L: Language> EGraph<L> {
         // entry.0.m :: slots(entry.0.id) -> slots(i)
         // entry_to_leader.0.m :: slots(leader) -> slots(entry.0.id)
         let entry_to_leader = self.unionfind_get_impl(entry.elem.id, map);
-        let new = ProvenAppliedId {
-            elem: entry_to_leader.elem.apply_slotmap(&entry.elem.m),
-            proof: prove_transitivity(entry.proof, entry_to_leader.proof, &self.proof_registry),
-        };
+        let new = self.chain_pai(&entry, &entry_to_leader);
 
         map[i.0] = new.clone();
         new
