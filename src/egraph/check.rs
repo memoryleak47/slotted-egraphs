@@ -127,7 +127,7 @@ impl<L: Language> EGraph<L> {
 
         // Check that all ENodes are valid.
         for (_, c) in &self.classes {
-            for (sh, (bij, _)) in &c.nodes {
+            for (sh, ProvenSourceNode { elem: bij, ..}) in &c.nodes {
                 let real = sh.apply_slotmap(bij);
                 assert!(real.slots().is_superset(&c.slots));
 

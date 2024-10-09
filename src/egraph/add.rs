@@ -92,7 +92,7 @@ impl<L: Language> EGraph<L> {
     pub(in crate::egraph) fn lookup_internal(&self, (shape, n_bij): &(L, Bijection)) -> Option<AppliedId> {
         let i = self.hashcons.get(&shape)?;
         let c = &self.classes[i];
-        let cn_bij = &c.nodes[&shape].0;
+        let cn_bij = &c.nodes[&shape].elem;
 
         // X = shape.slots()
         // Y = n.slots()
@@ -145,7 +145,7 @@ impl<L: Language> EGraph<L> {
 
     // adds (sh, bij) to the eclass `id`.
     pub(in crate::egraph) fn raw_add_to_class(&mut self, id: Id, (sh, bij): (L, Bijection), src_id: AppliedId) {
-        let tmp1 = self.classes.get_mut(&id).unwrap().nodes.insert(sh.clone(), (bij, src_id));
+        let tmp1 = self.classes.get_mut(&id).unwrap().nodes.insert(sh.clone(), ProvenSourceNode { elem: bij, src_id });
         let tmp2 = self.hashcons.insert(sh.clone(), id);
         if CHECKS {
             assert!(tmp1.is_none());

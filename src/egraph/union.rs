@@ -213,7 +213,7 @@ impl<L: Language> EGraph<L> {
 
         let from_nodes = self.classes.get(&from.id).unwrap().nodes.clone();
         let from_id = self.mk_sem_identity_applied_id(from.id);
-        for (sh, (bij, src_id)) in from_nodes {
+        for (sh, ProvenSourceNode { elem: bij, src_id }) in from_nodes {
             let enode = sh.apply_slotmap(&bij);
             self.raw_remove_from_class(from.id, (sh.clone(), bij.clone()));
             // if `sh` contains redundant slots, these won't be covered by 'map'.
@@ -284,7 +284,7 @@ impl<L: Language> EGraph<L> {
 
     fn handle_pending(&mut self, sh: L) {
         let i = self.hashcons[&sh];
-        let (bij, src_id) = self.classes[&i].nodes[&sh].clone();
+        let ProvenSourceNode { elem: bij, src_id } = self.classes[&i].nodes[&sh].clone();
         let node = sh.apply_slotmap(&bij);
         self.raw_remove_from_class(i, (sh.clone(), bij));
         let app_i = self.mk_sem_identity_applied_id(i);
@@ -451,7 +451,7 @@ impl<L: Language> EGraph<L> {
         let (t, vec_p1) = self.proven_shape(&a_node);
 
         let b = self.lookup_internal(&t).expect("handle_congruence should only be called on hashcons collision!");
-        let (bij, /*src id*/ c) = self.classes[&b.id].nodes[&t.0].clone();
+        let ProvenSourceNode { elem: bij, src_id: c } = self.classes[&b.id].nodes[&t.0].clone();
         let c = c.apply_slotmap_fresh(&b.m); // TODO why on earth does it fail if I remove this? This should do literally nothing.
         let c_node = self.get_syn_node(&c);
         let (t2, vec_p2) = self.proven_shape(&c_node);

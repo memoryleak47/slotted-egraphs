@@ -11,5 +11,8 @@ pub use applied_id::*;
 mod node;
 pub use node::*;
 
+mod source_node;
+pub use source_node::*;
+
 mod contains;
 pub use contains::*;
