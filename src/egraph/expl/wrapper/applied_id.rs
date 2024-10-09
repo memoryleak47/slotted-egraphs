@@ -27,4 +27,12 @@ impl<L: Language> EGraph<L> {
             proof: prove_reflexivity(app_id, &self.proof_registry),
         }
     }
+
+    pub fn chain_pai_pp(&self, pai: ProvenAppliedId, pp: &ProvenPerm) -> ProvenAppliedId {
+        ProvenAppliedId {
+            elem: self.mk_sem_applied_id(pai.elem.id, pp.elem.compose(&pai.elem.m)),
+            // @ghost
+            proof: self.prove_transitivity(pai.proof, pp.proof.clone()),
+        }
+    }
 }

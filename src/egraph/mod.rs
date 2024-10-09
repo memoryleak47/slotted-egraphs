@@ -261,16 +261,6 @@ impl<L: Language> EGraph<L> {
         self.prove_reflexivity(&app_id)
     }
 
-    fn apply_proven_perm(&self, pai: ProvenAppliedId, pp: &ProvenPerm) -> ProvenAppliedId {
-        let ProvenAppliedId { elem: x, proof: x_prf } = pai;
-        let ProvenPerm { elem: y, proof: y_prf, .. } = pp;
-
-        ProvenAppliedId {
-            elem: self.mk_sem_applied_id(x.id, y.compose(&x.m)),
-            proof: self.prove_transitivity(x_prf, y_prf.clone()),
-        }
-    }
-
     // for all AppliedIds that are contained in `enode`, permute their arguments as their groups allow.
     // TODO every usage of this function hurts performance drastically. Which of them can I eliminate?
     pub fn proven_get_group_compatible_variants(&self, enode: &L) -> HashSet<ProvenNode<L>> {
@@ -321,7 +311,7 @@ impl<L: Language> EGraph<L> {
                         elem: x_i,
                         proof: x_prfs_i,
                     };
-                    let ProvenAppliedId { elem: app_id, proof: prf } = self.apply_proven_perm(tmp_pai, proven_perm);
+                    let ProvenAppliedId { elem: app_id, proof: prf } = self.chain_pai_pp(tmp_pai, proven_perm);
 
                     let mut x2 = x.clone();
                     *x2.applied_id_occurences_mut()[i] = app_id;
