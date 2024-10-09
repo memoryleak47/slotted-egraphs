@@ -31,8 +31,8 @@ impl<L: Language> EGraph<L> {
 
     pub(in crate::egraph) fn union_internal(&mut self, l: &AppliedId, r: &AppliedId, proof: ProvenEq) -> bool {
         // normalize inputs
-        let (l, p_l) = self.proven_find_applied_id(&l);
-        let (r, p_r) = self.proven_find_applied_id(&r);
+        let ProvenAppliedId { elem: l, proof: p_l } = self.proven_find_applied_id(&l);
+        let ProvenAppliedId { elem: r, proof: p_r } = self.proven_find_applied_id(&r);
         p_r.check(self);
 
         let a = self.prove_symmetry(p_l);
@@ -247,7 +247,7 @@ impl<L: Language> EGraph<L> {
 
             perm
         };
-        let (_, prf) = self.proven_find_applied_id(&from);
+        let prf = self.proven_find_applied_id(&from).proof;
         let prf_rev = self.prove_symmetry(prf.clone());
         let change_proven_permutation_from_from_to_to = |proven_perm: ProvenPerm| {
             let new_perm = change_permutation_from_from_to_to(proven_perm.elem);
@@ -292,7 +292,7 @@ impl<L: Language> EGraph<L> {
     }
 
     fn handle_shrink_in_upwards_merge(&mut self, src_id: Id) {
-        let (leader, leader_prf) = self.proven_unionfind_get(src_id);
+        let ProvenAppliedId { elem: leader, proof: leader_prf } = self.proven_unionfind_get(src_id);
         let neg_leader_prf = prove_symmetry(leader_prf.clone(), &self.proof_registry);
         let src_syn_slots = self.syn_slots(src_id);
 
@@ -367,7 +367,7 @@ impl<L: Language> EGraph<L> {
 
     // finds self-symmetries caused by the e-node `src_id`.
     fn determine_self_symmetries(&mut self, src_id: Id) {
-        let (leader, leader_prf) = self.proven_unionfind_get(src_id);
+        let ProvenAppliedId { elem: leader, proof: leader_prf } = self.proven_unionfind_get(src_id);
         let neg_leader_prf = self.prove_symmetry(leader_prf.clone());
         let i = leader.id;
         let leader_bij = leader.m;

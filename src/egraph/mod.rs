@@ -58,7 +58,7 @@ pub struct EGraph<L: Language> {
     // Each Id i that is an output of the unionfind itself has unionfind[i] = (i, identity()).
 
     // We use mutex to allow for inter mutability, so that find(&self) can do path compression.
-    unionfind: Mutex<Vec<(AppliedId, ProvenEq)>>,
+    unionfind: Mutex<Vec<ProvenAppliedId>>,
 
     // if a class does't have unionfind[x].id = x, then it doesn't contain nodes / usages.
     // It's "shallow" if you will.
@@ -258,7 +258,8 @@ impl<L: Language> EGraph<L> {
         self.prove_reflexivity(&app_id)
     }
 
-    fn apply_proven_perm(&self, (x, x_prf): (AppliedId, ProvenEq), pp: &ProvenPerm) -> (AppliedId, ProvenEq) {
+    fn apply_proven_perm(&self, pai: ProvenAppliedId, pp: &ProvenPerm) -> (AppliedId, ProvenEq) {
+        let ProvenAppliedId { elem: x, proof: x_prf } = pai;
         let ProvenPerm { elem: y, proof: y_prf, .. } = pp;
         let mut x = x;
         let mut x_prf = x_prf;
@@ -315,7 +316,11 @@ impl<L: Language> EGraph<L> {
                     proven_perm.check();
                     let x_i = x.applied_id_occurences()[i].clone();
                     let x_prfs_i = x_prfs[i].clone();
-                    let (app_id, prf) = self.apply_proven_perm((x_i, x_prfs_i), proven_perm);
+                    let tmp_pai = ProvenAppliedId {
+                        elem: x_i,
+                        proof: x_prfs_i,
+                    };
+                    let (app_id, prf) = self.apply_proven_perm(tmp_pai, proven_perm);
 
                     let mut x2 = x.clone();
                     *x2.applied_id_occurences_mut()[i] = app_id;

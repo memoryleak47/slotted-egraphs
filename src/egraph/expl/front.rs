@@ -86,7 +86,7 @@ impl<L: Language> EGraph<L> {
     }
 
     fn get_redundancy_proof(&self, i: Id) -> ProvenEq {
-        let (leader, prf) = self.proven_unionfind_get(i);
+        let ProvenAppliedId { elem: leader, proof: prf } = self.proven_unionfind_get(i);
         let red_prf = self.classes[&leader.id].redundancy_proof.clone();
         let inv_prf = prove_symmetry(prf.clone(), &self.proof_registry);
         let out = prove_transitivity(prf, prove_transitivity(red_prf, inv_prf, &self.proof_registry), &self.proof_registry);

@@ -2,9 +2,9 @@ use crate::*;
 
 impl<L: Language> EGraph<L> {
     // We lazily semify the entries, only when we encounter them.
-    fn unionfind_semify_entry(&self, entry: &mut (AppliedId, ProvenEq)) {
-        if entry.0.m.keys().len() > self.slots(entry.0.id).len() {
-            entry.0 = self.semify_app_id(entry.0.clone());
+    fn unionfind_semify_entry(&self, entry: &mut ProvenAppliedId) {
+        if entry.elem.m.keys().len() > self.slots(entry.elem.id).len() {
+            entry.elem = self.semify_app_id(entry.elem.clone());
         }
 
         // maybe I want something like this to disassociate?
@@ -12,10 +12,10 @@ impl<L: Language> EGraph<L> {
         // entry.1 = prove_transitivity(entry.1.clone(), self.classes[&entry.0.id].redundancy_proof.clone());
     }
 
-    fn unionfind_get_impl(&self, i: Id, map: &mut [(AppliedId, ProvenEq)]) -> (AppliedId, ProvenEq) {
+    fn unionfind_get_impl(&self, i: Id, map: &mut [ProvenAppliedId]) -> ProvenAppliedId {
         let entry = &mut map[i.0];
 
-        if entry.0.id == i {
+        if entry.elem.id == i {
             self.unionfind_semify_entry(entry);
             return entry.clone();
         }
@@ -24,11 +24,11 @@ impl<L: Language> EGraph<L> {
 
         // entry.0.m :: slots(entry.0.id) -> slots(i)
         // entry_to_leader.0.m :: slots(leader) -> slots(entry.0.id)
-        let entry_to_leader = self.unionfind_get_impl(entry.0.id, map);
-        let new = (
-            entry_to_leader.0.apply_slotmap(&entry.0.m),
-            prove_transitivity(entry.1, entry_to_leader.1, &self.proof_registry),
-        );
+        let entry_to_leader = self.unionfind_get_impl(entry.elem.id, map);
+        let new = ProvenAppliedId {
+            elem: entry_to_leader.elem.apply_slotmap(&entry.elem.m),
+            proof: prove_transitivity(entry.proof, entry_to_leader.proof, &self.proof_registry),
+        };
 
         map[i.0] = new.clone();
         new
@@ -41,26 +41,30 @@ impl<L: Language> EGraph<L> {
             assert_eq!(app.id, proof.r.id);
         }
         let mut lock = self.unionfind.try_lock().unwrap();
+        let pai = ProvenAppliedId {
+            elem: app,
+            proof,
+        };
         if lock.len() == i.0 {
-            lock.push((app, proof));
+            lock.push(pai);
         } else {
-            lock[i.0] = (app, proof);
+            lock[i.0] = pai;
         }
     }
 
-    pub fn proven_unionfind_get(&self, i: Id) -> (AppliedId, ProvenEq) {
+    pub fn proven_unionfind_get(&self, i: Id) -> ProvenAppliedId {
         let mut map = self.unionfind.try_lock().unwrap();
-        let (app_id, peq) = self.unionfind_get_impl(i, &mut *map);
+        let mut pai = self.unionfind_get_impl(i, &mut *map);
         std::mem::drop(map);
 
         // We can directly access the redundancy_proof here, because we know that 'app_id.id' is a leader.
-        let red = self.classes[&app_id.id].redundancy_proof.clone();
-        let peq = prove_transitivity(peq, red, &self.proof_registry);
-        (app_id, peq)
+        let red = self.classes[&pai.elem.id].redundancy_proof.clone();
+        pai.proof = prove_transitivity(pai.proof, red, &self.proof_registry);
+        pai
     }
 
     pub fn unionfind_get(&self, i: Id) -> AppliedId {
-        self.proven_unionfind_get(i).0
+        self.proven_unionfind_get(i).elem
     }
 
     pub fn unionfind_iter(&self) -> impl Iterator<Item=(Id, AppliedId)> {
@@ -68,7 +72,7 @@ impl<L: Language> EGraph<L> {
         let mut out = Vec::new();
 
         for x in (0..map.len()).map(Id) {
-            let y = self.unionfind_get_impl(x, &mut *map).0;
+            let y = self.unionfind_get_impl(x, &mut *map).elem;
             out.push((x, y));
         }
 
@@ -86,9 +90,9 @@ impl<L: Language> EGraph<L> {
     pub fn proven_find_enode(&self, enode: &L) -> (L, Vec<ProvenEq>) {
         let mut v = Vec::new();
         let out = enode.map_applied_ids(|x| {
-            let (app, prf) = self.proven_find_applied_id(&x);
-            v.push(prf);
-            app
+            let pai = self.proven_find_applied_id(&x);
+            v.push(pai.proof);
+            pai.elem
         });
         (out, v)
     }
@@ -101,12 +105,12 @@ impl<L: Language> EGraph<L> {
     // Example 2:
     // 'find(c1(s3, s7, s8)) = c2(s8, s7)', where 'c1(s0, s1, s2) -> c2(s2, s1)' in unionfind,
     pub fn find_applied_id(&self, i: &AppliedId) -> AppliedId {
-        self.proven_find_applied_id(i).0
+        self.proven_find_applied_id(i).elem
     }
 
-    pub fn proven_find_applied_id(&self, i: &AppliedId) -> (AppliedId, ProvenEq) {
-        let (a, prf) = self.proven_unionfind_get(i.id);
-        prf.check(self);
+    pub fn proven_find_applied_id(&self, i: &AppliedId) -> ProvenAppliedId {
+        let mut pai = self.proven_unionfind_get(i.id);
+        pai.proof.check(self);
 
         // I = self.slots(i.id);
         // A = self.slots(a.id);
@@ -114,11 +118,11 @@ impl<L: Language> EGraph<L> {
         // a.m   :: A -> I
         // out.m :: A -> X
 
-        let out = self.mk_sem_applied_id(
-            a.id,
-            a.m.compose_partial(&i.m), // This is partial if `i.id` had redundant slots.
+        pai.elem = self.mk_sem_applied_id(
+            pai.elem.id,
+            pai.elem.m.compose_partial(&i.m), // This is partial if `i.id` had redundant slots.
         );
-        (out, prf)
+        pai
     }
 
     pub fn find_id(&self, i: Id) -> Id {

@@ -1,6 +1,7 @@
 use crate::*;
 
+#[derive(Clone, Debug)]
 pub struct ProvenAppliedId {
-    elem: AppliedId,
-    proof: ProvenEq,
+    pub elem: AppliedId,
+    pub proof: ProvenEq,
 }
