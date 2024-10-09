@@ -206,8 +206,8 @@ impl<L: Language> EGraph<L> {
                 let n = sh.apply_slotmap(bij);
                 println!(" - {n:?}    [originally {app_id:?}]");
             }
-            for ProvenPerm(p, _, _) in &c.group.generators() {
-                println!(" -- {:?}", p);
+            for pp in &c.group.generators() {
+                println!(" -- {:?}", pp.elem);
             }
         }
         println!("");
@@ -258,7 +258,8 @@ impl<L: Language> EGraph<L> {
         self.prove_reflexivity(&app_id)
     }
 
-    fn apply_proven_perm(&self, (x, x_prf): (AppliedId, ProvenEq), ProvenPerm(y, y_prf, _): &ProvenPerm) -> (AppliedId, ProvenEq) {
+    fn apply_proven_perm(&self, (x, x_prf): (AppliedId, ProvenEq), pp: &ProvenPerm) -> (AppliedId, ProvenEq) {
+        let ProvenPerm { elem: y, proof: y_prf, .. } = pp;
         let mut x = x;
         let mut x_prf = x_prf;
 

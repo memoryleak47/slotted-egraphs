@@ -1,3 +1,6 @@
 use crate::*;
 
-pub struct ProvenAppliedId(AppliedId, ProvenEq);
+pub struct ProvenAppliedId {
+    elem: AppliedId,
+    proof: ProvenEq,
+}

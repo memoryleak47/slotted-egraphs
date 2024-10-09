@@ -20,43 +20,55 @@ impl Permutation for Perm {
 }
 
 #[derive(Clone, Debug)]
-pub struct ProvenPerm(pub Perm, pub ProvenEq, pub ProofRegistry);
+pub struct ProvenPerm {
+    pub elem: Perm,
+    pub proof: ProvenEq,
+    pub reg: ProofRegistry
+}
 
 impl PartialEq for ProvenPerm {
-    fn eq(&self, other: &Self) -> bool { self.0 == other.0 }
+    fn eq(&self, other: &Self) -> bool { self.elem == other.elem }
 }
 
 impl Eq for ProvenPerm { }
 
 impl Hash for ProvenPerm {
     fn hash<H: Hasher>(&self, hasher: &mut H) {
-        self.0.hash(hasher);
+        self.elem.hash(hasher);
     }
 }
 
 impl Permutation for ProvenPerm {
-    fn iter(&self) -> impl Iterator<Item=(Slot, Slot)> { self.0.iter() }
+    fn iter(&self) -> impl Iterator<Item=(Slot, Slot)> { self.elem.iter() }
     fn compose(&self, other: &Self) -> Self {
         self.check();
         other.check();
         if CHECKS {
-            assert_eq!(self.1.l.id, self.1.r.id);
-            assert_eq!(other.1.l.id, other.1.r.id);
-            assert_eq!(self.1.l.id, other.1.l.id);
+            assert_eq!(self.proof.l.id, self.proof.r.id);
+            assert_eq!(other.proof.l.id, other.proof.r.id);
+            assert_eq!(self.proof.l.id, other.proof.l.id);
         }
         // TODO why is this the other way around?
-        let map = self.0.compose(&other.0);
-        let prf = prove_transitivity(other.1.clone(), self.1.clone(), &self.2);
-        let out = ProvenPerm(map, prf, self.2.clone());
+        let map = self.elem.compose(&other.elem);
+        let prf = prove_transitivity(other.proof.clone(), self.proof.clone(), &self.reg);
+        let out = ProvenPerm {
+            elem: map,
+            proof: prf,
+            reg: self.reg.clone(),
+        };
         out.check();
         out
     }
 
     fn inverse(&self) -> Self {
         self.check();
-        let map = self.0.inverse();
-        let prf = prove_symmetry(self.1.clone(), &self.2);
-        let out = ProvenPerm(map, prf, self.2.clone());
+        let map = self.elem.inverse();
+        let prf = prove_symmetry(self.proof.clone(), &self.reg);
+        let out = ProvenPerm {
+            elem: map,
+            proof: prf,
+            reg: self.reg.clone()
+        };
         out.check();
         out
     }
@@ -69,26 +81,33 @@ impl ProvenPerm {
         let identity = SlotMap::identity(syn_slots);
         let app_id = AppliedId::new(i, identity);
         let prf = prove_reflexivity(&app_id, &reg);
-        ProvenPerm(map, prf, reg)
+        ProvenPerm {
+            elem: map,
+            proof: prf,
+            reg
+        }
     }
 
     fn to_string(&self) -> String {
-        format!("{:?}", (&self.0, &**self.1))
+        format!("{:?}", (&self.elem, &**self.proof))
     }
 
     pub fn check(&self) {
-        let id = self.1.l.id;
-        let slots = self.0.keys();
-        let syn_slots = self.1.l.m.keys();
+        let id = self.proof.l.id;
+        let slots = self.elem.keys();
+        let syn_slots = self.proof.l.m.keys();
 
-        assert_eq!(id, self.1.l.id);
-        assert_eq!(id, self.1.r.id);
-        assert_eq!(&self.1.l.m.keys(), &syn_slots);
-        assert_eq!(&self.1.r.m.keys(), &syn_slots);
-        assert!(self.0.is_perm());
+        assert_eq!(id, self.proof.l.id);
+        assert_eq!(id, self.proof.r.id);
+        assert_eq!(&self.proof.l.m.keys(), &syn_slots);
+        assert_eq!(&self.proof.r.m.keys(), &syn_slots);
+        assert!(self.elem.is_perm());
 
-        let eq = Equation { l: AppliedId::new(id, SlotMap::identity(&slots)), r: AppliedId::new(id, self.0.clone()) };
-        assert_proves_equation(&self.1, &eq);
+        let eq = Equation {
+            l: AppliedId::new(id, SlotMap::identity(&slots)),
+            r: AppliedId::new(id, self.elem.clone())
+        };
+        assert_proves_equation(&self.proof, &eq);
     }
 }
 
@@ -96,6 +115,6 @@ impl Index<Slot> for ProvenPerm {
     type Output = Slot;
 
     fn index(&self, s: Slot) -> &Slot {
-        self.0.index(s)
+        self.elem.index(s)
     }
 }

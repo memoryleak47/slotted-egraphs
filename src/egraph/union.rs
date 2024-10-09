@@ -74,8 +74,12 @@ impl<L: Language> EGraph<L> {
                 assert_eq!(&perm.keys(), &self.classes[&id].slots);
             }
 
-            let proven_perm = ProvenPerm(perm, proof, self.proof_registry.clone());
-            assert_eq!(proven_perm.1.l.id, id);
+            let proven_perm = ProvenPerm {
+                elem: perm,
+                proof,
+                reg: self.proof_registry.clone()
+            };
+            assert_eq!(proven_perm.proof.l.id, id);
 
             proven_perm.check();
             let grp = &mut self.classes.get_mut(&id).unwrap().group;
@@ -161,11 +165,15 @@ impl<L: Language> EGraph<L> {
         let restrict_proven = |proven_perm: ProvenPerm| {
             proven_perm.check();
 
-            let perm = proven_perm.0.into_iter()
+            let perm = proven_perm.elem.into_iter()
                 .filter(|(x, _)| cap.contains(x))
                 .collect();
-            let prf = self.disassociate_proven_eq(proven_perm.1);
-            let out = ProvenPerm(perm, prf, self.proof_registry.clone());
+            let prf = self.disassociate_proven_eq(proven_perm.proof);
+            let out = ProvenPerm {
+                elem: perm,
+                proof: prf,
+                reg: self.proof_registry.clone()
+            };
             out.check();
             out
         };
@@ -242,9 +250,13 @@ impl<L: Language> EGraph<L> {
         let (_, prf) = self.proven_find_applied_id(&from);
         let prf_rev = self.prove_symmetry(prf.clone());
         let change_proven_permutation_from_from_to_to = |proven_perm: ProvenPerm| {
-            let new_perm = change_permutation_from_from_to_to(proven_perm.0);
-            let new_proof = self.prove_transitivity(prf_rev.clone(), self.prove_transitivity(proven_perm.1, prf.clone()));
-            ProvenPerm(new_perm, new_proof, self.proof_registry.clone())
+            let new_perm = change_permutation_from_from_to_to(proven_perm.elem);
+            let new_proof = self.prove_transitivity(prf_rev.clone(), self.prove_transitivity(proven_perm.proof, prf.clone()));
+            ProvenPerm {
+                elem: new_perm,
+                proof: new_proof,
+                reg: self.proof_registry.clone(),
+            }
         };
 
         let set = self.classes[&from.id].group.generators()
@@ -418,7 +430,11 @@ impl<L: Language> EGraph<L> {
                     assert_eq!(prf.l.id, i);
                     assert_eq!(prf.r.id, i);
                 }
-                let proven_perm = ProvenPerm(perm, prf, self.proof_registry.clone());
+                let proven_perm = ProvenPerm {
+                    elem: perm,
+                    proof: prf,
+                    reg: self.proof_registry.clone(),
+                };
 
                 if CHECKS {
                     proven_perm.check();
