@@ -3,6 +3,7 @@ use crate::*;
 use std::hash::*;
 
 // Should ProvenNode also contain the src-id?
+#[derive(Clone)]
 pub struct ProvenNode<L> {
     pub elem: L,
 
@@ -52,14 +53,15 @@ impl<L: Language> EGraph<L> {
         }
     }
 
-    pub fn chain_pn(&self, start: &ProvenNode<L>, next: &ProvenNode<L>) -> ProvenNode<L> {
-        todo!()
-    }
-
     fn refl_proof(&self, i: Id) -> ProvenEq {
         let syn_slots = self.syn_slots(i);
         let identity = SlotMap::identity(&syn_slots);
         let app_id = AppliedId::new(i, identity);
         self.prove_reflexivity(&app_id)
+    }
+
+    // TODO `f` needs to exist even in Ghost-mode, so it cannot only return ProvenEq.
+    pub fn chain_pn_map(&self, start: &ProvenNode<L>, f: impl Fn(usize) -> ProvenEq) -> ProvenNode<L> {
+        todo!()
     }
 }

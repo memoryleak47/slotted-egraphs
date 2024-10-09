@@ -32,7 +32,7 @@ impl<L: Language> EGraph<L> {
 
         let bij = l2.m.compose(&l1.m.inverse());
         let symmetry_prf = &self.classes[&id].group.proven_contains(&bij).unwrap();
-        let ProvenAppliedId { elem: l1, proof: prf1 } = self.chain_pai_pp(pai1, symmetry_prf);
+        let ProvenAppliedId { elem: l1, proof: prf1 } = self.chain_pai_pp(&pai1, symmetry_prf);
 
         let prf2 = self.prove_symmetry(prf2.clone());
 

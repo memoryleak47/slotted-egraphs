@@ -280,6 +280,7 @@ impl<L: Language> EGraph<L> {
 
         s_inv(&s);
 
+        // TODO use cartesian here.
         for (i, app_id) in enode.applied_id_occurences().iter().enumerate() {
             let grp_perms = self.classes[&app_id.id].group.all_perms();
             let mut next = HashSet::default();
@@ -293,7 +294,7 @@ impl<L: Language> EGraph<L> {
                         elem: x_i,
                         proof: x_prfs_i,
                     };
-                    let ProvenAppliedId { elem: app_id, proof: prf } = self.chain_pai_pp(tmp_pai, proven_perm);
+                    let ProvenAppliedId { elem: app_id, proof: prf } = self.chain_pai_pp(&tmp_pai, proven_perm);
 
                     let mut x2 = x.clone();
                     *x2.applied_id_occurences_mut()[i] = app_id;
@@ -371,4 +372,23 @@ impl<L: Language> EGraph<L> {
             children: cs,
         }
     }
+}
+
+// {1,2} x {3} x {4,5} -> (1,3,4), (1,3,5), (2,3,4), (2,3,5)
+fn cartesian<'a, T>(input: &'a [&'a [T]]) -> impl Iterator<Item=Vec<&'a T>> + use<'a, T> {
+    let n = input.len();
+    let mut indices = vec![0; n];
+    let f = move || {
+        let out = (0..n).map(|i| &input[i][indices[i]]).collect();
+        for i in 0..n {
+            indices[i] += 1;
+            if indices[i] >= input[i].len() {
+                indices[i] = 0;
+            } else {
+                return Some(out);
+            }
+        }
+        None
+    };
+    std::iter::from_fn(f)
 }
