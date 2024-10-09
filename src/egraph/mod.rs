@@ -273,25 +273,8 @@ impl<L: Language> EGraph<L> {
             ).collect();
 
         for l in cartesian(&groups) {
-            let mut pn = self.refl_pn(&enode);
-            let mut app_ids_mut: Vec<&mut AppliedId> = pn.elem.applied_id_occurences_mut();
-            let mut proofs_mut: &mut [ProvenEq] = &mut pn.proofs;
-
-            for i in 0..n {
-                let old_app_id: &mut AppliedId = app_ids_mut[i];
-                let old_proof: &mut ProvenEq = &mut proofs_mut[i];
-
-                let proven_perm = &l[i];
-                proven_perm.check();
-                let tmp_pai = ProvenAppliedId {
-                    elem: old_app_id.clone(),
-                    proof: old_proof.clone(),
-                };
-                let ProvenAppliedId { elem: new_app_id, proof: new_proof } = self.chain_pai_pp(&tmp_pai, proven_perm);
-
-                *old_app_id = new_app_id;
-                *old_proof = new_proof;
-            }
+            let pn = self.refl_pn(&enode);
+            let pn = self.chain_pn_map(&pn, |i, pai| self.chain_pai_pp(&pai, l[i]));
             if CHECKS { pn.check_base(enode); }
             out.insert(pn);
         }

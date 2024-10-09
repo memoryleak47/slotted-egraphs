@@ -60,8 +60,25 @@ impl<L: Language> EGraph<L> {
         self.prove_reflexivity(&app_id)
     }
 
-    // TODO `f` needs to exist even in Ghost-mode, so it cannot only return ProvenEq.
-    pub fn chain_pn_map(&self, start: &ProvenNode<L>, f: impl Fn(usize) -> ProvenEq) -> ProvenNode<L> {
-        todo!()
+    pub fn chain_pn_map(&self, start: &ProvenNode<L>, f: impl Fn(usize, ProvenAppliedId) -> ProvenAppliedId) -> ProvenNode<L> {
+        let mut pn = start.clone();
+        let n = pn.proofs.len();
+
+        let mut app_ids_mut: Vec<&mut AppliedId> = pn.elem.applied_id_occurences_mut();
+        let mut proofs_mut: &mut [ProvenEq] = &mut pn.proofs;
+        for i in 0..n {
+            let old_app_id: &mut AppliedId = app_ids_mut[i];
+            let old_proof: &mut ProvenEq = &mut proofs_mut[i];
+
+            let tmp_pai = ProvenAppliedId {
+                elem: old_app_id.clone(),
+                proof: old_proof.clone(),
+            };
+            let ProvenAppliedId { elem: new_app_id, proof: new_proof } = f(i, tmp_pai);
+
+            *old_app_id = new_app_id;
+            *old_proof = new_proof;
+        }
+        pn
     }
 }
