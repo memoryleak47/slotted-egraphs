@@ -6,6 +6,6 @@ pub struct ProvenContains<L> {
     pub elem: ProvenNode<L>,
 
     // proofs that this app-id is equal to our target app-id.
-    // @ghost
+    #[cfg(feature = "explanations_tmp")]
     pub proof: ProvenEq,
 }

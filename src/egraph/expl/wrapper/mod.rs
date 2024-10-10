@@ -4,8 +4,6 @@
 
 // We will for now use @ghost to annotate code that should be excluded if explanations are off.
 
-use std::marker::PhantomData;
-
 mod perm;
 pub use perm::*;
 
@@ -20,9 +18,3 @@ pub use source_node::*;
 
 mod contains;
 pub use contains::*;
-
-#[cfg(feature = "explanations_tmp")]
-pub type Ghost<T> = T;
-
-#[cfg(not(feature = "explanations_tmp"))]
-pub type Ghost<T> = PhantomData<T>;

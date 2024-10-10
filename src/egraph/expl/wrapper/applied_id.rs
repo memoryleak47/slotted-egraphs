@@ -4,7 +4,7 @@ use crate::*;
 pub struct ProvenAppliedId {
     pub elem: AppliedId,
 
-    // @ghost
+    #[cfg(feature = "explanations_tmp")]
     pub proof: ProvenEq,
 }
 
@@ -15,7 +15,8 @@ impl<L: Language> EGraph<L> {
     pub fn chain_pai(&self, start: &ProvenAppliedId, next: &ProvenAppliedId) -> ProvenAppliedId {
         ProvenAppliedId {
             elem: next.elem.apply_slotmap(&start.elem.m),
-            // @ghost
+
+            #[cfg(feature = "explanations_tmp")]
             proof: prove_transitivity(start.proof.clone(), next.proof.clone(), &self.proof_registry),
         }
     }
@@ -23,7 +24,8 @@ impl<L: Language> EGraph<L> {
     pub fn refl_pai(&self, app_id: &AppliedId) -> ProvenAppliedId {
         ProvenAppliedId {
             elem: app_id.clone(),
-            // @ghost
+
+            #[cfg(feature = "explanations_tmp")]
             proof: prove_reflexivity(app_id, &self.proof_registry),
         }
     }
@@ -31,7 +33,8 @@ impl<L: Language> EGraph<L> {
     pub fn chain_pai_pp(&self, pai: &ProvenAppliedId, pp: &ProvenPerm) -> ProvenAppliedId {
         ProvenAppliedId {
             elem: self.mk_sem_applied_id(pai.elem.id, pp.elem.compose(&pai.elem.m)),
-            // @ghost
+
+            #[cfg(feature = "explanations_tmp")]
             proof: self.prove_transitivity(pai.proof.clone(), pp.proof.clone()),
         }
     }

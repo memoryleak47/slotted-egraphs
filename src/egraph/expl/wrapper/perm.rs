@@ -23,9 +23,10 @@ impl Permutation for Perm {
 pub struct ProvenPerm {
     pub elem: Perm,
 
-    // @ghost
+    #[cfg(feature = "explanations_tmp")]
     pub proof: ProvenEq,
-    // @ghost
+
+    #[cfg(feature = "explanations_tmp")]
     pub reg: ProofRegistry
 }
 
@@ -53,10 +54,13 @@ impl Permutation for ProvenPerm {
         }
         // TODO why is this the other way around?
         let map = self.elem.compose(&other.elem);
+        #[cfg(feature = "explanations_tmp")]
         let prf = prove_transitivity(other.proof.clone(), self.proof.clone(), &self.reg);
         let out = ProvenPerm {
             elem: map,
+            #[cfg(feature = "explanations_tmp")]
             proof: prf,
+            #[cfg(feature = "explanations_tmp")]
             reg: self.reg.clone(),
         };
         out.check();
@@ -66,10 +70,13 @@ impl Permutation for ProvenPerm {
     fn inverse(&self) -> Self {
         self.check();
         let map = self.elem.inverse();
+        #[cfg(feature = "explanations_tmp")]
         let prf = prove_symmetry(self.proof.clone(), &self.reg);
         let out = ProvenPerm {
             elem: map,
+            #[cfg(feature = "explanations_tmp")]
             proof: prf,
+            #[cfg(feature = "explanations_tmp")]
             reg: self.reg.clone()
         };
         out.check();
@@ -83,10 +90,13 @@ impl ProvenPerm {
 
         let identity = SlotMap::identity(syn_slots);
         let app_id = AppliedId::new(i, identity);
+        #[cfg(feature = "explanations_tmp")]
         let prf = prove_reflexivity(&app_id, &reg);
         ProvenPerm {
             elem: map,
+            #[cfg(feature = "explanations_tmp")]
             proof: prf,
+            #[cfg(feature = "explanations_tmp")]
             reg
         }
     }
@@ -96,21 +106,25 @@ impl ProvenPerm {
     }
 
     pub fn check(&self) {
-        let id = self.proof.l.id;
-        let slots = self.elem.keys();
-        let syn_slots = self.proof.l.m.keys();
-
-        assert_eq!(id, self.proof.l.id);
-        assert_eq!(id, self.proof.r.id);
-        assert_eq!(&self.proof.l.m.keys(), &syn_slots);
-        assert_eq!(&self.proof.r.m.keys(), &syn_slots);
         assert!(self.elem.is_perm());
 
-        let eq = Equation {
-            l: AppliedId::new(id, SlotMap::identity(&slots)),
-            r: AppliedId::new(id, self.elem.clone())
-        };
-        assert_proves_equation(&self.proof, &eq);
+        #[cfg(feature = "explanations_tmp")]
+        {
+            let id = self.proof.l.id;
+            let slots = self.elem.keys();
+            let syn_slots = self.proof.l.m.keys();
+
+            assert_eq!(id, self.proof.l.id);
+            assert_eq!(id, self.proof.r.id);
+            assert_eq!(&self.proof.l.m.keys(), &syn_slots);
+            assert_eq!(&self.proof.r.m.keys(), &syn_slots);
+
+            let eq = Equation {
+                l: AppliedId::new(id, SlotMap::identity(&slots)),
+                r: AppliedId::new(id, self.elem.clone())
+            };
+            assert_proves_equation(&self.proof, &eq);
+        }
     }
 }
 

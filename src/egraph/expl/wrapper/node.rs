@@ -7,7 +7,7 @@ use std::hash::*;
 pub struct ProvenNode<L> {
     pub elem: L,
 
-    // @ghost
+    #[cfg(feature = "explanations_tmp")]
     pub proofs: Vec<ProvenEq>,
 }
 
@@ -25,6 +25,7 @@ impl<L: Language> Hash for ProvenNode<L> {
 
 impl<L: Language> ProvenNode<L> {
     // checks that `proofs` brings us from `base` to `elem`.
+    #[cfg(feature = "explanations_tmp")]
     pub fn check_base(&self, base: &L) {
         let l = base.applied_id_occurences();
         let r = self.elem.applied_id_occurences();
@@ -44,7 +45,7 @@ impl<L: Language> ProvenNode<L> {
         let pn = ProvenNode {
             elem: sh,
 
-            // @ghost:
+            #[cfg(feature = "explanations_tmp")]
             proofs: self.proofs.clone(),
         };
         (pn, bij)
@@ -53,17 +54,19 @@ impl<L: Language> ProvenNode<L> {
 
 impl<L: Language> EGraph<L> {
     pub fn refl_pn(&self, start: &L) -> ProvenNode<L> {
-        let mut rfl = Vec::new();
-        for x in start.applied_id_occurences() {
-            rfl.push(self.refl_proof(x.id));
-        }
-
+        #[cfg(feature = "explanations_tmp")]
+        let rfl = start.applied_id_occurences()
+                       .into_iter()
+                       .map(|x| self.refl_proof(x.id))
+                       .collect();
         ProvenNode {
             elem: start.clone(),
+            #[cfg(feature = "explanations_tmp")]
             proofs: rfl,
         }
     }
 
+    #[cfg(feature = "explanations_tmp")]
     fn refl_proof(&self, i: Id) -> ProvenEq {
         let syn_slots = self.syn_slots(i);
         let identity = SlotMap::identity(&syn_slots);
@@ -73,22 +76,29 @@ impl<L: Language> EGraph<L> {
 
     pub fn chain_pn_map(&self, start: &ProvenNode<L>, f: impl Fn(usize, ProvenAppliedId) -> ProvenAppliedId) -> ProvenNode<L> {
         let mut pn = start.clone();
-        let n = pn.proofs.len();
+        let n = pn.elem.applied_id_occurences().len();
 
         let mut app_ids_mut: Vec<&mut AppliedId> = pn.elem.applied_id_occurences_mut();
+
+        #[cfg(feature = "explanations_tmp")]
         let mut proofs_mut: &mut [ProvenEq] = &mut pn.proofs;
+
         for i in 0..n {
             let old_app_id: &mut AppliedId = app_ids_mut[i];
+            #[cfg(feature = "explanations_tmp")]
             let old_proof: &mut ProvenEq = &mut proofs_mut[i];
 
             let tmp_pai = ProvenAppliedId {
                 elem: old_app_id.clone(),
+                #[cfg(feature = "explanations_tmp")]
                 proof: old_proof.clone(),
             };
-            let ProvenAppliedId { elem: new_app_id, proof: new_proof } = f(i, tmp_pai);
+            let pai = f(i, tmp_pai);
 
-            *old_app_id = new_app_id;
-            *old_proof = new_proof;
+            *old_app_id = pai.elem;
+
+            #[cfg(feature = "explanations_tmp")]
+            { *old_proof = pai.proof; }
         }
         pn
     }
