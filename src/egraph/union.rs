@@ -65,7 +65,7 @@ impl<L: Language> EGraph<L> {
         }
 
         if r.slots() != cap {
-            let flipped_proof = self.prove_symmetry(proof.clone());
+            let flipped_proof = ghost!(self.prove_symmetry(proof.clone()));
             self.shrink_slots(&r, &cap, flipped_proof);
             self.union_internal(&l, &r, proof);
             return true;
@@ -85,9 +85,12 @@ impl<L: Language> EGraph<L> {
 
             let proven_perm = ProvenPerm {
                 elem: perm,
+                #[cfg(feature = "explanations_tmp")]
                 proof,
+                #[cfg(feature = "explanations_tmp")]
                 reg: self.proof_registry.clone()
             };
+            #[cfg(feature = "explanations_tmp")]
             assert_eq!(proven_perm.proof.l.id, id);
 
             proven_perm.check();
@@ -109,7 +112,7 @@ impl<L: Language> EGraph<L> {
             if size(l.id) < size(r.id) {
                 self.move_to(&l, &r, proof)
             } else {
-                let proof = self.prove_symmetry(proof);
+                let proof = ghost!(self.prove_symmetry(proof));
                 self.move_to(&r, &l, proof)
             }
 
