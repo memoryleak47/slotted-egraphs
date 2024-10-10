@@ -19,7 +19,7 @@ pub use source_node::*;
 mod contains;
 pub use contains::*;
 
-#[cfg(feature = "explanations_tmp")]
+#[cfg(feature = "explanations")]
 pub macro ghost($a: expr) { $a }
-#[cfg(not(feature = "explanations_tmp"))]
+#[cfg(not(feature = "explanations"))]
 pub macro ghost($a: expr) { () }

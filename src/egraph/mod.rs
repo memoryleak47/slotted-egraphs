@@ -203,10 +203,10 @@ impl<L: Language> EGraph<L> {
             for (sh, psn) in &c.nodes {
                 let n = sh.apply_slotmap(&psn.elem);
 
-                #[cfg(feature = "explanations_tmp")]
+                #[cfg(feature = "explanations")]
                 println!(" - {n:?}    [originally {:?}]", psn.src_id);
 
-                #[cfg(not(feature = "explanations_tmp"))]
+                #[cfg(not(feature = "explanations"))]
                 println!(" - {n:?}");
             }
             for pp in &c.group.generators() {

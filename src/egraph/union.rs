@@ -85,12 +85,12 @@ impl<L: Language> EGraph<L> {
 
             let proven_perm = ProvenPerm {
                 elem: perm,
-                #[cfg(feature = "explanations_tmp")]
+                #[cfg(feature = "explanations")]
                 proof,
-                #[cfg(feature = "explanations_tmp")]
+                #[cfg(feature = "explanations")]
                 reg: self.proof_registry.clone()
             };
-            #[cfg(feature = "explanations_tmp")]
+            #[cfg(feature = "explanations")]
             assert_eq!(proven_perm.proof.l.id, id);
 
             proven_perm.check();
@@ -126,7 +126,7 @@ impl<L: Language> EGraph<L> {
         if CHECKS {
             assert!(self.is_alive(i));
 
-            #[cfg(feature = "explanations_tmp")]
+            #[cfg(feature = "explanations")]
             assert_eq!(proof.l.id, i);
         }
 
@@ -140,7 +140,7 @@ impl<L: Language> EGraph<L> {
 
         let elem = self.mk_syn_identity_applied_id(i).apply_slotmap_partial(&SlotMap::identity(cap));
 
-        #[cfg(feature = "explanations_tmp")]
+        #[cfg(feature = "explanations")]
         if CHECKS {
             let eq = prf.equ();
             let elem2 = eq.r.apply_slotmap_partial(&eq.l.m.inverse());
@@ -150,14 +150,14 @@ impl<L: Language> EGraph<L> {
         self.unionfind_set(i, ProvenAppliedId {
             elem,
 
-            #[cfg(feature = "explanations_tmp")]
+            #[cfg(feature = "explanations")]
             proof: prf,
         });
     }
 
     // We expect `from` to be on the lhs of this equation.
     fn shrink_slots(&mut self, from: &AppliedId, cap: &HashSet<Slot>, proof: ProvenEq) {
-        #[cfg(feature = "explanations_tmp")]
+        #[cfg(feature = "explanations")]
         if CHECKS {
             assert_eq!(from.id, proof.l.id);
         }
@@ -203,13 +203,13 @@ impl<L: Language> EGraph<L> {
                 .filter(|(x, _)| cap.contains(x))
                 .collect();
 
-            #[cfg(feature = "explanations_tmp")]
+            #[cfg(feature = "explanations")]
             let prf = self.disassociate_proven_eq(proven_perm.proof);
             let out = ProvenPerm {
                 elem: perm,
-                #[cfg(feature = "explanations_tmp")]
+                #[cfg(feature = "explanations")]
                 proof: prf,
-                #[cfg(feature = "explanations_tmp")]
+                #[cfg(feature = "explanations")]
                 reg: self.proof_registry.clone()
             };
             out.check();
@@ -236,9 +236,9 @@ impl<L: Language> EGraph<L> {
     fn move_to(&mut self, from: &AppliedId, to: &AppliedId, proof: ProvenEq) {
         if CHECKS {
             assert_eq!(from.slots(), to.slots());
-            #[cfg(feature = "explanations_tmp")]
+            #[cfg(feature = "explanations")]
             assert_eq!(from.id, proof.l.id);
-            #[cfg(feature = "explanations_tmp")]
+            #[cfg(feature = "explanations")]
             assert_eq!(to.id, proof.r.id);
         }
         // from.m :: slots(from.id) -> X
@@ -250,7 +250,7 @@ impl<L: Language> EGraph<L> {
         let pai = ProvenAppliedId {
             elem: app_id,
 
-            #[cfg(feature = "explanations_tmp")]
+            #[cfg(feature = "explanations")]
             proof,
         };
         self.unionfind_set(from.id, pai);
@@ -296,20 +296,20 @@ impl<L: Language> EGraph<L> {
 
             perm
         };
-        #[cfg(feature = "explanations_tmp")]
+        #[cfg(feature = "explanations")]
         let prf = self.proven_find_applied_id(&from).proof;
-        #[cfg(feature = "explanations_tmp")]
+        #[cfg(feature = "explanations")]
         let prf_rev = self.prove_symmetry(prf.clone());
 
         let change_proven_permutation_from_from_to_to = |proven_perm: ProvenPerm| {
             let new_perm = change_permutation_from_from_to_to(proven_perm.elem);
-            #[cfg(feature = "explanations_tmp")]
+            #[cfg(feature = "explanations")]
             let new_proof = self.prove_transitivity(prf_rev.clone(), self.prove_transitivity(proven_perm.proof, prf.clone()));
             ProvenPerm {
                 elem: new_perm,
-                #[cfg(feature = "explanations_tmp")]
+                #[cfg(feature = "explanations")]
                 proof: new_proof,
-                #[cfg(feature = "explanations_tmp")]
+                #[cfg(feature = "explanations")]
                 reg: self.proof_registry.clone(),
             }
         };
@@ -352,7 +352,7 @@ impl<L: Language> EGraph<L> {
         let pai = self.proven_unionfind_get(src_id);
         let ProvenAppliedId { elem: leader, .. } = pai.clone();
 
-        #[cfg(feature = "explanations_tmp")]
+        #[cfg(feature = "explanations")]
         let neg_leader_prf = prove_symmetry(pai.proof.clone(), &self.proof_registry);
 
         let src_syn_slots = self.syn_slots(src_id);
@@ -364,9 +364,9 @@ impl<L: Language> EGraph<L> {
         let ProvenNode { elem: new_node, .. } = pn.clone();
         assert!(new_node.slots().is_subset(&src_syn_slots));
 
-        #[cfg(feature = "explanations_tmp")]
+        #[cfg(feature = "explanations")]
         let mut combined = Vec::new();
-        #[cfg(feature = "explanations_tmp")]
+        #[cfg(feature = "explanations")]
         for (app_id, prf) in new_node.applied_id_occurences().into_iter().zip(pn.proofs.into_iter()) {
             // each child-proof might "fix" a few slots, which are not witnessed to be redundant by it.
             let rev = prove_symmetry(prf.clone(), &self.proof_registry);
@@ -374,9 +374,9 @@ impl<L: Language> EGraph<L> {
 
             combined.push(cycle);
         }
-        #[cfg(feature = "explanations_tmp")]
+        #[cfg(feature = "explanations")]
         let cong = self.prove_congruence(src_id, src_id, &combined);
-        #[cfg(feature = "explanations_tmp")]
+        #[cfg(feature = "explanations")]
         let prf = self.prove_transitivity(neg_leader_prf.clone(), self.prove_transitivity(cong, pai.proof.clone()));
 
         let leader_inv = leader.m.inverse();
@@ -386,7 +386,7 @@ impl<L: Language> EGraph<L> {
         }
         let cap = new_node.slots();
 
-        #[cfg(feature = "explanations_tmp")]
+        #[cfg(feature = "explanations")]
         if CHECKS {
             let ghost_cap: HashSet<_> = prf.l.m.iter()
                  .filter_map(|(x, y)| {
@@ -438,7 +438,7 @@ impl<L: Language> EGraph<L> {
     fn determine_self_symmetries(&mut self, src_id: Id) {
         let pai = self.proven_unionfind_get(src_id);
         let ProvenAppliedId { elem: leader, .. } = pai.clone();
-        #[cfg(feature = "explanations_tmp")]
+        #[cfg(feature = "explanations")]
         let neg_leader_prf = self.prove_symmetry(pai.proof.clone());
         let i = leader.id;
         let leader_bij = leader.m;
@@ -476,9 +476,9 @@ impl<L: Language> EGraph<L> {
 
                 if CHECKS { assert!(perm.is_perm()); }
 
-                #[cfg(feature = "explanations_tmp")]
+                #[cfg(feature = "explanations")]
                 let mut combined_prfs = Vec::new();
-                #[cfg(feature = "explanations_tmp")]
+                #[cfg(feature = "explanations")]
                 for (old_to_new_ids, perm_prf) in pn1.proofs.iter().zip(pn2.proofs.iter()) {
                     let new_to_old_ids = self.prove_symmetry(old_to_new_ids.clone());
 
@@ -489,31 +489,31 @@ impl<L: Language> EGraph<L> {
 
                 // src_id[...] == src_id[...]
 
-                #[cfg(feature = "explanations_tmp")]
+                #[cfg(feature = "explanations")]
                 let prf = self.prove_congruence(src_id, src_id, &combined_prfs);
-                #[cfg(feature = "explanations_tmp")]
+                #[cfg(feature = "explanations")]
                 if CHECKS {
                     assert_eq!(prf.l.id, src_id);
                     assert_eq!(prf.r.id, src_id);
                 }
 
                 // i[...] == i[...]
-                #[cfg(feature = "explanations_tmp")]
+                #[cfg(feature = "explanations")]
                 let prf = self.prove_transitivity(neg_leader_prf.clone(), self.prove_transitivity(prf, pai.proof.clone()));
                 let perm = leader_bij.compose_partial(&perm.compose_partial(&leader_bij.inverse()));
 
                 let slots = self.slots(i);
                 let syn_slots = self.syn_slots(i);
-                #[cfg(feature = "explanations_tmp")]
+                #[cfg(feature = "explanations")]
                 if CHECKS {
                     assert_eq!(prf.l.id, i);
                     assert_eq!(prf.r.id, i);
                 }
                 let proven_perm = ProvenPerm {
                     elem: perm,
-                    #[cfg(feature = "explanations_tmp")]
+                    #[cfg(feature = "explanations")]
                     proof: prf,
-                    #[cfg(feature = "explanations_tmp")]
+                    #[cfg(feature = "explanations")]
                     reg: self.proof_registry.clone(),
                 };
 
@@ -545,9 +545,9 @@ impl<L: Language> EGraph<L> {
             assert_eq!(&t.0, &t2.0);
         }
 
-        #[cfg(feature = "explanations_tmp")]
+        #[cfg(feature = "explanations")]
         let mut vec = Vec::new();
-        #[cfg(feature = "explanations_tmp")]
+        #[cfg(feature = "explanations")]
         for (l, r) in pn1.proofs.into_iter().zip(pn2.proofs.into_iter()) {
             let r_inv = self.prove_symmetry(r);
             let l_to_r = self.prove_transitivity(l, r_inv);

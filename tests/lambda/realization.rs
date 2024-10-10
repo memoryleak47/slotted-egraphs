@@ -18,7 +18,7 @@ pub fn simplify_to_nf<R: Realization>(s: &str) -> String {
 
         re = extract_ast(&eg, i.clone());
         if lam_step(&re).is_none() {
-            #[cfg(feature = "explanations_tmp")]
+            #[cfg(feature = "explanations")]
             eg.explain_equivalence(orig_re, re.clone());
             return re.to_string();
         };
@@ -43,7 +43,7 @@ pub fn simplify<R: Realization>(s: &str) -> String {
     }
     let out = extract_ast(&eg, i.clone());
 
-    #[cfg(feature = "explanations_tmp")]
+    #[cfg(feature = "explanations")]
     eg.explain_equivalence(re.clone(), out.clone());
 
     let out = out.to_string();
@@ -79,7 +79,7 @@ pub fn check_eq<R: Realization>(s1: &str, s2: &str) {
     let i2 = eg.add_syn_expr(s2.clone());
     for _ in 0..NO_ITERS {
         if eg.eq(&i1, &i2) {
-            #[cfg(feature = "explanations_tmp")]
+            #[cfg(feature = "explanations")]
             eg.explain_equivalence(s1.clone(), s2.clone());
             return;
         }

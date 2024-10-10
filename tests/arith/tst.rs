@@ -11,7 +11,7 @@ fn assert_reaches(start: &str, goal: &str, steps: usize) {
         if let Some(i2) = lookup_rec_expr(&goal, &eg) {
             let i1 = lookup_rec_expr(&start, &eg).unwrap();
             if eg.eq(&i1, &i2) {
-                #[cfg(feature = "explanations_tmp")]
+                #[cfg(feature = "explanations")]
                 eg.explain_equivalence(start, goal).show_expr(&eg);
                 return;
             }
@@ -115,7 +115,7 @@ fn t6() { // z*(x+y) = z*(y+x)
             if let Some(i2) = lookup_rec_expr(&goal, &eg) {
                 let i1 = lookup_rec_expr(&start, &eg).unwrap();
                 if eg.eq(&i1, &i2) {
-                    #[cfg(feature = "explanations_tmp")]
+                    #[cfg(feature = "explanations")]
                     eg.explain_equivalence(start, goal).show_expr(&eg);
                     return;
                 }

@@ -23,10 +23,10 @@ impl Permutation for Perm {
 pub struct ProvenPerm {
     pub elem: Perm,
 
-    #[cfg(feature = "explanations_tmp")]
+    #[cfg(feature = "explanations")]
     pub proof: ProvenEq,
 
-    #[cfg(feature = "explanations_tmp")]
+    #[cfg(feature = "explanations")]
     pub reg: ProofRegistry
 }
 
@@ -47,7 +47,7 @@ impl Permutation for ProvenPerm {
     fn compose(&self, other: &Self) -> Self {
         self.check();
         other.check();
-        #[cfg(feature = "explanations_tmp")]
+        #[cfg(feature = "explanations")]
         if CHECKS {
             assert_eq!(self.proof.l.id, self.proof.r.id);
             assert_eq!(other.proof.l.id, other.proof.r.id);
@@ -55,13 +55,13 @@ impl Permutation for ProvenPerm {
         }
         // TODO why is this the other way around?
         let map = self.elem.compose(&other.elem);
-        #[cfg(feature = "explanations_tmp")]
+        #[cfg(feature = "explanations")]
         let prf = prove_transitivity(other.proof.clone(), self.proof.clone(), &self.reg);
         let out = ProvenPerm {
             elem: map,
-            #[cfg(feature = "explanations_tmp")]
+            #[cfg(feature = "explanations")]
             proof: prf,
-            #[cfg(feature = "explanations_tmp")]
+            #[cfg(feature = "explanations")]
             reg: self.reg.clone(),
         };
         out.check();
@@ -71,13 +71,13 @@ impl Permutation for ProvenPerm {
     fn inverse(&self) -> Self {
         self.check();
         let map = self.elem.inverse();
-        #[cfg(feature = "explanations_tmp")]
+        #[cfg(feature = "explanations")]
         let prf = prove_symmetry(self.proof.clone(), &self.reg);
         let out = ProvenPerm {
             elem: map,
-            #[cfg(feature = "explanations_tmp")]
+            #[cfg(feature = "explanations")]
             proof: prf,
-            #[cfg(feature = "explanations_tmp")]
+            #[cfg(feature = "explanations")]
             reg: self.reg.clone()
         };
         out.check();
@@ -91,13 +91,13 @@ impl ProvenPerm {
 
         let identity = SlotMap::identity(syn_slots);
         let app_id = AppliedId::new(i, identity);
-        #[cfg(feature = "explanations_tmp")]
+        #[cfg(feature = "explanations")]
         let prf = prove_reflexivity(&app_id, &reg);
         ProvenPerm {
             elem: map,
-            #[cfg(feature = "explanations_tmp")]
+            #[cfg(feature = "explanations")]
             proof: prf,
-            #[cfg(feature = "explanations_tmp")]
+            #[cfg(feature = "explanations")]
             reg
         }
     }
@@ -109,7 +109,7 @@ impl ProvenPerm {
     pub fn check(&self) {
         assert!(self.elem.is_perm());
 
-        #[cfg(feature = "explanations_tmp")]
+        #[cfg(feature = "explanations")]
         {
             let id = self.proof.l.id;
             let slots = self.elem.keys();

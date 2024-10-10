@@ -39,7 +39,7 @@ fn assert_reaches(start: &str, goal: &str, steps: usize, extra_rules: &[&'static
         if let Some(i2) = lookup_rec_expr(&goal, &eg) {
             if eg.eq(&i1, &i2) {
                 dbg!(eg.total_number_of_nodes());
-                #[cfg(feature = "explanations_tmp")]
+                #[cfg(feature = "explanations")]
                 eg.explain_equivalence(start, goal);
                 return;
             }

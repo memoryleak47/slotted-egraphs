@@ -1,34 +1,34 @@
 use crate::*;
 
-#[cfg(feature = "explanations_tmp")]
+#[cfg(feature = "explanations")]
 mod proof;
-#[cfg(feature = "explanations_tmp")]
+#[cfg(feature = "explanations")]
 pub use proof::*;
 
-#[cfg(feature = "explanations_tmp")]
+#[cfg(feature = "explanations")]
 mod front;
-#[cfg(feature = "explanations_tmp")]
+#[cfg(feature = "explanations")]
 pub use front::*;
 
-#[cfg(feature = "explanations_tmp")]
+#[cfg(feature = "explanations")]
 mod registry;
-#[cfg(feature = "explanations_tmp")]
+#[cfg(feature = "explanations")]
 pub use registry::*;
 
 mod wrapper;
 pub use wrapper::*;
 
-#[cfg(feature = "explanations_tmp")]
+#[cfg(feature = "explanations")]
 mod show;
-#[cfg(feature = "explanations_tmp")]
+#[cfg(feature = "explanations")]
 pub use show::*;
 
-#[cfg(not(feature = "explanations_tmp"))]
+#[cfg(not(feature = "explanations"))]
 mod mock;
-#[cfg(not(feature = "explanations_tmp"))]
+#[cfg(not(feature = "explanations"))]
 pub use mock::*;
 
-#[cfg(feature = "explanations_tmp")]
+#[cfg(feature = "explanations")]
 impl<L: Language> EGraph<L> {
     pub fn explain_equivalence(&mut self, t1: RecExpr<L>, t2: RecExpr<L>) -> ProvenEq {
         let i1 = self.add_syn_expr(t1);

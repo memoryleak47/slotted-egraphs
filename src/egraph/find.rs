@@ -20,7 +20,7 @@ impl<L: Language> EGraph<L> {
     }
 
     pub fn unionfind_set(&self, i: Id, pai: ProvenAppliedId) {
-        #[cfg(feature = "explanations_tmp")]
+        #[cfg(feature = "explanations")]
         if CHECKS {
             pai.proof.check(self);
             assert_eq!(i, pai.proof.l.id);

@@ -4,7 +4,7 @@ use crate::*;
 pub struct ProvenAppliedId {
     pub elem: AppliedId,
 
-    #[cfg(feature = "explanations_tmp")]
+    #[cfg(feature = "explanations")]
     pub proof: ProvenEq,
 }
 
@@ -16,7 +16,7 @@ impl<L: Language> EGraph<L> {
         ProvenAppliedId {
             elem: next.elem.apply_slotmap(&start.elem.m),
 
-            #[cfg(feature = "explanations_tmp")]
+            #[cfg(feature = "explanations")]
             proof: prove_transitivity(start.proof.clone(), next.proof.clone(), &self.proof_registry),
         }
     }
@@ -25,7 +25,7 @@ impl<L: Language> EGraph<L> {
         ProvenAppliedId {
             elem: app_id.clone(),
 
-            #[cfg(feature = "explanations_tmp")]
+            #[cfg(feature = "explanations")]
             proof: prove_reflexivity(app_id, &self.proof_registry),
         }
     }
@@ -34,7 +34,7 @@ impl<L: Language> EGraph<L> {
         ProvenAppliedId {
             elem: self.mk_sem_applied_id(pai.elem.id, pp.elem.compose(&pai.elem.m)),
 
-            #[cfg(feature = "explanations_tmp")]
+            #[cfg(feature = "explanations")]
             proof: self.prove_transitivity(pai.proof.clone(), pp.proof.clone()),
         }
     }

@@ -66,7 +66,7 @@ impl<L: Language> EGraph<L> {
         for (i, c) in &self.classes {
             if !self.is_alive(*i) { continue; }
 
-            #[cfg(feature = "explanations_tmp")]
+            #[cfg(feature = "explanations")]
             {
                 let eq = self.proven_unionfind_get(*i).proof.equ();
                 // eq.l.m :: slots(i) -> X
