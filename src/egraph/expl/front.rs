@@ -45,7 +45,7 @@ impl<L: Language> EGraph<L> {
         if CHECKS {
             assert_match_equation(&self.semify_equation(goal), &self.semify_equation(&peq));
         }
-        let l_red = self.get_redundancy_proof2(peq.l.id);
+        let l_red = self.get_redundancy_proof(peq.l.id);
 
         // goal.l.m :: slots(goal.l.id) -> X
         // goal.r.m :: slots(goal.r.id) -> X
@@ -68,7 +68,7 @@ impl<L: Language> EGraph<L> {
             current = TransitivityProof(l_red, current).check(&subgoal, &self.proof_registry);
         }
 
-        let r_red = self.get_redundancy_proof2(current.r.id);
+        let r_red = self.get_redundancy_proof(current.r.id);
         TransitivityProof(current, r_red).check(goal, &self.proof_registry)
     }
 
@@ -85,19 +85,11 @@ impl<L: Language> EGraph<L> {
         false
     }
 
-    fn get_redundancy_proof(&self, i: Id) -> ProvenEq {
-        let ProvenAppliedId { elem: leader, proof: prf } = self.proven_unionfind_get(i);
-        let red_prf = self.classes[&leader.id].redundancy_proof.clone();
-        let inv_prf = prove_symmetry(prf.clone(), &self.proof_registry);
-        let out = prove_transitivity(prf, prove_transitivity(red_prf, inv_prf, &self.proof_registry), &self.proof_registry);
-        out
-    }
-
     pub fn disassociate_proven_eq(&self, peq: ProvenEq) -> ProvenEq {
         if self.disassociation_necessary(&peq) {
             let mut peq = peq;
-            let x = self.get_redundancy_proof2(peq.l.id);
-            let y = self.get_redundancy_proof2(peq.r.id);
+            let x = self.get_redundancy_proof(peq.l.id);
+            let y = self.get_redundancy_proof(peq.r.id);
             peq = prove_transitivity(x, peq, &self.proof_registry);
             peq = prove_transitivity(peq, y, &self.proof_registry);
 

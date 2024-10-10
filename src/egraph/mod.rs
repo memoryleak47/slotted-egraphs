@@ -37,10 +37,6 @@ pub struct EClass<L: Language> {
     group: Group<ProvenPerm>,
 
     syn_enode: L,
-
-    // is of the form `c[...] = c[...]` where everything is stabilized, except for the redundant slots which are just used on one side.
-    // only relevant for the leader of an e-class.
-    redundancy_proof: ProvenEq,
 }
 
 // invariants:
@@ -200,7 +196,6 @@ impl<L: Language> EGraph<L> {
             println!("\n{:?}({}):", i, &slot_str);
 
             println!(">> {:?}", &c.syn_enode);
-            println!(">>> {:?}", &c.redundancy_proof.equ());
 
             for (sh, ProvenSourceNode { elem: bij, src_id: app_id}) in &c.nodes {
                 let n = sh.apply_slotmap(bij);
@@ -334,7 +329,7 @@ impl<L: Language> EGraph<L> {
         }
     }
 
-    pub fn get_redundancy_proof2(&self, i: Id) -> ProvenEq {
+    pub fn get_redundancy_proof(&self, i: Id) -> ProvenEq {
         let a = self.proven_find_applied_id(&self.mk_syn_identity_applied_id(i)).proof;
         let a_rev = prove_symmetry(a.clone(), &self.proof_registry);
 

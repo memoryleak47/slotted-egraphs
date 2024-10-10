@@ -187,14 +187,12 @@ impl<L: Language> EGraph<L> {
         let proven_perm = ProvenPerm::identity(c_id, &slots, &syn_slots, self.proof_registry.clone());
 
         let app_id = AppliedId::new(c_id, SlotMap::identity(&syn_slots));
-        let redundancy_proof = prove_reflexivity(&app_id, &self.proof_registry);
 
         let c = EClass {
             nodes: HashMap::default(),
             group: Group::identity(&proven_perm),
             slots: slots.clone(),
             usages: HashSet::default(),
-            redundancy_proof,
             syn_enode: syn_enode.clone(),
         };
         self.classes.insert(c_id, c);
