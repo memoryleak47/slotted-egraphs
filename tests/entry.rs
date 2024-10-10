@@ -59,6 +59,7 @@ pub fn explain<L: Language>(s1: &str, s2: &str, eg: &mut EGraph<L>) {
     eg.check();
     let s1 = term(s1, eg);
     let s2 = term(s2, eg);
+    #[cfg(feature = "explanations_tmp")]
     eg.explain_equivalence(s1, s2).show_expr(eg);
     eg.check();
 }
