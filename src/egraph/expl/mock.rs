@@ -1,2 +1,2 @@
-pub struct ProvenEq;
-pub struct ProofRegistry;
+pub type ProvenEq = ();
+pub type ProofRegistry = ();

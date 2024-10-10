@@ -22,8 +22,7 @@ impl<L: Language> EGraph<L> {
         let syn_a = self.synify_app_id(a.clone());
         let syn_b = self.synify_app_id(b.clone());
 
-        // @ghost
-        let proof = self.prove_explicit(&syn_a, &syn_b, justification);
+        let proof = ghost!(self.prove_explicit(&syn_a, &syn_b, justification));
 
         let out = self.union_internal(&a, &b, proof);
         self.rebuild();
