@@ -47,6 +47,7 @@ impl Permutation for ProvenPerm {
     fn compose(&self, other: &Self) -> Self {
         self.check();
         other.check();
+        #[cfg(feature = "explanations_tmp")]
         if CHECKS {
             assert_eq!(self.proof.l.id, self.proof.r.id);
             assert_eq!(other.proof.l.id, other.proof.r.id);
@@ -102,7 +103,7 @@ impl ProvenPerm {
     }
 
     fn to_string(&self) -> String {
-        format!("{:?}", (&self.elem, &**self.proof))
+        format!("{:?}", (&self.elem, ghost!(&**self.proof)))
     }
 
     pub fn check(&self) {

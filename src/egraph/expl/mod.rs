@@ -2,14 +2,17 @@ use crate::*;
 
 #[cfg(feature = "explanations_tmp")]
 mod proof;
+#[cfg(feature = "explanations_tmp")]
 pub use proof::*;
 
 #[cfg(feature = "explanations_tmp")]
 mod front;
+#[cfg(feature = "explanations_tmp")]
 pub use front::*;
 
 #[cfg(feature = "explanations_tmp")]
 mod registry;
+#[cfg(feature = "explanations_tmp")]
 pub use registry::*;
 
 mod wrapper;
@@ -17,6 +20,7 @@ pub use wrapper::*;
 
 #[cfg(feature = "explanations_tmp")]
 mod show;
+#[cfg(feature = "explanations_tmp")]
 pub use show::*;
 
 #[cfg(not(feature = "explanations_tmp"))]

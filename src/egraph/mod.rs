@@ -200,9 +200,14 @@ impl<L: Language> EGraph<L> {
 
             println!(">> {:?}", &c.syn_enode);
 
-            for (sh, ProvenSourceNode { elem: bij, src_id: app_id}) in &c.nodes {
-                let n = sh.apply_slotmap(bij);
-                println!(" - {n:?}    [originally {app_id:?}]");
+            for (sh, psn) in &c.nodes {
+                let n = sh.apply_slotmap(&psn.elem);
+
+                #[cfg(feature = "explanations_tmp")]
+                println!(" - {n:?}    [originally {:?}]", psn.src_id);
+
+                #[cfg(not(feature = "explanations_tmp"))]
+                println!(" - {n:?}");
             }
             for pp in &c.group.generators() {
                 println!(" -- {:?}", pp.elem);
