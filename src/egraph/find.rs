@@ -63,16 +63,12 @@ impl<L: Language> EGraph<L> {
     }
 
     pub fn proven_find_enode(&self, enode: &L) -> ProvenNode<L> {
-        let mut v = Vec::new();
-        let out = enode.map_applied_ids(|x| {
-            let pai = self.proven_find_applied_id(&x);
-            v.push(pai.proof);
-            pai.elem
-        });
-        ProvenNode {
-            elem: out,
-            proofs: v
-        }
+        let pn = self.refl_pn(enode);
+        self.proven_proven_find_enode(&pn)
+    }
+
+    pub fn proven_proven_find_enode(&self, enode: &ProvenNode<L>) -> ProvenNode<L> {
+        self.chain_pn_map(enode, |_, pai| self.proven_proven_find_applied_id(&pai))
     }
 
     // normalize i.id
