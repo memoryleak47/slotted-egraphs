@@ -236,7 +236,9 @@ impl<L: Language> EGraph<L> {
     fn move_to(&mut self, from: &AppliedId, to: &AppliedId, proof: ProvenEq) {
         if CHECKS {
             assert_eq!(from.slots(), to.slots());
+            #[cfg(feature = "explanations_tmp")]
             assert_eq!(from.id, proof.l.id);
+            #[cfg(feature = "explanations_tmp")]
             assert_eq!(to.id, proof.r.id);
         }
         // from.m :: slots(from.id) -> X
@@ -245,7 +247,13 @@ impl<L: Language> EGraph<L> {
         self.assert_ty(&map, &self.slots(to.id), &self.slots(from.id));
 
         let app_id = self.mk_sem_applied_id(to.id, map.clone());
-        self.unionfind_set(from.id, ProvenAppliedId { elem: app_id, proof });
+        let pai = ProvenAppliedId {
+            elem: app_id,
+
+            #[cfg(feature = "explanations_tmp")]
+            proof,
+        };
+        self.unionfind_set(from.id, pai);
 
         // who updates the usages? raw_add_to_class & raw_remove_from_class do that.
 
