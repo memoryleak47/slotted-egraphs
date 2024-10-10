@@ -15,6 +15,8 @@ impl<L: Language> EGraph<L> {
     }
 
     pub fn add_syn(&mut self, enode: L) -> AppliedId {
+        let enode = self.synify_enode(enode);
+
         self.add(enode.clone());
 
         if let Some(x) = self.lookup_syn(&enode) {
