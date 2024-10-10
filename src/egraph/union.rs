@@ -527,8 +527,8 @@ impl<L: Language> EGraph<L> {
     }
 
     pub(in crate::egraph) fn handle_congruence(&mut self, a: Id) {
-        let a = &self.mk_syn_identity_applied_id(a);
-        let a_node = self.get_syn_node(a);
+        let a_identity = &self.mk_syn_identity_applied_id(a);
+        let a_node = self.get_syn_node(a_identity);
         let (pn1, bij1) = self.proven_shape(&a_node);
         let ProvenNode { elem: sh1, .. } = pn1.clone();
 
@@ -536,8 +536,8 @@ impl<L: Language> EGraph<L> {
         let b = self.lookup_internal(&t).expect("handle_congruence should only be called on hashcons collision!");
         let psn = self.classes[&b.id].nodes[&t.0].clone();
         let ProvenSourceNode { elem: bij, src_id: c } = psn.clone();
-        let c = &self.mk_syn_identity_applied_id(c);
-        let c_node = self.get_syn_node(&c);
+        let c_identity = &self.mk_syn_identity_applied_id(c);
+        let c_node = self.get_syn_node(&c_identity);
         let (pn2, bij2) = self.proven_shape(&c_node);
         let ProvenNode { elem: sh2, .. } = pn2.clone();
         let t2 = (sh2.clone(), bij2.clone());
@@ -554,12 +554,15 @@ impl<L: Language> EGraph<L> {
             vec.push(l_to_r);
         }
 
-        #[cfg(feature = "explanations_tmp")]
-        let proven_eq = self.prove_congruence(a.id, c.id, &vec);
-        let eq = proven_eq.equ();
-        let l = eq.l;
-        let r = eq.r;
-        // TODO l and r currently depend on ghost code.
+        let proven_eq = ghost!(self.prove_congruence(a, c, &vec));
+
+        // l.m :: slots(a) -> X
+        // r.m :: slots(b) -> X
+
+        // bij1 :: SHAPE -> slots(a)
+        // bij2 :: SHAPE -> slots(b)
+        let l = self.mk_sem_applied_id(a, bij1.inverse());
+        let r = self.mk_sem_applied_id(c, bij2.inverse());
         self.union_internal(&l, &r, proven_eq);
     }
 
