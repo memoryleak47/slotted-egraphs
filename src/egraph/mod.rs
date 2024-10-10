@@ -229,10 +229,9 @@ impl<L: Language> EGraph<L> {
         let e = self.proven_find_enode(e);
         self.proven_proven_get_group_compatible_variants(&e)
             .into_iter()
-            .map(|pn| {
-                let (sh, bij) = pn.elem.weak_shape();
-                (ProvenNode { elem: sh, proofs: pn.proofs}, bij)
-            }).min_by_key(|(pn, _)| pn.elem.all_slot_occurences()).unwrap()
+            .map(|pn| pn.weak_shape())
+            .min_by_key(|(pn, _)| pn.elem.all_slot_occurences())
+            .unwrap()
     }
 
     pub fn proven_proven_get_group_compatible_variants(&self, enode: &ProvenNode<L>) -> HashSet<ProvenNode<L>> {

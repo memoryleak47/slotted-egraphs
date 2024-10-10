@@ -38,6 +38,17 @@ impl<L: Language> ProvenNode<L> {
             assert_proves_equation(&self.proofs[i], &eq);
         }
     }
+
+    pub fn weak_shape(&self) -> (Self, Bijection) {
+        let (sh, bij) = self.elem.weak_shape();
+        let pn = ProvenNode {
+            elem: sh,
+
+            // @ghost:
+            proofs: self.proofs.clone(),
+        };
+        (pn, bij)
+    }
 }
 
 impl<L: Language> EGraph<L> {
