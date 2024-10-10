@@ -22,6 +22,7 @@ impl<L: Language> EGraph<L> {
         let syn_a = self.synify_app_id(a.clone());
         let syn_b = self.synify_app_id(b.clone());
 
+        // @ghost
         let proof = self.prove_explicit(&syn_a, &syn_b, justification);
 
         let out = self.union_internal(&a, &b, proof);
@@ -31,19 +32,28 @@ impl<L: Language> EGraph<L> {
 
     pub(in crate::egraph) fn union_internal(&mut self, l: &AppliedId, r: &AppliedId, proof: ProvenEq) -> bool {
         // normalize inputs
-        let ProvenAppliedId { elem: l, proof: p_l } = self.proven_find_applied_id(&l);
-        let ProvenAppliedId { elem: r, proof: p_r } = self.proven_find_applied_id(&r);
-        p_r.check(self);
+        let pai_l = self.proven_find_applied_id(&l);
+        let pai_r = self.proven_find_applied_id(&r);
 
-        let a = self.prove_symmetry(p_l);
-        let a = self.prove_transitivity(a, proof);
-        let a = self.prove_transitivity(a, p_r);
-        let proof = a;
+        // @ghost {
         if CHECKS {
-            assert_eq!(proof.l.id, l.id);
-            assert_eq!(proof.r.id, r.id);
+            pai_l.proof.check(self);
+            pai_r.proof.check(self);
         }
 
+        let a = self.prove_symmetry(pai_l.proof);
+        let a = self.prove_transitivity(a, proof);
+        let a = self.prove_transitivity(a, pai_r.proof);
+        let proof = a;
+        if CHECKS {
+            assert_eq!(proof.l.id, pai_l.elem.id);
+            assert_eq!(proof.r.id, pai_r.elem.id);
+        }
+        // }
+        self.union_leaders(pai_l.elem, pai_r.elem, proof)
+    }
+
+    fn union_leaders(&mut self, l: AppliedId, r: AppliedId, proof: ProvenEq) -> bool {
         // early return, if union should not be made.
         if self.eq(&l, &r) { return false; }
 
