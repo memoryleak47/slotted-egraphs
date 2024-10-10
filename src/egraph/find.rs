@@ -87,21 +87,17 @@ impl<L: Language> EGraph<L> {
     }
 
     pub fn proven_find_applied_id(&self, i: &AppliedId) -> ProvenAppliedId {
-        let mut pai = self.proven_unionfind_get(i.id);
-        pai.proof.check(self);
-
-        // I = self.slots(i.id);
-        // A = self.slots(a.id);
-        // i.m   :: I -> X
-        // a.m   :: A -> I
-        // out.m :: A -> X
-
-        pai.elem = self.mk_sem_applied_id(
-            pai.elem.id,
-            pai.elem.m.compose_partial(&i.m), // This is partial if `i.id` had redundant slots.
-        );
-        pai
+        let pai = self.refl_pai(i);
+        self.proven_proven_find_applied_id(&pai)
     }
+
+    pub fn proven_proven_find_applied_id(&self, pai: &ProvenAppliedId) -> ProvenAppliedId {
+        let mut pai2 = self.proven_unionfind_get(pai.elem.id);
+
+        pai2.elem.m = pai2.elem.m.compose_partial(&pai.elem.m);
+        pai2
+    }
+
 
     pub fn find_id(&self, i: Id) -> Id {
         self.unionfind_get(i).id
