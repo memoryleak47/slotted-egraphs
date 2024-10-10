@@ -300,14 +300,20 @@ impl<L: Language> EGraph<L> {
 
             perm
         };
+        #[cfg(feature = "explanations_tmp")]
         let prf = self.proven_find_applied_id(&from).proof;
+        #[cfg(feature = "explanations_tmp")]
         let prf_rev = self.prove_symmetry(prf.clone());
+
         let change_proven_permutation_from_from_to_to = |proven_perm: ProvenPerm| {
             let new_perm = change_permutation_from_from_to_to(proven_perm.elem);
+            #[cfg(feature = "explanations_tmp")]
             let new_proof = self.prove_transitivity(prf_rev.clone(), self.prove_transitivity(proven_perm.proof, prf.clone()));
             ProvenPerm {
                 elem: new_perm,
+                #[cfg(feature = "explanations_tmp")]
                 proof: new_proof,
+                #[cfg(feature = "explanations_tmp")]
                 reg: self.proof_registry.clone(),
             }
         };
