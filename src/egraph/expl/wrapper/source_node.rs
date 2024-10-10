@@ -4,7 +4,7 @@ use crate::*;
 pub struct ProvenSourceNode {
     pub elem: Bijection,
 
-    // remembers the original AppliedId, where this came from
-    #[cfg(feature = "explanations_tmp")]
-    pub src_id: AppliedId,
+    // remembers the original Id, where this came from
+    // TODO make ghost.
+    pub src_id: Id,
 }

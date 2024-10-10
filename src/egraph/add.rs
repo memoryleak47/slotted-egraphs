@@ -138,7 +138,7 @@ impl<L: Language> EGraph<L> {
 
         // we use semantic_add so that the redundancy, symmetry and congruence checks run on it.
         let t = syn_enode_fresh.weak_shape();
-        self.raw_add_to_class(i, t.clone(), syn_app_id.clone());
+        self.raw_add_to_class(i, t.clone(), i);
         self.pending.insert(t.0);
         self.rebuild();
 
@@ -147,11 +147,8 @@ impl<L: Language> EGraph<L> {
 
     // adds (sh, bij) to the eclass `id`.
     // TODO src_id should be optional!
-    pub(in crate::egraph) fn raw_add_to_class(&mut self, id: Id, (sh, bij): (L, Bijection), src_id: AppliedId) {
-        #[cfg(feature = "explanations_tmp")]
+    pub(in crate::egraph) fn raw_add_to_class(&mut self, id: Id, (sh, bij): (L, Bijection), src_id: Id) {
         let psn = ProvenSourceNode { elem: bij, src_id };
-        #[cfg(not(feature = "explanations_tmp"))]
-        let psn = ProvenSourceNode { elem: bij };
 
         let tmp1 = self.classes.get_mut(&id).unwrap().nodes.insert(sh.clone(), psn);
         let tmp2 = self.hashcons.insert(sh.clone(), id);

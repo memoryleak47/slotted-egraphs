@@ -266,11 +266,7 @@ impl<L: Language> EGraph<L> {
             // Thus we need compose_fresh.
             let new_bij = psn.elem.compose_fresh(&map.inverse());
 
-            #[cfg(feature = "explanations_tmp")]
-            let src_id = psn.src_id.clone();
-
-            #[cfg(not(feature = "explanations_tmp"))]
-            let src_id = AppliedId::null();
+            let src_id = psn.src_id;
 
             self.raw_add_to_class(to.id, (sh.clone(), new_bij), src_id);
             self.pending.insert(sh);
@@ -348,11 +344,7 @@ impl<L: Language> EGraph<L> {
         self.raw_remove_from_class(i, (sh.clone(), psn.elem));
         let app_i = self.mk_sem_identity_applied_id(i);
 
-        #[cfg(feature = "explanations_tmp")]
-        let src_id = psn.src_id.clone();
-        #[cfg(not(feature = "explanations_tmp"))]
-        let src_id = AppliedId::null();
-
+        let src_id = psn.src_id;
         self.semantic_add(&node, &app_i, src_id);
     }
 
@@ -406,17 +398,14 @@ impl<L: Language> EGraph<L> {
     }
 
     // TODO get rid of semantic_add, in favor of "handle_pending".
-    pub fn semantic_add(&mut self, enode: &L, i_orig: &AppliedId, src_id: AppliedId) {
+    pub fn semantic_add(&mut self, enode: &L, i_orig: &AppliedId, src_id: Id) {
         let mut enode = self.find_enode(&enode);
         let mut i = self.find_applied_id(i_orig);
         // i.m :: slots(i) -> X
         // i_orig.m :: slots(i_orig) -> X
-        // old src_id.m :: slots(src_id.id) -> slots(i_orig)
-        // new src_id.m :: slots(src_id.id) -> slots(i)
         let theta = i_orig.m.compose(&i.m.inverse());
-        let src_id = src_id.apply_slotmap_fresh(&theta);
         if !i.slots().is_subset(&enode.slots()) {
-            self.handle_shrink_in_upwards_merge(src_id.id);
+            self.handle_shrink_in_upwards_merge(src_id);
 
             enode = self.find_enode(&enode);
             i = self.find_applied_id(&i);
@@ -426,7 +415,7 @@ impl<L: Language> EGraph<L> {
 
         // upwards merging found a match!
         if self.lookup_internal(&t).is_some() {
-            self.handle_congruence(src_id.id);
+            self.handle_congruence(src_id);
             return;
         }
 
@@ -440,9 +429,9 @@ impl<L: Language> EGraph<L> {
         }
         let bij = bij.compose(&m);
         let t = (sh, bij);
-        self.raw_add_to_class(i.id, t.clone(), src_id.clone());
+        self.raw_add_to_class(i.id, t.clone(), src_id);
 
-        self.determine_self_symmetries(src_id.id);
+        self.determine_self_symmetries(src_id);
     }
 
     // finds self-symmetries caused by the e-node `src_id`.
@@ -547,7 +536,7 @@ impl<L: Language> EGraph<L> {
         let b = self.lookup_internal(&t).expect("handle_congruence should only be called on hashcons collision!");
         let psn = self.classes[&b.id].nodes[&t.0].clone();
         let ProvenSourceNode { elem: bij, src_id: c } = psn.clone();
-        let c = c.apply_slotmap_fresh(&b.m); // TODO why on earth does it fail if I remove this? This should do literally nothing.
+        let c = &self.mk_syn_identity_applied_id(c);
         let c_node = self.get_syn_node(&c);
         let (pn2, bij2) = self.proven_shape(&c_node);
         let ProvenNode { elem: sh2, .. } = pn2.clone();
