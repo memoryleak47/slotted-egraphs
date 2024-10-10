@@ -328,13 +328,6 @@ impl<L: Language> EGraph<L> {
             children: cs,
         }
     }
-
-    pub fn get_redundancy_proof(&self, i: Id) -> ProvenEq {
-        let a = self.proven_find_applied_id(&self.mk_syn_identity_applied_id(i)).proof;
-        let a_rev = prove_symmetry(a.clone(), &self.proof_registry);
-
-        prove_transitivity(a, a_rev, &self.proof_registry)
-    }
 }
 
 // {1,2} x {3} x {4,5} -> (1,3,4), (1,3,5), (2,3,4), (2,3,5)
