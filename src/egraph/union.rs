@@ -125,7 +125,7 @@ impl<L: Language> EGraph<L> {
         let eq = final_prf.equ();
 
         self.unionfind_set(i, ProvenAppliedId {
-            elem: eq.r.apply_slotmap_fresh(&eq.l.m.inverse()),
+            elem: eq.r.apply_slotmap_partial(&eq.l.m.inverse()),
             proof: final_prf,
         });
     }

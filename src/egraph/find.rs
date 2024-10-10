@@ -1,22 +1,10 @@
 use crate::*;
 
 impl<L: Language> EGraph<L> {
-    // We lazily semify the entries, only when we encounter them.
-    fn unionfind_semify_entry(&self, entry: &mut ProvenAppliedId) {
-        if entry.elem.m.keys().len() > self.slots(entry.elem.id).len() {
-            entry.elem = self.semify_app_id(entry.elem.clone());
-        }
-
-        // maybe I want something like this to disassociate?
-        // but definitely only when necessary.
-        // entry.1 = prove_transitivity(entry.1.clone(), self.classes[&entry.0.id].redundancy_proof.clone());
-    }
-
     fn unionfind_get_impl(&self, i: Id, map: &mut [ProvenAppliedId]) -> ProvenAppliedId {
         let entry = &mut map[i.0];
 
         if entry.elem.id == i {
-            self.unionfind_semify_entry(entry);
             return entry.clone();
         }
 
