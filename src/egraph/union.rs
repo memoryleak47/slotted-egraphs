@@ -343,10 +343,16 @@ impl<L: Language> EGraph<L> {
 
     fn handle_pending(&mut self, sh: L) {
         let i = self.hashcons[&sh];
-        let ProvenSourceNode { elem: bij, src_id } = self.classes[&i].nodes[&sh].clone();
-        let node = sh.apply_slotmap(&bij);
-        self.raw_remove_from_class(i, (sh.clone(), bij));
+        let psn = self.classes[&i].nodes[&sh].clone();
+        let node = sh.apply_slotmap(&psn.elem);
+        self.raw_remove_from_class(i, (sh.clone(), psn.elem));
         let app_i = self.mk_sem_identity_applied_id(i);
+
+        #[cfg(feature = "explanations_tmp")]
+        let src_id = psn.src_id.clone();
+        #[cfg(not(feature = "explanations_tmp"))]
+        let src_id = AppliedId::null();
+
         self.semantic_add(&node, &app_i, src_id);
     }
 
