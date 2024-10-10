@@ -7,8 +7,10 @@ license = "Apache-2.0 OR MIT"
 repository = "https://github.com/memoryleak47/slotted-egraphs/"
 
 [features]
+default = ["explanations_tmp"]
 explanations = []
 checks = []
+explanations_tmp = []
 
 [dependencies]
 fnv = "1.0.7"
