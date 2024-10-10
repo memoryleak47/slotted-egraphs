@@ -20,11 +20,13 @@ impl<L: Language> EGraph<L> {
     }
 
     pub fn unionfind_set(&self, i: Id, pai: ProvenAppliedId) {
+        #[cfg(feature = "explanations_tmp")]
         if CHECKS {
             pai.proof.check(self);
             assert_eq!(i, pai.proof.l.id);
             assert_eq!(pai.elem.id, pai.proof.r.id);
         }
+
         let mut lock = self.unionfind.try_lock().unwrap();
         if lock.len() == i.0 {
             lock.push(pai);

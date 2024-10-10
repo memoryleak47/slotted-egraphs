@@ -66,13 +66,16 @@ impl<L: Language> EGraph<L> {
         for (i, c) in &self.classes {
             if !self.is_alive(*i) { continue; }
 
-            let eq = self.proven_unionfind_get(*i).proof.equ();
-            // eq.l.m :: slots(i) -> X
-            // eq.r.m :: slots(i) -> X
-            let tmp = eq.l.m.compose_partial(&eq.r.m.inverse());
-            assert!(tmp.is_perm());
-            assert_eq!(c.slots, tmp.keys());
-            assert_eq!(c.slots, tmp.values());
+            #[cfg(feature = "explanations_tmp")]
+            {
+                let eq = self.proven_unionfind_get(*i).proof.equ();
+                // eq.l.m :: slots(i) -> X
+                // eq.r.m :: slots(i) -> X
+                let tmp = eq.l.m.compose_partial(&eq.r.m.inverse());
+                assert!(tmp.is_perm());
+                assert_eq!(c.slots, tmp.keys());
+                assert_eq!(c.slots, tmp.values());
+            }
         }
 
         for (i, c) in &self.classes {

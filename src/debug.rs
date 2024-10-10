@@ -13,6 +13,7 @@ impl Debug for Id {
     }
 }
 
+#[cfg(feature = "explanations_tmp")]
 impl Debug for Equation {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
         write!(f, "{:?} = {:?}", self.l, self.r)

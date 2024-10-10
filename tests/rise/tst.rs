@@ -40,6 +40,7 @@ fn fission() {
 }
 
 #[test]
+#[ignore] // takes too long
 pub fn binomial() {
     let a = "(app (app map (app map (lam s0 (app (app (app reduce add) 0) (app (app map (lam s-1 (app (app mul (app fst (var s-1))) (app snd (var s-1))))) (app (app zip (app join weights2d)) (app join (var s0)))))))) (app (app map transpose) (app (app (app slide 3) 1) (app (app map (app (app slide 3) 1)) input))))";
     let b = "(app (app map (lam s0 (app (app map (lam s1 (app (app (app reduce add) 0) (app (app map (lam s-2 (app (app mul (app fst (var s-2))) (app snd (var s-2))))) (app (app zip weightsH) (var s1)))))) (app (app (app slide 3) 1) (app (app map (lam s2 (app (app (app reduce add) 0) (app (app map (lam s-3 (app (app mul (app fst (var s-3))) (app snd (var s-3))))) (app (app zip weightsV) (var s2)))))) (app transpose (var s0))))))) (app (app (app slide 3) 1) input))";

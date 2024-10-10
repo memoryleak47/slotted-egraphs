@@ -122,33 +122,48 @@ impl<L: Language> EGraph<L> {
 
     // proof.l should be i.
     // proof.r should be missing a few slots.
-    fn record_redundancy_witness(&mut self, i: Id, proof: ProvenEq) {
+    fn record_redundancy_witness(&mut self, i: Id, cap: &HashSet<Slot>, proof: ProvenEq) {
         if CHECKS {
             assert!(self.is_alive(i));
+
+            #[cfg(feature = "explanations_tmp")]
             assert_eq!(proof.l.id, i);
         }
 
-        let flipped = prove_symmetry(proof.clone(), &self.proof_registry);
-        let new_prf = prove_transitivity(proof, flipped, &self.proof_registry);
+        let prf = ghost!({
+            let flipped = prove_symmetry(proof.clone(), &self.proof_registry);
+            let new_prf = prove_transitivity(proof, flipped, &self.proof_registry);
 
-        let old_prf = self.proven_find_applied_id(&self.mk_syn_identity_applied_id(i)).proof;
-        let final_prf = prove_transitivity(new_prf, old_prf, &self.proof_registry);
+            let old_prf = self.proven_find_applied_id(&self.mk_syn_identity_applied_id(i)).proof;
+            prove_transitivity(new_prf, old_prf, &self.proof_registry)
+        });
 
-        let eq = final_prf.equ();
+        let elem = self.mk_syn_identity_applied_id(i).apply_slotmap_partial(&SlotMap::identity(cap));
+
+        #[cfg(feature = "explanations_tmp")]
+        if CHECKS {
+            let eq = prf.equ();
+            let elem2 = eq.r.apply_slotmap_partial(&eq.l.m.inverse());
+            assert_eq!(elem, elem2);
+        }
 
         self.unionfind_set(i, ProvenAppliedId {
-            elem: eq.r.apply_slotmap_partial(&eq.l.m.inverse()),
-            proof: final_prf,
+            elem,
+
+            #[cfg(feature = "explanations_tmp")]
+            proof: prf,
         });
     }
 
     // We expect `from` to be on the lhs of this equation.
     fn shrink_slots(&mut self, from: &AppliedId, cap: &HashSet<Slot>, proof: ProvenEq) {
+        #[cfg(feature = "explanations_tmp")]
         if CHECKS {
             assert_eq!(from.id, proof.l.id);
         }
 
-        self.record_redundancy_witness(from.id, proof);
+        let origcap = cap.iter().map(|x| from.m.inverse()[*x]).collect();
+        self.record_redundancy_witness(from.id, &origcap, proof);
 
         let (id, cap) = {
             // from.m :: slots(from.id) -> X
@@ -187,10 +202,14 @@ impl<L: Language> EGraph<L> {
             let perm = proven_perm.elem.into_iter()
                 .filter(|(x, _)| cap.contains(x))
                 .collect();
+
+            #[cfg(feature = "explanations_tmp")]
             let prf = self.disassociate_proven_eq(proven_perm.proof);
             let out = ProvenPerm {
                 elem: perm,
+                #[cfg(feature = "explanations_tmp")]
                 proof: prf,
+                #[cfg(feature = "explanations_tmp")]
                 reg: self.proof_registry.clone()
             };
             out.check();
@@ -232,12 +251,19 @@ impl<L: Language> EGraph<L> {
 
         let from_nodes = self.classes.get(&from.id).unwrap().nodes.clone();
         let from_id = self.mk_sem_identity_applied_id(from.id);
-        for (sh, ProvenSourceNode { elem: bij, src_id }) in from_nodes {
-            let enode = sh.apply_slotmap(&bij);
-            self.raw_remove_from_class(from.id, (sh.clone(), bij.clone()));
+        for (sh, psn) in from_nodes {
+            let enode = sh.apply_slotmap(&psn.elem);
+            self.raw_remove_from_class(from.id, (sh.clone(), psn.elem.clone()));
             // if `sh` contains redundant slots, these won't be covered by 'map'.
             // Thus we need compose_fresh.
-            let new_bij = bij.compose_fresh(&map.inverse());
+            let new_bij = psn.elem.compose_fresh(&map.inverse());
+
+            #[cfg(feature = "explanations_tmp")]
+            let src_id = psn.src_id.clone();
+
+            #[cfg(not(feature = "explanations_tmp"))]
+            let src_id = AppliedId::null();
+
             self.raw_add_to_class(to.id, (sh.clone(), new_bij), src_id);
             self.pending.insert(sh);
         }
