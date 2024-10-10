@@ -389,11 +389,16 @@ impl<L: Language> EGraph<L> {
             let ty = self.syn_slots(src_id);
             assert!(leader_inv.keys().is_subset(&ty));
         }
-        // TODO ghost-independent cap computation.
-        let cap = prf.l.m.iter()
-             .filter_map(|(x, y)| {
-                if prf.r.m.values().contains(&y) { Some(x) } else { None }
-             }).collect();
+        let cap = new_node.slots();
+
+        #[cfg(feature = "explanations_tmp")]
+        if CHECKS {
+            let ghost_cap: HashSet<_> = prf.l.m.iter()
+                 .filter_map(|(x, y)| {
+                    if prf.r.m.values().contains(&y) { Some(x) } else { None }
+                 }).collect();
+            assert_eq!(ghost_cap, cap);
+        }
         self.shrink_slots(&leader, &cap, prf);
     }
 
