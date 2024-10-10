@@ -34,21 +34,21 @@ impl<L: Language> EGraph<L> {
         let pai_l = self.proven_find_applied_id(&l);
         let pai_r = self.proven_find_applied_id(&r);
 
-        // @ghost {
-        if CHECKS {
-            pai_l.proof.check(self);
-            pai_r.proof.check(self);
-        }
+        let proof = ghost!({
+            if CHECKS {
+                pai_l.proof.check(self);
+                pai_r.proof.check(self);
+            }
 
-        let a = self.prove_symmetry(pai_l.proof);
-        let a = self.prove_transitivity(a, proof);
-        let a = self.prove_transitivity(a, pai_r.proof);
-        let proof = a;
-        if CHECKS {
-            assert_eq!(proof.l.id, pai_l.elem.id);
-            assert_eq!(proof.r.id, pai_r.elem.id);
-        }
-        // }
+            let a = self.prove_symmetry(pai_l.proof);
+            let a = self.prove_transitivity(a, proof);
+            let a = self.prove_transitivity(a, pai_r.proof);
+            if CHECKS {
+                assert_eq!(a.l.id, pai_l.elem.id);
+                assert_eq!(a.r.id, pai_r.elem.id);
+            }
+            a
+        });
         self.union_leaders(pai_l.elem, pai_r.elem, proof)
     }
 
