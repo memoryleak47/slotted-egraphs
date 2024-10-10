@@ -357,32 +357,39 @@ impl<L: Language> EGraph<L> {
     }
 
     fn handle_shrink_in_upwards_merge(&mut self, src_id: Id) {
-        let ProvenAppliedId { elem: leader, proof: leader_prf } = self.proven_unionfind_get(src_id);
-        let neg_leader_prf = prove_symmetry(leader_prf.clone(), &self.proof_registry);
+        let pai = self.proven_unionfind_get(src_id);
+        let ProvenAppliedId { elem: leader, .. } = pai.clone();
+        let neg_leader_prf = prove_symmetry(pai.proof.clone(), &self.proof_registry);
         let src_syn_slots = self.syn_slots(src_id);
 
         let identity = self.mk_syn_identity_applied_id(src_id);
         let syn_enode = self.get_syn_node(&identity);
         assert!(syn_enode.slots().is_subset(&src_syn_slots));
-        let ProvenNode { elem: new_node, proofs: prfs } = self.proven_find_enode(&syn_enode);
+        let pn = self.proven_find_enode(&syn_enode);
+        let ProvenNode { elem: new_node, .. } = pn.clone();
         assert!(new_node.slots().is_subset(&src_syn_slots));
 
+        #[cfg(feature = "explanations_tmp")]
         let mut combined = Vec::new();
-        for (app_id, prf) in new_node.applied_id_occurences().into_iter().zip(prfs.into_iter()) {
+        #[cfg(feature = "explanations_tmp")]
+        for (app_id, prf) in new_node.applied_id_occurences().into_iter().zip(pn.proofs.into_iter()) {
             // each child-proof might "fix" a few slots, which are not witnessed to be redundant by it.
             let rev = prove_symmetry(prf.clone(), &self.proof_registry);
             let cycle = prove_transitivity(prf, rev, &self.proof_registry);
 
             combined.push(cycle);
         }
+        #[cfg(feature = "explanations_tmp")]
         let cong = self.prove_congruence(src_id, src_id, &combined);
-        let prf = self.prove_transitivity(neg_leader_prf.clone(), self.prove_transitivity(cong, leader_prf.clone()));
+        #[cfg(feature = "explanations_tmp")]
+        let prf = self.prove_transitivity(neg_leader_prf.clone(), self.prove_transitivity(cong, pai.proof.clone()));
 
         let leader_inv = leader.m.inverse();
         if CHECKS {
             let ty = self.syn_slots(src_id);
             assert!(leader_inv.keys().is_subset(&ty));
         }
+        // TODO ghost-independent cap computation.
         let cap = prf.l.m.iter()
              .filter_map(|(x, y)| {
                 if prf.r.m.values().contains(&y) { Some(x) } else { None }
@@ -432,8 +439,10 @@ impl<L: Language> EGraph<L> {
 
     // finds self-symmetries caused by the e-node `src_id`.
     fn determine_self_symmetries(&mut self, src_id: Id) {
-        let ProvenAppliedId { elem: leader, proof: leader_prf } = self.proven_unionfind_get(src_id);
-        let neg_leader_prf = self.prove_symmetry(leader_prf.clone());
+        let pai = self.proven_unionfind_get(src_id);
+        let ProvenAppliedId { elem: leader, .. } = pai.clone();
+        #[cfg(feature = "explanations_tmp")]
+        let neg_leader_prf = self.prove_symmetry(pai.proof.clone());
         let i = leader.id;
         let leader_bij = leader.m;
 
@@ -444,9 +453,11 @@ impl<L: Language> EGraph<L> {
             assert_eq!(&syn_slots, &syn_node.slots());
         }
 
-        let ProvenNode { elem: enode, proofs: prfs } = self.proven_find_enode(&syn_node);
+        let pn1 = self.proven_find_enode(&syn_node);
+        let ProvenNode { elem: enode, .. } = pn1.clone();
         let (weak, bij) = enode.weak_shape();
-        for ProvenNode { elem: n, proofs: prfs2 } in self.proven_get_group_compatible_variants(&enode) {
+        for pn2  in self.proven_get_group_compatible_variants(&enode) {
+            let ProvenNode { elem: n, proofs: prfs2 } = pn2.clone();
             let (weak2, bij2) = n.weak_shape();
             if weak == weak2 {
                 // I'm looking for an equation like i == i * BIJ to add BIJ to the group.
@@ -469,7 +480,7 @@ impl<L: Language> EGraph<L> {
                 if CHECKS { assert!(perm.is_perm()); }
 
                 let mut combined_prfs = Vec::new();
-                for (old_to_new_ids, perm_prf) in prfs.iter().zip(prfs2.iter()) {
+                for (old_to_new_ids, perm_prf) in pn1.proofs.iter().zip(pn2.proofs.iter()) {
                     let new_to_old_ids = self.prove_symmetry(old_to_new_ids.clone());
 
                     let eq = self.prove_transitivity(self.prove_transitivity(old_to_new_ids.clone(), perm_prf.clone()), new_to_old_ids.clone());
@@ -479,25 +490,31 @@ impl<L: Language> EGraph<L> {
 
                 // src_id[...] == src_id[...]
 
+                #[cfg(feature = "explanations_tmp")]
                 let prf = self.prove_congruence(src_id, src_id, &combined_prfs);
+                #[cfg(feature = "explanations_tmp")]
                 if CHECKS {
                     assert_eq!(prf.l.id, src_id);
                     assert_eq!(prf.r.id, src_id);
                 }
 
                 // i[...] == i[...]
-                let prf = self.prove_transitivity(neg_leader_prf.clone(), self.prove_transitivity(prf, leader_prf.clone()));
+                #[cfg(feature = "explanations_tmp")]
+                let prf = self.prove_transitivity(neg_leader_prf.clone(), self.prove_transitivity(prf, pai.proof.clone()));
                 let perm = leader_bij.compose_partial(&perm.compose_partial(&leader_bij.inverse()));
 
                 let slots = self.slots(i);
                 let syn_slots = self.syn_slots(i);
+                #[cfg(feature = "explanations_tmp")]
                 if CHECKS {
                     assert_eq!(prf.l.id, i);
                     assert_eq!(prf.r.id, i);
                 }
                 let proven_perm = ProvenPerm {
                     elem: perm,
+                    #[cfg(feature = "explanations_tmp")]
                     proof: prf,
+                    #[cfg(feature = "explanations_tmp")]
                     reg: self.proof_registry.clone(),
                 };
 
