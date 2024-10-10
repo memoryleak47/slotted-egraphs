@@ -359,7 +359,10 @@ impl<L: Language> EGraph<L> {
     fn handle_shrink_in_upwards_merge(&mut self, src_id: Id) {
         let pai = self.proven_unionfind_get(src_id);
         let ProvenAppliedId { elem: leader, .. } = pai.clone();
+
+        #[cfg(feature = "explanations_tmp")]
         let neg_leader_prf = prove_symmetry(pai.proof.clone(), &self.proof_registry);
+
         let src_syn_slots = self.syn_slots(src_id);
 
         let identity = self.mk_syn_identity_applied_id(src_id);
@@ -399,7 +402,7 @@ impl<L: Language> EGraph<L> {
                  }).collect();
             assert_eq!(ghost_cap, cap);
         }
-        self.shrink_slots(&leader, &cap, prf);
+        self.shrink_slots(&leader, &cap, ghost!(prf));
     }
 
     // TODO get rid of semantic_add, in favor of "handle_pending".
@@ -462,7 +465,7 @@ impl<L: Language> EGraph<L> {
         let ProvenNode { elem: enode, .. } = pn1.clone();
         let (weak, bij) = enode.weak_shape();
         for pn2  in self.proven_get_group_compatible_variants(&enode) {
-            let ProvenNode { elem: n, proofs: prfs2 } = pn2.clone();
+            let ProvenNode { elem: n, .. } = pn2.clone();
             let (weak2, bij2) = n.weak_shape();
             if weak == weak2 {
                 // I'm looking for an equation like i == i * BIJ to add BIJ to the group.
@@ -484,7 +487,9 @@ impl<L: Language> EGraph<L> {
 
                 if CHECKS { assert!(perm.is_perm()); }
 
+                #[cfg(feature = "explanations_tmp")]
                 let mut combined_prfs = Vec::new();
+                #[cfg(feature = "explanations_tmp")]
                 for (old_to_new_ids, perm_prf) in pn1.proofs.iter().zip(pn2.proofs.iter()) {
                     let new_to_old_ids = self.prove_symmetry(old_to_new_ids.clone());
 
@@ -535,30 +540,37 @@ impl<L: Language> EGraph<L> {
     pub(in crate::egraph) fn handle_congruence(&mut self, a: Id) {
         let a = &self.mk_syn_identity_applied_id(a);
         let a_node = self.get_syn_node(a);
-        let (ProvenNode { elem: sh1, proofs: vec_p1 }, bij1) = self.proven_shape(&a_node);
+        let (pn1, bij1) = self.proven_shape(&a_node);
+        let ProvenNode { elem: sh1, .. } = pn1.clone();
 
         let t = (sh1.clone(), bij1.clone());
         let b = self.lookup_internal(&t).expect("handle_congruence should only be called on hashcons collision!");
-        let ProvenSourceNode { elem: bij, src_id: c } = self.classes[&b.id].nodes[&t.0].clone();
+        let psn = self.classes[&b.id].nodes[&t.0].clone();
+        let ProvenSourceNode { elem: bij, src_id: c } = psn.clone();
         let c = c.apply_slotmap_fresh(&b.m); // TODO why on earth does it fail if I remove this? This should do literally nothing.
         let c_node = self.get_syn_node(&c);
-        let (ProvenNode { elem: sh2, proofs: vec_p2}, bij2) = self.proven_shape(&c_node);
+        let (pn2, bij2) = self.proven_shape(&c_node);
+        let ProvenNode { elem: sh2, .. } = pn2.clone();
         let t2 = (sh2.clone(), bij2.clone());
         if CHECKS {
             assert_eq!(&t.0, &t2.0);
         }
 
+        #[cfg(feature = "explanations_tmp")]
         let mut vec = Vec::new();
-        for (l, r) in vec_p1.into_iter().zip(vec_p2.into_iter()) {
+        #[cfg(feature = "explanations_tmp")]
+        for (l, r) in pn1.proofs.into_iter().zip(pn2.proofs.into_iter()) {
             let r_inv = self.prove_symmetry(r);
             let l_to_r = self.prove_transitivity(l, r_inv);
             vec.push(l_to_r);
         }
 
+        #[cfg(feature = "explanations_tmp")]
         let proven_eq = self.prove_congruence(a.id, c.id, &vec);
         let eq = proven_eq.equ();
         let l = eq.l;
         let r = eq.r;
+        // TODO l and r currently depend on ghost code.
         self.union_internal(&l, &r, proven_eq);
     }
 
