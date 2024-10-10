@@ -333,6 +333,10 @@ impl<L: Language> EGraph<L> {
             children: cs,
         }
     }
+
+    pub fn get_redundancy_proof2(&self, i: Id) -> ProvenEq {
+        self.proven_find_applied_id(&self.mk_syn_identity_applied_id(i)).proof
+    }
 }
 
 // {1,2} x {3} x {4,5} -> (1,3,4), (1,3,5), (2,3,4), (2,3,5)

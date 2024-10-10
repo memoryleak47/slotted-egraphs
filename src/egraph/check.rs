@@ -66,7 +66,7 @@ impl<L: Language> EGraph<L> {
         for (i, c) in &self.classes {
             if !self.is_alive(*i) { continue; }
 
-            let eq = c.redundancy_proof.equ();
+            let eq = self.get_redundancy_proof2(*i).equ();
             // eq.l.m :: slots(i) -> X
             // eq.r.m :: slots(i) -> X
             let tmp = eq.l.m.compose_partial(&eq.r.m.inverse());

@@ -119,8 +119,15 @@ impl<L: Language> EGraph<L> {
         let flipped = prove_symmetry(proof.clone(), &self.proof_registry);
         let new_prf = prove_transitivity(proof, flipped, &self.proof_registry);
 
-        let old_prf = &mut self.classes.get_mut(&i).unwrap().redundancy_proof;
-        *old_prf = prove_transitivity(new_prf, old_prf.clone(), &self.proof_registry);
+        let old_prf = self.proven_find_applied_id(&self.mk_syn_identity_applied_id(i)).proof;
+        let final_prf = prove_transitivity(new_prf, old_prf, &self.proof_registry);
+
+        let eq = final_prf.equ();
+
+        self.unionfind_set(i, ProvenAppliedId {
+            elem: eq.r.apply_slotmap_fresh(&eq.l.m.inverse()),
+            proof: final_prf,
+        });
     }
 
     // We expect `from` to be on the lhs of this equation.
