@@ -36,6 +36,7 @@ pub struct EClass<L: Language> {
     // Expresses the self-symmetries of this e-class.
     group: Group<ProvenPerm>,
 
+    // TODO remove this if explanations are disabled.
     syn_enode: L,
 }
 
@@ -64,11 +65,13 @@ pub struct EGraph<L: Language> {
     hashcons: HashMap<L, Id>,
 
     // For each (syn_slotset applied) non-normalized (i.e. "syntactic") weak shape, find the e-class who has this as syn_enode.
+    // TODO remove this if explanations are disabled.
     syn_hashcons: HashMap<L, AppliedId>,
 
     // E-Nodes that need to be re-processed, stored as shapes.
     pending: HashSet<L>,
 
+    // TODO remove this if explanations are disabled.
     proof_registry: ProofRegistry,
 }
 
@@ -326,6 +329,11 @@ impl<L: Language> EGraph<L> {
             node: nullify_app_ids(&enode),
             children: cs,
         }
+    }
+
+    pub fn get_syn_node(&self, i: &AppliedId) -> L {
+        let syn = &self.classes[&i.id].syn_enode;
+        syn.apply_slotmap(&i.m)
     }
 }
 

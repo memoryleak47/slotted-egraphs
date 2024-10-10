@@ -268,13 +268,6 @@ impl ProvenEqRaw {
     }
 }
 
-impl<L: Language> EGraph<L> {
-    pub fn get_syn_node(&self, i: &AppliedId) -> L {
-        let syn = &self.classes[&i.id].syn_enode;
-        syn.apply_slotmap(&i.m)
-    }
-}
-
 // returns the global renaming theta, s.t. a.apply_slotmap(theta) = b, if it exists.
 #[track_caller]
 pub fn match_app_id(a: &AppliedId, b: &AppliedId) -> SlotMap {
