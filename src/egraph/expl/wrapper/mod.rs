@@ -20,6 +20,11 @@ mod contains;
 pub use contains::*;
 
 #[cfg(feature = "explanations")]
-pub macro ghost($a: expr) { $a }
+#[macro_export] macro_rules! ghost {
+    ($a: expr) => { $a }
+}
+
 #[cfg(not(feature = "explanations"))]
-pub macro ghost($a: expr) { () }
+#[macro_export ]macro_rules! ghost {
+    ($a: expr) => { () }
+}

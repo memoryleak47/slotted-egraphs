@@ -1,5 +1,4 @@
 #![allow(unused_imports)]
-#![feature(decl_macro)]
 
 use std::hash::Hash;
 use std::fmt::Debug;
