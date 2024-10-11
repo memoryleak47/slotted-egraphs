@@ -4,24 +4,38 @@ type ShowMap = HashMap<*const ProvenEqRaw, (usize, String)>;
 
 impl ProvenEqRaw {
     pub fn show(&self) {
-        self.show_impl(&|i| format!("{i:?}"))
+        println!("{}", self.to_string());
     }
 
     pub fn show_expr<L: Language>(&self, eg: &EGraph<L>) {
+        println!("{}", self.to_string_expr(eg));
+    }
+
+    // to string API:
+
+    pub fn to_string(&self) -> String {
+        self.show_impl(&|i| format!("{i:?}"))
+    }
+
+    pub fn to_string_expr<L: Language>(&self, eg: &EGraph<L>) -> String {
         self.show_impl(&|i| {
             eg.get_syn_expr(i).to_string()
         })
     }
 
-    pub fn show_impl(&self, f: &impl Fn(&AppliedId) -> String) {
+    // internals:
+    pub fn show_impl(&self, f: &impl Fn(&AppliedId) -> String) -> String {
         let mut map = Default::default();
         self.show_impl2(&mut map, f);
 
         let mut map_sorted: Vec<_> = map.into_iter().collect();
         map_sorted.sort_by_key(|(_, (i, _))| *i);
+        let mut out = String::new();
         for (_, (_, s)) in map_sorted {
-            println!("{}", s);
+            out.extend(s.chars());
+            out.push('\n');
         }
+        out
     }
 
     fn subproofs(&self) -> Vec<&ProvenEq> {
