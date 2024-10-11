@@ -2,11 +2,12 @@ use crate::*;
 
 use std::hash::*;
 
-// Should ProvenNode also contain the src-id?
 #[derive(Clone)]
 pub struct ProvenNode<L> {
     pub elem: L,
 
+    // These proofs have as 'lhs' the base that is situation dependent.
+    // And the 'rhs' is 'elem'.
     #[cfg(feature = "explanations")]
     pub proofs: Vec<ProvenEq>,
 }

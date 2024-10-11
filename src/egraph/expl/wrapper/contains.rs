@@ -1,10 +1,14 @@
 use crate::*;
 
+// the existance of a ProvenContains `pc` implies `eg.find_id(eg.lookup(pc.elem.elem).unwrap().id) == eg.find_id(pc.proof.r.id)`
 pub struct ProvenContains<L> {
     // contains the proof that the e-node is equal to some app-ids syn-enode.
+    // lhs of this proof is the syn-enode, rhs is the current e-node represented by this ProvenContains when explanations are off.
     pub elem: ProvenNode<L>,
 
     // proofs that this app-id is equal to our target app-id.
+    // The lhs of this ProvenEq should be the class containing our syn-enode.
+    // The rhs is the current state that we express.
     #[cfg(feature = "explanations")]
     pub proof: ProvenEq,
 }
