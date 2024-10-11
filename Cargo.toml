@@ -10,6 +10,9 @@ repository = "https://github.com/memoryleak47/slotted-egraphs/"
 explanations = []
 checks = []
 
+[package.metadata.docs.rs]
+features = ["explanations"]
+
 [dependencies]
 fnv = "1.0.7"
 
