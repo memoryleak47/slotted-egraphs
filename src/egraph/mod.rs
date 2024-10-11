@@ -343,7 +343,8 @@ impl<L: Language> EGraph<L> {
 }
 
 // {1,2} x {3} x {4,5} -> (1,3,4), (1,3,5), (2,3,4), (2,3,5)
-fn cartesian<'a, T>(input: &'a [Vec<T>]) -> impl Iterator<Item=Vec<&'a T>> + use<'a, T> {
+// TODO re-enable use<...> when it's stabilized.
+fn cartesian<'a, T>(input: &'a [Vec<T>]) -> impl Iterator<Item=Vec<&'a T>> /*+ use<'a, T>*/ + '_ {
     let n = input.len();
     let mut indices = vec![0; n];
     let mut done = false;
