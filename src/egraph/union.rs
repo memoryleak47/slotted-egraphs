@@ -260,7 +260,6 @@ impl<L: Language> EGraph<L> {
         let from_nodes = self.classes.get(&from.id).unwrap().nodes.clone();
         let from_id = self.mk_sem_identity_applied_id(from.id);
         for (sh, psn) in from_nodes {
-            let enode = sh.apply_slotmap(&psn.elem);
             self.raw_remove_from_class(from.id, (sh.clone(), psn.elem.clone()));
             // if `sh` contains redundant slots, these won't be covered by 'map'.
             // Thus we need compose_fresh.
