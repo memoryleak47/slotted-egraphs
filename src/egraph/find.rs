@@ -81,6 +81,9 @@ impl<L: Language> EGraph<L> {
     // Example 2:
     // 'find(c1(s3, s7, s8)) = c2(s8, s7)', where 'c1(s0, s1, s2) -> c2(s2, s1)' in unionfind,
     pub fn find_applied_id(&self, i: &AppliedId) -> AppliedId {
+        #[cfg(feature = "explanations")]
+        let i = &self.synify_app_id(i.clone());
+
         self.proven_find_applied_id(i).elem
     }
 
@@ -90,9 +93,17 @@ impl<L: Language> EGraph<L> {
     }
 
     pub fn proven_proven_find_applied_id(&self, pai: &ProvenAppliedId) -> ProvenAppliedId {
+        self.check_pai(&pai);
+
         let mut pai2 = self.proven_unionfind_get(pai.elem.id);
 
         pai2.elem.m = pai2.elem.m.compose_partial(&pai.elem.m);
+
+        #[cfg(feature = "explanations")]
+        { pai2.proof = prove_transitivity(pai.proof.clone(), pai2.proof, &self.proof_registry); }
+
+        self.check_pai(&pai);
+
         pai2
     }
 

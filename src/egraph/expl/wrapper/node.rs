@@ -54,6 +54,24 @@ impl<L: Language> ProvenNode<L> {
 }
 
 impl<L: Language> EGraph<L> {
+    pub fn check_pn(&self, pn: &ProvenNode<L>) {
+        #[cfg(feature = "explanations")]
+        {
+            let a = &pn.proofs;
+            let b = &pn.elem.applied_id_occurences();
+            assert_eq!(a.len(), b.len());
+            for (x, y) in a.iter().zip(b.iter()) {
+                assert_eq!(x.r.id, y.id);
+            }
+        }
+    }
+
+    #[cfg(feature = "explanations")]
+    // If we take the `proofs` to go backward from `elem`, where do we land?
+    pub fn pn_source_node(&self, pn: &ProvenNode<L>) -> L {
+        todo!()
+    }
+
     pub fn refl_pn(&self, start: &L) -> ProvenNode<L> {
         #[cfg(feature = "explanations")]
         let rfl = start.applied_id_occurences()

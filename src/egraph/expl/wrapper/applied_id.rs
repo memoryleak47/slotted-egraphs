@@ -9,6 +9,21 @@ pub struct ProvenAppliedId {
 }
 
 impl<L: Language> EGraph<L> {
+    pub fn check_pai(&self, pai: &ProvenAppliedId) {
+        #[cfg(feature = "explanations")]
+        {
+            assert_eq!(pai.proof.r.id, pai.elem.id);
+            self.check_syn_applied_id(&pai.proof.l);
+            self.check_syn_applied_id(&pai.proof.r);
+        }
+    }
+
+    #[cfg(feature = "explanations")]
+    // if we use the proof to go backwards from `elem`, where do we end up?
+    pub fn pai_source_applied_id(&self, pai: &ProvenAppliedId) -> AppliedId {
+        todo!()
+    }
+
     // x=y & y=z make x=z
     // It will return "next.elem" but using the slots of "start". The proofs concatenate.
     // Assumes that "next.m.values() ~ slots(start.id)"
@@ -26,7 +41,11 @@ impl<L: Language> EGraph<L> {
             elem: app_id.clone(),
 
             #[cfg(feature = "explanations")]
-            proof: prove_reflexivity(app_id, &self.proof_registry),
+            proof: {
+                // should this already be synified before calling this?
+                let syn = self.synify_app_id(app_id.clone());
+                prove_reflexivity(&syn, &self.proof_registry)
+            }
         }
     }
 
@@ -36,6 +55,16 @@ impl<L: Language> EGraph<L> {
 
             #[cfg(feature = "explanations")]
             proof: self.prove_transitivity(pai.proof.clone(), pp.proof.clone()),
+        }
+    }
+
+    // doesn't do anything if explanations are off.
+    pub fn chain_pai_eq(&self, pai: &ProvenAppliedId, peq: ProvenEq) -> ProvenAppliedId {
+        ProvenAppliedId {
+            elem: pai.elem.clone(),
+
+            #[cfg(feature = "explanations")]
+            proof: self.prove_transitivity(pai.proof.clone(), peq),
         }
     }
 }

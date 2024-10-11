@@ -348,52 +348,14 @@ impl<L: Language> EGraph<L> {
     }
 
     fn handle_shrink_in_upwards_merge(&mut self, src_id: Id) {
-        let pai = self.proven_unionfind_get(src_id);
-        let ProvenAppliedId { elem: leader, .. } = pai.clone();
+        let pc1 = self.pc_from_src_id(src_id);
+        let pc2 = self.chain_pc_map(&pc1, |_, pai| self.proven_proven_find_applied_id(&pai));
 
-        #[cfg(feature = "explanations")]
-        let neg_leader_prf = prove_symmetry(pai.proof.clone(), &self.proof_registry);
+        let (a, b, prf) = self.pc_congruence(&pc1, &pc2);
 
-        let src_syn_slots = self.syn_slots(src_id);
+        let cap = &a.slots() & &b.slots();
 
-        let identity = self.mk_syn_identity_applied_id(src_id);
-        let syn_enode = self.get_syn_node(&identity);
-        assert!(syn_enode.slots().is_subset(&src_syn_slots));
-        let pn = self.proven_find_enode(&syn_enode);
-        let ProvenNode { elem: new_node, .. } = pn.clone();
-        assert!(new_node.slots().is_subset(&src_syn_slots));
-
-        #[cfg(feature = "explanations")]
-        let mut combined = Vec::new();
-        #[cfg(feature = "explanations")]
-        for (app_id, prf) in new_node.applied_id_occurences().into_iter().zip(pn.proofs.into_iter()) {
-            // each child-proof might "fix" a few slots, which are not witnessed to be redundant by it.
-            let rev = prove_symmetry(prf.clone(), &self.proof_registry);
-            let cycle = prove_transitivity(prf, rev, &self.proof_registry);
-
-            combined.push(cycle);
-        }
-        #[cfg(feature = "explanations")]
-        let cong = self.prove_congruence(src_id, src_id, &combined);
-        #[cfg(feature = "explanations")]
-        let prf = self.prove_transitivity(neg_leader_prf.clone(), self.prove_transitivity(cong, pai.proof.clone()));
-
-        let leader_inv = leader.m.inverse();
-        if CHECKS {
-            let ty = self.syn_slots(src_id);
-            assert!(leader_inv.keys().is_subset(&ty));
-        }
-        let cap = new_node.slots();
-
-        #[cfg(feature = "explanations")]
-        if CHECKS {
-            let ghost_cap: HashSet<_> = prf.l.m.iter()
-                 .filter_map(|(x, y)| {
-                    if prf.r.m.values().contains(&y) { Some(x) } else { None }
-                 }).collect();
-            assert_eq!(ghost_cap, cap);
-        }
-        self.shrink_slots(&leader, &cap, ghost!(prf));
+        self.shrink_slots(&a, &cap, prf);
     }
 
     // TODO get rid of semantic_add, in favor of "handle_pending".
