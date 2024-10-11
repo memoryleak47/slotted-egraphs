@@ -7,10 +7,22 @@ pub struct ProvenContains<L> {
     pub elem: ProvenNode<L>,
 
     // proofs that this app-id is equal to our target app-id.
-    // The lhs of this ProvenEq should be the class containing our syn-enode.
-    // The rhs is the current state that we express.
+    // The lhs of this ProvenEq should be the class containing our syn-enode (i.e. the source-id).
+    // The rhs is the current state that we express (i.e. the target-id).
     #[cfg(feature = "explanations")]
     pub proof: ProvenEq,
+}
+
+impl<L: Language> ProvenContains<L> {
+    #[cfg(feature = "explanations")]
+    fn src_id(&self) -> Id {
+        self.proof.l.id
+    }
+
+    #[cfg(feature = "explanations")]
+    fn target_id(&self) -> Id {
+        self.proof.r.id
+    }
 }
 
 impl<L: Language> EGraph<L> {
@@ -40,7 +52,32 @@ impl<L: Language> EGraph<L> {
         }
     }
 
+    #[cfg(feature = "explanations")]
     pub fn pc_congruence(&self, a: &ProvenContains<L>, b: &ProvenContains<L>) -> ProvenEq {
-        todo!()
+        let prf_a = &*a.elem.proofs;
+        let prf_b = &*b.elem.proofs;
+
+        assert_eq!(prf_a.len(), prf_b.len());
+        let n = prf_a.len();
+
+        let mut vec = Vec::new();
+        for (pa, pb) in prf_a.iter().zip(prf_b.iter()) {
+            let pb_inv = self.prove_symmetry(pb.clone());
+            let pa_to_pb = self.prove_transitivity(pa.clone(), pb_inv);
+            vec.push(pa_to_pb);
+        }
+
+        // a.src -> b.src
+        let prf = self.prove_congruence(a.src_id(), b.src_id(), &vec);
+
+        // a.proof :: a.src -> a.target
+        // b.proof :: b.src -> b.target
+
+        let sym_a = prove_symmetry(a.proof.clone(), &self.proof_registry);
+        let prf = prove_transitivity(sym_a, prf, &self.proof_registry);
+        let prf = prove_transitivity(prf, b.proof.clone(), &self.proof_registry);
+
+        // a.target -> b.target
+        prf
     }
 }
