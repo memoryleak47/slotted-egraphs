@@ -162,7 +162,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
 
             let src_id = psn.src_id;
 
-            self.raw_add_to_class(to.id, (sh.clone(), new_bij), src_id);
+            self.raw_add_to_class(to.id, todo!()); // (sh.clone(), new_bij), src_id);
             self.pending.insert(sh);
         }
 

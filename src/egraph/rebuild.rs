@@ -169,7 +169,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         }
         let bij = bij.compose(&m);
         let t = (sh, bij);
-        self.raw_add_to_class(i.id, t.clone(), src_id);
+        self.raw_add_to_class(i.id, todo!()); // t.clone(), src_id);
 
         self.determine_self_symmetries(src_id);
     }
