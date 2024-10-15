@@ -86,7 +86,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     }
 
     #[cfg(feature = "explanations")]
-    fn refl_proof(&self, i: Id) -> ProvenEq {
+    pub(crate) fn refl_proof(&self, i: Id) -> ProvenEq {
         let syn_slots = self.syn_slots(i);
         let identity = SlotMap::identity(&syn_slots);
         let app_id = AppliedId::new(i, identity);

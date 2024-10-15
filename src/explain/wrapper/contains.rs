@@ -62,6 +62,19 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         }
     }
 
+    pub(crate) fn pc_from_psn(&self, (sh, psn): (L, ProvenSourceNode)) -> ProvenContains<L> {
+        ProvenContains {
+            node: ProvenNode {
+                elem: sh.apply_slotmap(&psn.elem),
+
+                #[cfg(feature = "explanations")]
+                proofs: psn.proofs,
+            },
+
+            pai: psn.pai,
+        }
+    }
+
     pub(crate) fn chain_pc_map(&self, start: &ProvenContains<L>, f: impl Fn(usize, ProvenAppliedId) -> ProvenAppliedId) -> ProvenContains<L> {
         let out = ProvenContains {
             node: self.chain_pn_map(&start.node, f),
