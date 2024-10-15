@@ -4,7 +4,11 @@ use crate::*;
 pub(crate) struct ProvenSourceNode {
     pub elem: Bijection,
 
-    // remembers the original Id, where this came from
-    // TODO make ghost.
+    pub pai: ProvenAppliedId,
+
+    #[cfg(feature = "explanations")]
+    pub proofs: Vec<ProvenEq>,
+
+    // TODO remove.
     pub src_id: Id,
 }

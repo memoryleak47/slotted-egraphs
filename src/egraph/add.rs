@@ -150,7 +150,17 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     // adds (sh, bij) to the eclass `id`.
     // TODO src_id should be optional!
     pub(in crate::egraph) fn raw_add_to_class(&mut self, id: Id, (sh, bij): (L, Bijection), src_id: Id) {
-        let psn = ProvenSourceNode { elem: bij, src_id };
+        let psn = ProvenSourceNode {
+            elem: bij,
+
+            src_id,
+
+            // TODO
+            #[cfg(feature = "explanations")]
+            proofs: todo!(),
+
+            pai: todo!(),           
+        };
 
         let tmp1 = self.classes.get_mut(&id).unwrap().nodes.insert(sh.clone(), psn);
         let tmp2 = self.hashcons.insert(sh.clone(), id);
