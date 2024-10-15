@@ -342,8 +342,8 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         /*
         let t = self.shape(&sh);
         if t.0 != sh {
-            self.raw_remove_from_class(i, sh.clone());
-            self.raw_add_to_class(i.id, t.clone(), src_id);
+            let psn = self.raw_remove_from_class(i, sh.clone());
+            self.raw_add_to_class(i.id, (t.clone(), todo!());
         }
         */
 

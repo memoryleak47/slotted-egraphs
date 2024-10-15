@@ -162,17 +162,19 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         }
     }
 
-    pub(in crate::egraph) fn raw_remove_from_class(&mut self, id: Id, sh: L) {
-        let tmp1 = self.classes.get_mut(&id).unwrap().nodes.remove(&sh);
-        let tmp2 = self.hashcons.remove(&sh);
+    pub(in crate::egraph) fn raw_remove_from_class(&mut self, id: Id, sh: L) -> ProvenSourceNode {
+        let opt_psn = self.classes.get_mut(&id).unwrap().nodes.remove(&sh);
+        let opt_id = self.hashcons.remove(&sh);
         if CHECKS {
-            assert!(tmp1.is_some());
-            assert!(tmp2.is_some());
+            assert!(opt_psn.is_some());
+            assert!(opt_id.is_some());
         }
         for ref_id in sh.ids() {
             let usages = &mut self.classes.get_mut(&ref_id).unwrap().usages;
             usages.remove(&sh);
         }
+
+        opt_psn.unwrap()
     }
 
 }
