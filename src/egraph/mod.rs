@@ -15,6 +15,9 @@ pub use expl::*;
 mod check;
 pub use check::*;
 
+mod analysis;
+pub use analysis::*;
+
 use std::sync::Mutex;
 
 /// Each E-Class can be understood "semantically" or "syntactically":
