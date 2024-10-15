@@ -106,6 +106,14 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
                        .collect()
     }
 
+    pub fn analysis_data(&self, i: Id) -> &N {
+        &self.classes[&i].analysis_data
+    }
+
+    pub fn analysis_data_mut(&mut self, i: Id) -> &mut N {
+        &mut self.classes.get_mut(&i).unwrap().analysis_data
+    }
+
     // TODO For non-normalized inputs i, the slots in the output will definitely be wrong.
     // if x in enodes(i), then I'd expect x.slots() superset slots(i).
     pub fn enodes(&self, i: Id) -> HashSet<L> {

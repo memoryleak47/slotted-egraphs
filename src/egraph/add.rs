@@ -199,7 +199,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
             slots: slots.clone(),
             usages: HashSet::default(),
             syn_enode: syn_enode.clone(),
-            analysis_data: N::make(&syn_enode),
+            analysis_data: N::make(&self, &syn_enode),
         };
         self.classes.insert(c_id, c);
 

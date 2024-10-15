@@ -351,15 +351,16 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     }
 
     fn update_analysis(&mut self, sh: &L, i: Id) {
+        let v = N::make(self, sh);
+
         let c = self.classes.get_mut(&i).unwrap();
         let old = c.analysis_data.clone();
-        let new = N::merge(old.clone(), N::make(sh));
+        let new = N::merge(old.clone(), v);
         c.analysis_data = new.clone();
 
         if new != old {
             self.touched_class(i);
         }
-
     }
 
     fn handle_shrink_in_upwards_merge(&mut self, src_id: Id) {
