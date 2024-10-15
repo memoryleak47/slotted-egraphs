@@ -346,36 +346,10 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         self.raw_remove_from_class(i, (sh.clone(), psn.elem));
         let app_i = self.mk_sem_identity_applied_id(i);
 
+        let enode = &node;
+        let i_orig = &app_i;
         let src_id = psn.src_id;
-        self.semantic_add(&node, &app_i, src_id);
-    }
 
-    fn update_analysis(&mut self, sh: &L, i: Id) {
-        let v = N::make(self, sh);
-
-        let c = self.classes.get_mut(&i).unwrap();
-        let old = c.analysis_data.clone();
-        let new = N::merge(old.clone(), v);
-        c.analysis_data = new.clone();
-
-        if new != old {
-            self.touched_class(i);
-        }
-    }
-
-    fn handle_shrink_in_upwards_merge(&mut self, src_id: Id) {
-        let pc1 = self.pc_from_src_id(src_id);
-        let pc2 = self.chain_pc_map(&pc1, |_, pai| self.proven_proven_find_applied_id(&pai));
-
-        let (a, b, prf) = self.pc_congruence(&pc1, &pc2);
-
-        let cap = &a.slots() & &b.slots();
-
-        self.shrink_slots(&a, &cap, prf);
-    }
-
-    // TODO get rid of semantic_add, in favor of "handle_pending".
-    pub fn semantic_add(&mut self, enode: &L, i_orig: &AppliedId, src_id: Id) {
         let mut enode = self.find_enode(&enode);
         let mut i = self.find_applied_id(i_orig);
         // i.m :: slots(i) -> X
@@ -409,6 +383,30 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         self.raw_add_to_class(i.id, t.clone(), src_id);
 
         self.determine_self_symmetries(src_id);
+    }
+
+    fn update_analysis(&mut self, sh: &L, i: Id) {
+        let v = N::make(self, sh);
+
+        let c = self.classes.get_mut(&i).unwrap();
+        let old = c.analysis_data.clone();
+        let new = N::merge(old.clone(), v);
+        c.analysis_data = new.clone();
+
+        if new != old {
+            self.touched_class(i);
+        }
+    }
+
+    fn handle_shrink_in_upwards_merge(&mut self, src_id: Id) {
+        let pc1 = self.pc_from_src_id(src_id);
+        let pc2 = self.chain_pc_map(&pc1, |_, pai| self.proven_proven_find_applied_id(&pai));
+
+        let (a, b, prf) = self.pc_congruence(&pc1, &pc2);
+
+        let cap = &a.slots() & &b.slots();
+
+        self.shrink_slots(&a, &cap, prf);
     }
 
     // finds self-symmetries caused by the e-node `src_id`.
