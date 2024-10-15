@@ -9,6 +9,9 @@ pub use add::*;
 mod union;
 pub use union::*;
 
+mod rebuild;
+pub use rebuild::*;
+
 mod expl;
 pub use expl::*;
 
