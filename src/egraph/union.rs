@@ -260,7 +260,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         let from_nodes = self.classes.get(&from.id).unwrap().nodes.clone();
         let from_id = self.mk_sem_identity_applied_id(from.id);
         for (sh, psn) in from_nodes {
-            self.raw_remove_from_class(from.id, (sh.clone(), psn.elem.clone()));
+            self.raw_remove_from_class(from.id, sh.clone());
             // if `sh` contains redundant slots, these won't be covered by 'map'.
             // Thus we need compose_fresh.
             let new_bij = psn.elem.compose_fresh(&map.inverse());
@@ -339,11 +339,20 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     fn handle_pending(&mut self, sh: L) {
         let i = self.hashcons[&sh];
 
+        /*
+        let t = self.shape(&sh);
+        if t.0 != sh {
+            self.raw_remove_from_class(i, sh.clone());
+            self.raw_add_to_class(i.id, t.clone(), src_id);
+        }
+        */
+
         self.update_analysis(&sh, i);
+
 
         let psn = self.classes[&i].nodes[&sh].clone();
         let node = sh.apply_slotmap(&psn.elem);
-        self.raw_remove_from_class(i, (sh.clone(), psn.elem));
+        self.raw_remove_from_class(i, sh.clone());
         let app_i = self.mk_sem_identity_applied_id(i);
 
         let enode = &node;
