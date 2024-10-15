@@ -7,7 +7,7 @@ impl ProvenEqRaw {
         println!("{}", self.to_string());
     }
 
-    pub fn show_expr<L: Language>(&self, eg: &EGraph<L>) {
+    pub fn show_expr<L: Language, N: Analysis<L>>(&self, eg: &EGraph<L, N>) {
         println!("{}", self.to_string_expr(eg));
     }
 
@@ -17,7 +17,7 @@ impl ProvenEqRaw {
         self.show_impl(&|i| format!("{i:?}"))
     }
 
-    pub fn to_string_expr<L: Language>(&self, eg: &EGraph<L>) -> String {
+    pub fn to_string_expr<L: Language, N: Analysis<L>>(&self, eg: &EGraph<L, N>) -> String {
         self.show_impl(&|i| {
             eg.get_syn_expr(i).to_string()
         })

@@ -1,6 +1,6 @@
 use crate::*;
 
-impl<L: Language> EGraph<L> {
+impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     pub fn union(&mut self, l: &AppliedId, r: &AppliedId) -> bool {
         self.union_justified(l, r, None)
     }

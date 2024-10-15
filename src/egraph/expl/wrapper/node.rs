@@ -53,7 +53,7 @@ impl<L: Language> ProvenNode<L> {
     }
 }
 
-impl<L: Language> EGraph<L> {
+impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     pub fn check_pn(&self, pn: &ProvenNode<L>) {
         #[cfg(feature = "explanations")]
         {

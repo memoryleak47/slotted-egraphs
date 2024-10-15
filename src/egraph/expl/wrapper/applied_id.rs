@@ -8,7 +8,7 @@ pub struct ProvenAppliedId {
     pub proof: ProvenEq,
 }
 
-impl<L: Language> EGraph<L> {
+impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     pub fn check_pai(&self, pai: &ProvenAppliedId) {
         #[cfg(feature = "explanations")]
         {

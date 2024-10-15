@@ -23,8 +23,8 @@ use std::sync::Mutex;
 /// Each E-Class can be understood "semantically" or "syntactically":
 /// - semantically means that it respects the equations already in the e-graph, and hence doesn't differentiate between equal things.
 /// - syntactically means that it only talks about the single representative term associated to each E-Class, recursively obtainable using syn_enode.
-#[derive(Clone, Debug)]
-pub struct EClass<L: Language> {
+#[derive(Clone)]
+pub struct EClass<L: Language, N: Analysis<L>> {
     // The set of equivalent ENodes that make up this eclass.
     // for (sh, bij) in nodes; sh.apply_slotmap(bij) represents the actual ENode.
     nodes: HashMap<L, ProvenSourceNode>,
@@ -41,6 +41,8 @@ pub struct EClass<L: Language> {
 
     // TODO remove this if explanations are disabled.
     syn_enode: L,
+
+    analysis_data: N,
 }
 
 // invariants:
@@ -51,8 +53,7 @@ pub struct EClass<L: Language> {
 // 3. AppliedId::m is always a bijection. (eg. c1(s0, s1, s0) is illegal!)
 //    AppliedId::m also always has the same keys as the class expects slots.
 // 4. Slot(0) should not be in EClass::slots of any class.
-#[derive(Debug)]
-pub struct EGraph<L: Language> {
+pub struct EGraph<L: Language, N: Analysis<L> = ()> {
     // an entry (l, r(sa, sb)) in unionfind corresponds to the equality l(s0, s1, s2) = r(sa, sb), where sa, sb in {s0, s1, s2}.
     // normalizes the eclass.
     // Each Id i that is an output of the unionfind itself has unionfind[i] = (i, identity()).
@@ -62,7 +63,7 @@ pub struct EGraph<L: Language> {
 
     // if a class does't have unionfind[x].id = x, then it doesn't contain nodes / usages.
     // It's "shallow" if you will.
-    classes: HashMap<Id, EClass<L>>,
+    classes: HashMap<Id, EClass<L, N>>,
 
     // For each shape contained in the EGraph, maps to the EClass that contains it.
     hashcons: HashMap<L, Id>,
@@ -78,7 +79,7 @@ pub struct EGraph<L: Language> {
     proof_registry: ProofRegistry,
 }
 
-impl<L: Language> EGraph<L> {
+impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     pub fn new() -> Self {
         EGraph {
             unionfind: Default::default(),
@@ -194,7 +195,7 @@ impl<L: Language> EGraph<L> {
 
     pub fn dump(&self) {
         println!("");
-        let mut v: Vec<(&Id, &EClass<L>)> = self.classes.iter().collect();
+        let mut v: Vec<(&Id, &EClass<L, N>)> = self.classes.iter().collect();
         v.sort_by_key(|(x, _)| *x);
 
         for (i, c) in v {

@@ -56,7 +56,7 @@ impl ProvenEqRaw {
         (**self).clone()
     }
 
-    pub fn check<L: Language>(&self, eg: &EGraph<L>) {
+    pub fn check<L: Language, N: Analysis<L>>(&self, eg: &EGraph<L, N>) {
         let Equation { l, r } = self.equ();
         eg.check_syn_applied_id(&l);
         eg.check_syn_applied_id(&r);
@@ -172,7 +172,7 @@ pub fn alpha_normalize<L: Language>(n: &L) -> L {
 }
 
 impl CongruenceProof {
-    pub fn check<L: Language>(&self, eq: &Equation, eg: &EGraph<L>) -> ProvenEq {
+    pub fn check<L: Language, N: Analysis<L>>(&self, eq: &Equation, eg: &EGraph<L, N>) -> ProvenEq {
         let CongruenceProof(child_proofs) = self;
 
         let l = alpha_normalize(&eg.get_syn_node(&eq.l));

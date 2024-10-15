@@ -1,7 +1,7 @@
 use crate::*;
 
 // syntactic add:
-impl<L: Language> EGraph<L> {
+impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     pub fn add_syn_expr(&mut self, re: RecExpr<L>) -> AppliedId {
         let mut n = re.node;
         let mut refs: Vec<&mut AppliedId> = n.applied_id_occurences_mut();
@@ -53,7 +53,7 @@ impl<L: Language> EGraph<L> {
 }
 
 // semantic add:
-impl<L: Language> EGraph<L> {
+impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     pub fn add_expr(&mut self, re: RecExpr<L>) -> AppliedId {
         let mut n = re.node;
         let mut refs: Vec<&mut AppliedId> = n.applied_id_occurences_mut();
@@ -121,7 +121,7 @@ impl<L: Language> EGraph<L> {
     }
 }
 
-impl<L: Language> EGraph<L> {
+impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     // returns a syn applied id.
     fn mk_singleton_class(&mut self, syn_enode: L) -> AppliedId {
         let old_slots = syn_enode.slots();
@@ -178,7 +178,7 @@ impl<L: Language> EGraph<L> {
 
 }
 
-impl<L: Language> EGraph<L> {
+impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     // TODO make the public API auto "fresh" slots.
     pub fn alloc_empty_eclass(&mut self, slots: &HashSet<Slot>) -> Id {
         panic!("Can't use alloc_empty_eclass if explanations are enabled!");
@@ -199,6 +199,7 @@ impl<L: Language> EGraph<L> {
             slots: slots.clone(),
             usages: HashSet::default(),
             syn_enode: syn_enode.clone(),
+            analysis_data: N::make(&syn_enode),
         };
         self.classes.insert(c_id, c);
 

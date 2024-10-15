@@ -11,7 +11,7 @@ struct State {
     partial_slotmap: SlotMap,
 }
 
-pub fn ematch_all<L: Language>(eg: &EGraph<L>, pattern: &Pattern<L>) -> Vec<Subst> {
+pub fn ematch_all<L: Language, N: Analysis<L>>(eg: &EGraph<L, N>, pattern: &Pattern<L>) -> Vec<Subst> {
     let mut out = Vec::new();
     for i in eg.ids() {
         let i = eg.mk_sem_identity_applied_id(i);
@@ -25,7 +25,7 @@ pub fn ematch_all<L: Language>(eg: &EGraph<L>, pattern: &Pattern<L>) -> Vec<Subs
 }
 
 // `i` uses egraph slots instead of pattern slots.
-fn ematch_impl<L: Language>(pattern: &Pattern<L>, st: State, i: AppliedId, eg: &EGraph<L>) -> Vec<State> {
+fn ematch_impl<L: Language, N: Analysis<L>>(pattern: &Pattern<L>, st: State, i: AppliedId, eg: &EGraph<L, N>) -> Vec<State> {
     match &pattern.node {
         ENodeOrPVar::PVar(v) => {
             let mut st = st;

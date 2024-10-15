@@ -1,6 +1,6 @@
 use crate::*;
 
-impl<L: Language> EGraph<L> {
+impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     // mk_sem_applied_id & friends.
     #[track_caller]
     pub fn mk_sem_applied_id(&self, i: Id, m: SlotMap) -> AppliedId {
@@ -125,7 +125,7 @@ impl<L: Language> EGraph<L> {
 
         // Check that the Unionfind has valid AppliedIds.
         for (_, app_id) in self.unionfind_iter() {
-            check_internal_applied_id::<L>(self, &app_id);
+            check_internal_applied_id::<L, N>(self, &app_id);
         }
 
         // Check that all ENodes are valid.
@@ -145,12 +145,12 @@ impl<L: Language> EGraph<L> {
                 assert!(c.group.contains(&perm));
 
                 for x in real.applied_id_occurences() {
-                    check_internal_applied_id::<L>(self, &x);
+                    check_internal_applied_id::<L, N>(self, &x);
                 }
             }
         }
 
-        fn check_internal_applied_id<L: Language>(eg: &EGraph<L>, app_id: &AppliedId) {
+        fn check_internal_applied_id<L: Language, N: Analysis<L>>(eg: &EGraph<L, N>, app_id: &AppliedId) {
             // 1. the app_id needs to be normalized!
             let y = eg.find_applied_id(app_id);
             assert_eq!(app_id, &y);

@@ -121,7 +121,7 @@ fn let_const() -> Rewrite<Rise> {
     // is the const-detection at the same time as the baseline? probably not relevant.
     let pat = Pattern::parse("(let s1 ?t ?c)").unwrap();
 
-    let rt: RewriteT<Rise, ()> = RewriteT {
+    let rt: RewriteT<Rise, (), ()> = RewriteT {
         searcher: Box::new(|_| ()),
         applier: Box::new(move |(), eg| {
             for subst in ematch_all(eg, &pat) {
@@ -226,7 +226,7 @@ fn beta_extr() -> Rewrite<Rise> {
     let a = pat.clone();
     let a2 = pat.clone();
 
-    let rt: RewriteT<Rise, Vec<(Subst, RecExpr<Rise>)>> = RewriteT {
+    let rt: RewriteT<Rise, (), Vec<(Subst, RecExpr<Rise>)>> = RewriteT {
         searcher: Box::new(move |eg| {
             let extractor = Extractor::<_, AstSize>::new(eg);
 
@@ -259,7 +259,7 @@ fn beta_extr_direct() -> Rewrite<Rise> {
     let a = pat.clone();
     let a2 = pat.clone();
 
-    let rt: RewriteT<Rise, ()> = RewriteT {
+    let rt: RewriteT<Rise, (), ()> = RewriteT {
         searcher: Box::new(|_| ()),
         applier: Box::new(move |(), eg| {
             let extractor = Extractor::<_, AstSize>::new(eg);

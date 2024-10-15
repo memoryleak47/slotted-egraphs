@@ -39,3 +39,9 @@ impl Debug for AppliedId {
         write!(f, "{:?}{:?}", self.id, self.m)
     }
 }
+
+impl<L: Language, N: Analysis<L>> Debug for EGraph<L, N> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+        todo!()
+    }
+}

@@ -1,7 +1,7 @@
 use crate::*;
 
 // We write this as pattern[subst] for short.
-pub fn pattern_subst<L: Language>(eg: &mut EGraph<L>, pattern: &Pattern<L>, subst: &Subst) -> AppliedId {
+pub fn pattern_subst<L: Language, N: Analysis<L>>(eg: &mut EGraph<L, N>, pattern: &Pattern<L>, subst: &Subst) -> AppliedId {
     match &pattern.node {
         ENodeOrPVar::ENode(n) => {
             let mut n = n.clone();
@@ -19,7 +19,7 @@ pub fn pattern_subst<L: Language>(eg: &mut EGraph<L>, pattern: &Pattern<L>, subs
 }
 
 // TODO maybe move into EGraph API?
-pub fn lookup_rec_expr<L: Language>(re: &RecExpr<L>, eg: &EGraph<L>) -> Option<AppliedId> {
+pub fn lookup_rec_expr<L: Language, N: Analysis<L>>(re: &RecExpr<L>, eg: &EGraph<L, N>) -> Option<AppliedId> {
     let mut n = re.node.clone();
     let mut refs: Vec<&mut AppliedId> = n.applied_id_occurences_mut();
     assert_eq!(re.children.len(), refs.len());
