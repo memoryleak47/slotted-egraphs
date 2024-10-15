@@ -12,6 +12,9 @@ pub use rewrite::*;
 mod my_cost;
 pub use my_cost::*;
 
+mod const_prop;
+pub use const_prop::*;
+
 #[derive(Clone, Hash, PartialEq, Eq, PartialOrd, Ord)]
 pub enum Arith {
     // lambda calculus:
