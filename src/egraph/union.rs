@@ -338,6 +338,9 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
 
     fn handle_pending(&mut self, sh: L) {
         let i = self.hashcons[&sh];
+
+        self.update_analysis(&sh, i);
+
         let psn = self.classes[&i].nodes[&sh].clone();
         let node = sh.apply_slotmap(&psn.elem);
         self.raw_remove_from_class(i, (sh.clone(), psn.elem));
@@ -345,6 +348,18 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
 
         let src_id = psn.src_id;
         self.semantic_add(&node, &app_i, src_id);
+    }
+
+    fn update_analysis(&mut self, sh: &L, i: Id) {
+        let c = self.classes.get_mut(&i).unwrap();
+        let old = c.analysis_data.clone();
+        let new = N::merge(old.clone(), N::make(sh));
+        c.analysis_data = new.clone();
+
+        if new != old {
+            self.touched_class(i);
+        }
+
     }
 
     fn handle_shrink_in_upwards_merge(&mut self, src_id: Id) {
