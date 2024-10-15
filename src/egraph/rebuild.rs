@@ -37,7 +37,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     }
 
     // We expect `from` to be on the lhs of this equation.
-    pub fn shrink_slots(&mut self, from: &AppliedId, cap: &HashSet<Slot>, proof: ProvenEq) {
+    pub(crate) fn shrink_slots(&mut self, from: &AppliedId, cap: &HashSet<Slot>, proof: ProvenEq) {
         #[cfg(feature = "explanations")]
         if CHECKS {
             assert_eq!(from.id, proof.l.id);
@@ -106,7 +106,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         self.touched_class(from.id);
     }
 
-    pub fn rebuild(&mut self) {
+    pub(crate) fn rebuild(&mut self) {
         if CHECKS { self.check(); }
         while let Some(sh) = self.pending.iter().cloned().next() {
             self.pending.remove(&sh);
@@ -254,7 +254,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     }
 
     // upon touching an e-class, you need to update all usages of it.
-    pub fn touched_class(&mut self, i: Id) {
+    pub(crate) fn touched_class(&mut self, i: Id) {
         for sh in &self.classes[&i].usages {
             self.pending.insert(sh.clone());
         }

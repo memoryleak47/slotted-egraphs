@@ -3,7 +3,7 @@ use std::rc::Rc;
 use crate::*;
 
 #[derive(Clone, Default, Debug)]
-pub struct ProofRegistry(Rc<RefCell<HashMap<Equation, ProvenEq>>>);
+pub(crate) struct ProofRegistry(Rc<RefCell<HashMap<Equation, ProvenEq>>>);
 
 fn normalize_eq(eq: &Equation) -> Equation {
     let mut theta = SlotMap::new();
@@ -20,7 +20,7 @@ fn normalize_eq(eq: &Equation) -> Equation {
 
 impl ProofRegistry {
     // will not actually insert if the registry already has a proof for it.
-    pub fn insert(&self, peq: ProvenEq) -> ProvenEq {
+    pub(crate) fn insert(&self, peq: ProvenEq) -> ProvenEq {
         let eq = normalize_eq(&peq.equ());
 
         let mut handle = self.0.borrow_mut();

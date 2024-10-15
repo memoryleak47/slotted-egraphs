@@ -162,7 +162,7 @@ impl TransitivityProof {
 }
 
 // replaces 'private' slots with enumerated slot-names, like a shape.
-pub fn alpha_normalize<L: Language>(n: &L) -> L {
+pub(crate) fn alpha_normalize<L: Language>(n: &L) -> L {
     let (sh, bij) = n.weak_shape();
     if CHECKS {
         let all_slots: HashSet<_> = sh.all_slot_occurences().into_iter().collect();
@@ -247,7 +247,7 @@ impl ProvenEqRaw {
 
 // returns the global renaming theta, s.t. a.apply_slotmap(theta) = b, if it exists.
 #[track_caller]
-pub fn match_app_id(a: &AppliedId, b: &AppliedId) -> SlotMap {
+pub(crate) fn match_app_id(a: &AppliedId, b: &AppliedId) -> SlotMap {
     assert_eq!(a.id, b.id);
     assert_eq!(a.m.keys(), b.m.keys(), "match_app_id failed: different set of arguments");
 
@@ -264,7 +264,7 @@ pub fn match_app_id(a: &AppliedId, b: &AppliedId) -> SlotMap {
 }
 
 // returns the bijective renaming theta, s.t. a.apply_slotmap(theta) = b, if it exists.
-pub fn assert_match_equation(a: &Equation, b: &Equation) -> SlotMap {
+pub(crate) fn assert_match_equation(a: &Equation, b: &Equation) -> SlotMap {
     let theta_l = match_app_id(&a.l, &b.l);
     let theta_r = match_app_id(&a.r, &b.r);
 
@@ -278,7 +278,7 @@ pub fn assert_match_equation(a: &Equation, b: &Equation) -> SlotMap {
     theta
 }
 
-pub fn assert_proves_equation(peq: &ProvenEq, eq: &Equation) {
+pub(crate) fn assert_proves_equation(peq: &ProvenEq, eq: &Equation) {
     let mut e: Equation = (***peq).clone();
 
     for s in e.l.m.keys() {

@@ -19,7 +19,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         new
     }
 
-    pub fn unionfind_set(&self, i: Id, pai: ProvenAppliedId) {
+    pub(crate) fn unionfind_set(&self, i: Id, pai: ProvenAppliedId) {
         #[cfg(feature = "explanations")]
         if CHECKS {
             pai.proof.check(self);
@@ -35,16 +35,16 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         }
     }
 
-    pub fn proven_unionfind_get(&self, i: Id) -> ProvenAppliedId {
+    pub(crate) fn proven_unionfind_get(&self, i: Id) -> ProvenAppliedId {
         let mut map = self.unionfind.try_lock().unwrap();
         self.unionfind_get_impl(i, &mut *map)
     }
 
-    pub fn unionfind_get(&self, i: Id) -> AppliedId {
+    pub(crate) fn unionfind_get(&self, i: Id) -> AppliedId {
         self.proven_unionfind_get(i).elem
     }
 
-    pub fn unionfind_iter(&self) -> impl Iterator<Item=(Id, AppliedId)> {
+    pub(crate) fn unionfind_iter(&self) -> impl Iterator<Item=(Id, AppliedId)> {
         let mut map = self.unionfind.try_lock().unwrap();
         let mut out = Vec::new();
 
@@ -56,20 +56,20 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         out.into_iter()
     }
 
-    pub fn unionfind_len(&self) -> usize {
+    pub(crate) fn unionfind_len(&self) -> usize {
         self.unionfind.try_lock().unwrap().len()
     }
 
-    pub fn find_enode(&self, enode: &L) -> L {
+    pub(crate) fn find_enode(&self, enode: &L) -> L {
         self.proven_find_enode(enode).elem
     }
 
-    pub fn proven_find_enode(&self, enode: &L) -> ProvenNode<L> {
+    pub(crate) fn proven_find_enode(&self, enode: &L) -> ProvenNode<L> {
         let pn = self.refl_pn(enode);
         self.proven_proven_find_enode(&pn)
     }
 
-    pub fn proven_proven_find_enode(&self, enode: &ProvenNode<L>) -> ProvenNode<L> {
+    pub(crate) fn proven_proven_find_enode(&self, enode: &ProvenNode<L>) -> ProvenNode<L> {
         self.chain_pn_map(enode, |_, pai| self.proven_proven_find_applied_id(&pai))
     }
 
@@ -87,12 +87,12 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         self.proven_find_applied_id(i).elem
     }
 
-    pub fn proven_find_applied_id(&self, i: &AppliedId) -> ProvenAppliedId {
+    pub(crate) fn proven_find_applied_id(&self, i: &AppliedId) -> ProvenAppliedId {
         let pai = self.refl_pai(i);
         self.proven_proven_find_applied_id(&pai)
     }
 
-    pub fn proven_proven_find_applied_id(&self, pai: &ProvenAppliedId) -> ProvenAppliedId {
+    pub(crate) fn proven_proven_find_applied_id(&self, pai: &ProvenAppliedId) -> ProvenAppliedId {
         self.check_pai(&pai);
 
         let mut pai2 = self.proven_unionfind_get(pai.elem.id);
@@ -107,8 +107,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         pai2
     }
 
-
-    pub fn find_id(&self, i: Id) -> Id {
+    pub(crate) fn find_id(&self, i: Id) -> Id {
         self.unionfind_get(i).id
     }
 }

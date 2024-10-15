@@ -4,7 +4,10 @@ use crate::*;
 pub struct Id(pub usize);
 
 #[derive(Clone, Copy, Hash, PartialEq, Eq, PartialOrd, Ord)]
-// For each eclass, its slots form an interval [0..n].
+/// Slots represent the concept of Variable Names.
+///
+/// Internally, they are just a number.
+//
 // An ENode contains three kinds of slots:
 // - free / exposed
 // - lambda
@@ -39,7 +42,7 @@ impl AppliedId {
         s
     }
 
-    pub fn check(&self) {
+    pub(crate) fn check(&self) {
         assert!(self.m.is_bijection());
     }
 
@@ -80,9 +83,9 @@ impl AppliedId {
 }
 
 impl Slot {
-    // Generates a fresh slot.
-    // The only way to create an equivalent Slot is by copying this one.
-    // Hence we can rule out any form of naming collisions with this one.
+    /// Generates a fresh slot (with negative sign).
+    /// The only way to create an equivalent Slot is by copying this one.
+    /// Hence we can rule out any form of naming collisions with this Slot.
     // (In theory, another thread could also create the same Slot, but we don't do multithreading for now so it's fine)
     pub fn fresh() -> Self {
         use std::cell::RefCell;
@@ -102,8 +105,8 @@ impl Slot {
         Slot(u)
     }
 
-    // creates the slot `su`.
-    // These slots can never collide with the Slots returned from Slot::fresh() due to their sign.
+    /// creates the slot `s_u`.
+    /// These slots can never collide with the Slots returned from `Slot::fresh()` due to their sign.
     pub fn new(u: usize) -> Slot {
         Slot(u as i64)
     }

@@ -3,7 +3,7 @@ use crate::*;
 impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     // mk_sem_applied_id & friends.
     #[track_caller]
-    pub fn mk_sem_applied_id(&self, i: Id, m: SlotMap) -> AppliedId {
+    pub(crate) fn mk_sem_applied_id(&self, i: Id, m: SlotMap) -> AppliedId {
         let app_id = AppliedId::new(i, m);
 
         if CHECKS {
@@ -14,12 +14,12 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     }
 
     #[track_caller]
-    pub fn mk_sem_identity_applied_id(&self, i: Id) -> AppliedId {
+    pub(crate) fn mk_sem_identity_applied_id(&self, i: Id) -> AppliedId {
         self.mk_sem_applied_id(i, SlotMap::identity(&self.slots(i)))
     }
 
     #[track_caller]
-    pub fn check_sem_applied_id(&self, app_id: &AppliedId) {
+    pub(crate) fn check_sem_applied_id(&self, app_id: &AppliedId) {
         app_id.check();
         assert_eq!(self.slots(app_id.id), app_id.m.keys(), "checking sem AppliedId failed: Wrong key-set, {app_id:?}");
     }
@@ -27,7 +27,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
 
     // mk_syn_applied_id & friends.
     #[track_caller]
-    pub fn mk_syn_applied_id(&self, i: Id, m: SlotMap) -> AppliedId {
+    pub(crate) fn mk_syn_applied_id(&self, i: Id, m: SlotMap) -> AppliedId {
         let app_id = AppliedId::new(i, m);
 
         if CHECKS {
@@ -39,13 +39,13 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
 
 
     #[track_caller]
-    pub fn mk_syn_identity_applied_id(&self, i: Id) -> AppliedId {
+    pub(crate) fn mk_syn_identity_applied_id(&self, i: Id) -> AppliedId {
         self.mk_syn_applied_id(i, SlotMap::identity(&self.syn_slots(i)))
     }
 
 
     #[track_caller]
-    pub fn check_syn_applied_id(&self, app_id: &AppliedId) {
+    pub(crate) fn check_syn_applied_id(&self, app_id: &AppliedId) {
         app_id.check();
         assert_eq!(self.syn_slots(app_id.id), app_id.m.keys(), "checking syn AppliedId failed: Wrong key-set, {app_id:?}");
     }

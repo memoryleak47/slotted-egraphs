@@ -19,12 +19,18 @@ pub use source_node::*;
 mod contains;
 pub use contains::*;
 
-#[cfg(feature = "explanations")]
-#[macro_export] macro_rules! ghost {
-    ($a: expr) => { $a }
-}
 
-#[cfg(not(feature = "explanations"))]
-#[macro_export ]macro_rules! ghost {
-    ($a: expr) => { () }
+mod macros {
+    #[cfg(feature = "explanations")]
+    macro_rules! ghost {
+        ($a: expr) => { $a }
+    }
+
+    #[cfg(not(feature = "explanations"))]
+    macro_rules! ghost {
+        ($a: expr) => { () }
+    }
+
+    pub(crate) use ghost;
 }
+pub(crate) use macros::ghost;

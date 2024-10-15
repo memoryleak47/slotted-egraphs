@@ -3,7 +3,7 @@ use crate::*;
 use std::ops::Index;
 use std::hash::{Hash, Hasher};
 
-pub trait Permutation: Index<Slot, Output=Slot> + Clone + Eq + Hash {
+pub(crate) trait Permutation: Index<Slot, Output=Slot> + Clone + Eq + Hash {
     fn iter(&self) -> impl Iterator<Item=(Slot, Slot)>;
     fn compose(&self, other: &Self) -> Self;
     fn inverse(&self) -> Self;
@@ -20,7 +20,7 @@ impl Permutation for Perm {
 }
 
 #[derive(Clone, Debug)]
-pub struct ProvenPerm {
+pub(crate) struct ProvenPerm {
     pub elem: Perm,
 
     #[cfg(feature = "explanations")]
@@ -86,7 +86,7 @@ impl Permutation for ProvenPerm {
 }
 
 impl ProvenPerm {
-    pub fn identity(i: Id, slots: &HashSet<Slot>, syn_slots: &HashSet<Slot>, reg: ProofRegistry) -> Self {
+    pub(crate) fn identity(i: Id, slots: &HashSet<Slot>, syn_slots: &HashSet<Slot>, reg: ProofRegistry) -> Self {
         let map = Perm::identity(slots);
 
         let identity = SlotMap::identity(syn_slots);
@@ -106,7 +106,7 @@ impl ProvenPerm {
         format!("{:?}", (&self.elem, ghost!(&**self.proof)))
     }
 
-    pub fn check(&self) {
+    pub(crate) fn check(&self) {
         assert!(self.elem.is_perm());
 
         #[cfg(feature = "explanations")]

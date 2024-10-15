@@ -7,8 +7,8 @@ pub struct RewriteT<L: Language, N: Analysis<L>, T: Any> {
 }
 
 pub struct Rewrite<L: Language, N: Analysis<L> = ()> {
-    pub searcher: Box<dyn Fn(&EGraph<L, N>) -> Box<dyn Any>>,
-    pub applier: Box<dyn Fn(Box<dyn Any>, &mut EGraph<L, N>)>,
+    pub(crate) searcher: Box<dyn Fn(&EGraph<L, N>) -> Box<dyn Any>>,
+    pub(crate) applier: Box<dyn Fn(Box<dyn Any>, &mut EGraph<L, N>)>,
 }
 
 impl<L: Language + 'static, N: Analysis<L> + 'static, T: 'static> RewriteT<L, N, T> {

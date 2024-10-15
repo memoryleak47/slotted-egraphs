@@ -1,25 +1,25 @@
 use crate::*;
 
 #[track_caller]
-pub fn prove_explicit(l: &AppliedId, r: &AppliedId, j: Option<String>, reg: &ProofRegistry) -> ProvenEq {
+pub(crate) fn prove_explicit(l: &AppliedId, r: &AppliedId, j: Option<String>, reg: &ProofRegistry) -> ProvenEq {
     let eq = Equation { l: l.clone(), r: r.clone() };
     ExplicitProof(j).check(&eq, reg)
 }
 
 #[track_caller]
-pub fn prove_reflexivity(id: &AppliedId, reg: &ProofRegistry) -> ProvenEq {
+pub(crate) fn prove_reflexivity(id: &AppliedId, reg: &ProofRegistry) -> ProvenEq {
     let eq = Equation { l: id.clone(), r: id.clone() };
     ReflexivityProof.check(&eq, reg)
 }
 
 #[track_caller]
-pub fn prove_symmetry(x: ProvenEq, reg: &ProofRegistry) -> ProvenEq {
+pub(crate) fn prove_symmetry(x: ProvenEq, reg: &ProofRegistry) -> ProvenEq {
     let eq = Equation { l: x.r.clone(), r: x.l.clone() };
     SymmetryProof(x).check(&eq, reg)
 }
 
 #[track_caller]
-pub fn prove_transitivity(x: ProvenEq, y: ProvenEq, reg: &ProofRegistry) -> ProvenEq {
+pub(crate) fn prove_transitivity(x: ProvenEq, y: ProvenEq, reg: &ProofRegistry) -> ProvenEq {
     let eq1 = x.clone();
     let eq2 = y.clone();
     let theta = match_app_id(&eq2.l, &eq1.r);
@@ -85,7 +85,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         false
     }
 
-    pub fn disassociate_proven_eq(&self, peq: ProvenEq) -> ProvenEq {
+    pub(crate) fn disassociate_proven_eq(&self, peq: ProvenEq) -> ProvenEq {
         if self.disassociation_necessary(&peq) {
             let mut peq = peq;
             let x = self.get_redundancy_proof(peq.l.id);
@@ -99,7 +99,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         }
     }
 
-    pub fn get_redundancy_proof(&self, i: Id) -> ProvenEq {
+    pub(crate) fn get_redundancy_proof(&self, i: Id) -> ProvenEq {
         let a = self.proven_find_applied_id(&self.mk_syn_identity_applied_id(i)).proof;
         let a_rev = prove_symmetry(a.clone(), &self.proof_registry);
 
@@ -112,25 +112,25 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
 // Further it should always produce maximally disassociated output.
 impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     #[track_caller]
-    pub fn prove_explicit(&self, l: &AppliedId, r: &AppliedId, j: Option<String>) -> ProvenEq {
+    pub(crate) fn prove_explicit(&self, l: &AppliedId, r: &AppliedId, j: Option<String>) -> ProvenEq {
         self.check_syn_applied_id(l);
         self.check_syn_applied_id(r);
         self.disassociate_proven_eq(prove_explicit(l, r, j, &self.proof_registry))
     }
 
     #[track_caller]
-    pub fn prove_reflexivity(&self, id: &AppliedId) -> ProvenEq {
+    pub(crate) fn prove_reflexivity(&self, id: &AppliedId) -> ProvenEq {
         self.check_syn_applied_id(id);
         self.disassociate_proven_eq(prove_reflexivity(id, &self.proof_registry))
     }
 
     #[track_caller]
-    pub fn prove_symmetry(&self, x: ProvenEq) -> ProvenEq {
+    pub(crate) fn prove_symmetry(&self, x: ProvenEq) -> ProvenEq {
         self.disassociate_proven_eq(prove_symmetry(x, &self.proof_registry))
     }
 
     #[track_caller]
-    pub fn prove_transitivity(&self, x: ProvenEq, y: ProvenEq) -> ProvenEq {
+    pub(crate) fn prove_transitivity(&self, x: ProvenEq, y: ProvenEq) -> ProvenEq {
         self.disassociate_proven_eq(prove_transitivity(x, y, &self.proof_registry))
     }
 
@@ -179,7 +179,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         self.disassociate_proven_eq(cong)
     }
 
-    pub fn prove_congruence(&self, l: Id, r: Id, child_proofs: &[ProvenEq]) -> ProvenEq {
+    pub(crate) fn prove_congruence(&self, l: Id, r: Id, child_proofs: &[ProvenEq]) -> ProvenEq {
         // pretty sure this is unnecessary:
         let child_proofs: Vec<_> = child_proofs.iter().map(|x| self.disassociate_proven_eq(x.clone())).collect();
 

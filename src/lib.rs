@@ -6,8 +6,8 @@ use std::error::Error;
 use std::sync::Arc;
 use std::ops::Deref;
 
-pub type HashMap<K, V> = fnv::FnvHashMap<K, V>;
-pub type HashSet<T> = fnv::FnvHashSet<T>;
+pub(crate) type HashMap<K, V> = fnv::FnvHashMap<K, V>;
+pub(crate) type HashSet<T> = fnv::FnvHashSet<T>;
 
 // Whether to enable invariant-checks.
 #[cfg(feature = "checks")]
@@ -15,28 +15,31 @@ const CHECKS: bool = true;
 #[cfg(not(feature = "checks"))]
 const CHECKS: bool = false;
 
-mod types;
-pub use types::*;
+pub mod types;
+pub(crate) use types::*;
 
 mod parse;
-pub use parse::*;
+pub(crate) use parse::*;
 
-mod lang;
-pub use lang::*;
+pub mod lang;
+pub(crate) use lang::*;
 
-mod slotmap;
-pub use slotmap::*;
+pub mod slotmap;
+pub(crate) use slotmap::*;
+
+pub mod explain;
+pub(crate) use explain::*;
 
 mod debug;
 
 mod egraph;
 pub use egraph::*;
 
-mod extract;
-pub use extract::*;
+pub mod extract;
+pub(crate) use extract::*;
 
-mod pattern;
-pub use pattern::*;
+pub mod pattern;
+pub(crate) use pattern::*;
 
 mod group;
 use group::*;

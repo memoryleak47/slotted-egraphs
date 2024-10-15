@@ -9,7 +9,7 @@ pub use with_ord::*;
 use std::collections::BinaryHeap;
 
 pub struct Extractor<L: Language, CF: CostFunction<L>> {
-    pub map: HashMap<Id, WithOrdRev<L, CF::Cost>>,
+    pub(crate) map: HashMap<Id, WithOrdRev<L, CF::Cost>>,
 }
 
 impl<L: Language, CF: CostFunction<L>> Extractor<L, CF> {

@@ -5,7 +5,7 @@ use crate::*;
 
 // the existance of a ProvenContains `pc` implies that `pc.node` is contained in the e-class `pai` (assuming we are in non-ghost mode).
 #[derive(Clone, Debug)]
-pub struct ProvenContains<L> {
+pub(crate) struct ProvenContains<L> {
     // contains the proof that the e-node is equal to some app-ids syn-enode.
     // lhs of this proof is the syn-enode, rhs is the current e-node represented by this ProvenContains when explanations are off.
     pub node: ProvenNode<L>,
@@ -28,7 +28,7 @@ impl<L: Language> ProvenContains<L> {
 }
 
 impl<L: Language, N: Analysis<L>> EGraph<L, N> {
-    pub fn check_pc(&self, pc: &ProvenContains<L>) {
+    pub(crate) fn check_pc(&self, pc: &ProvenContains<L>) {
         self.check_pai(&pc.pai);
         self.check_pn(&pc.node);
 
@@ -40,7 +40,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         }
     }
 
-    pub fn pc_from_src_id(&self, i: Id) -> ProvenContains<L> {
+    pub(crate) fn pc_from_src_id(&self, i: Id) -> ProvenContains<L> {
         let identity = self.mk_syn_identity_applied_id(i);
         let n = self.get_syn_node(&identity);
         let (sh, bij) = self.proven_shape(&n);
@@ -60,7 +60,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         out
     }
 
-    pub fn chain_pc_map(&self, start: &ProvenContains<L>, f: impl Fn(usize, ProvenAppliedId) -> ProvenAppliedId) -> ProvenContains<L> {
+    pub(crate) fn chain_pc_map(&self, start: &ProvenContains<L>, f: impl Fn(usize, ProvenAppliedId) -> ProvenAppliedId) -> ProvenContains<L> {
         let out = ProvenContains {
             node: self.chain_pn_map(&start.node, f),
             pai: start.pai.clone(),
@@ -69,7 +69,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         out
     }
 
-    pub fn chain_pc_eq(&self, start: &ProvenContains<L>, eq: ProvenEq) -> ProvenContains<L> {
+    pub(crate) fn chain_pc_eq(&self, start: &ProvenContains<L>, eq: ProvenEq) -> ProvenContains<L> {
         ProvenContains {
             node: start.node.clone(),
             pai: self.chain_pai_eq(&start.pai, eq),
@@ -108,7 +108,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         (a.clone(), b)
     }
 
-    pub fn pc_congruence(&self, a: &ProvenContains<L>, b: &ProvenContains<L>) -> (AppliedId, AppliedId, ProvenEq) {
+    pub(crate) fn pc_congruence(&self, a: &ProvenContains<L>, b: &ProvenContains<L>) -> (AppliedId, AppliedId, ProvenEq) {
         self.check_pc(a);
         self.check_pc(b);
 

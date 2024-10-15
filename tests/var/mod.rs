@@ -1,7 +1,7 @@
 #![allow(unused)]
 #![allow(non_snake_case)]
 
-use slotted_egraphs::*;
+use crate::*;
 
 #[derive(Clone, Hash, PartialEq, Eq, PartialOrd, Ord, Debug)]
 pub enum Var {

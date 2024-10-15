@@ -4,7 +4,7 @@ use std::cmp::Ordering;
 
 // Takes the `Ord` from U, but reverses it.
 #[derive(PartialEq, Eq, Debug)]
-pub struct WithOrdRev<T: Eq, U: Ord>(pub T, pub U);
+pub(crate) struct WithOrdRev<T: Eq, U: Ord>(pub T, pub U);
 
 impl<T: Eq, U: Ord> PartialOrd for WithOrdRev<T, U> {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {

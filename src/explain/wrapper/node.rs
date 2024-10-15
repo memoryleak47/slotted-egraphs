@@ -3,7 +3,7 @@ use crate::*;
 use std::hash::*;
 
 #[derive(Clone, Debug)]
-pub struct ProvenNode<L> {
+pub(crate) struct ProvenNode<L> {
     pub elem: L,
 
     // These proofs have as 'lhs' the base that is situation dependent.
@@ -27,7 +27,7 @@ impl<L: Language> Hash for ProvenNode<L> {
 impl<L: Language> ProvenNode<L> {
     // checks that `proofs` brings us from `base` to `elem`.
     #[cfg(feature = "explanations")]
-    pub fn check_base(&self, base: &L) {
+    pub(crate) fn check_base(&self, base: &L) {
         let l = base.applied_id_occurences();
         let r = self.elem.applied_id_occurences();
         let n = self.proofs.len();
@@ -41,7 +41,7 @@ impl<L: Language> ProvenNode<L> {
         }
     }
 
-    pub fn weak_shape(&self) -> (Self, Bijection) {
+    pub(crate) fn weak_shape(&self) -> (Self, Bijection) {
         let (sh, bij) = self.elem.weak_shape();
         let pn = ProvenNode {
             elem: sh,
@@ -54,7 +54,7 @@ impl<L: Language> ProvenNode<L> {
 }
 
 impl<L: Language, N: Analysis<L>> EGraph<L, N> {
-    pub fn check_pn(&self, pn: &ProvenNode<L>) {
+    pub(crate) fn check_pn(&self, pn: &ProvenNode<L>) {
         #[cfg(feature = "explanations")]
         {
             let a = &pn.proofs;
@@ -68,11 +68,11 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
 
     #[cfg(feature = "explanations")]
     // If we take the `proofs` to go backward from `elem`, where do we land?
-    pub fn pn_source_node(&self, pn: &ProvenNode<L>) -> L {
+    pub(crate) fn pn_source_node(&self, pn: &ProvenNode<L>) -> L {
         todo!()
     }
 
-    pub fn refl_pn(&self, start: &L) -> ProvenNode<L> {
+    pub(crate) fn refl_pn(&self, start: &L) -> ProvenNode<L> {
         #[cfg(feature = "explanations")]
         let rfl = start.applied_id_occurences()
                        .into_iter()
@@ -93,7 +93,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         self.prove_reflexivity(&app_id)
     }
 
-    pub fn chain_pn_map(&self, start: &ProvenNode<L>, f: impl Fn(usize, ProvenAppliedId) -> ProvenAppliedId) -> ProvenNode<L> {
+    pub(crate) fn chain_pn_map(&self, start: &ProvenNode<L>, f: impl Fn(usize, ProvenAppliedId) -> ProvenAppliedId) -> ProvenNode<L> {
         let mut pn = start.clone();
         let n = pn.elem.applied_id_occurences().len();
 

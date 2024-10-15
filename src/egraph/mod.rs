@@ -12,9 +12,6 @@ pub use union::*;
 mod rebuild;
 pub use rebuild::*;
 
-mod expl;
-pub use expl::*;
-
 mod check;
 pub use check::*;
 
@@ -27,7 +24,7 @@ use std::sync::Mutex;
 /// - semantically means that it respects the equations already in the e-graph, and hence doesn't differentiate between equal things.
 /// - syntactically means that it only talks about the single representative term associated to each E-Class, recursively obtainable using syn_enode.
 #[derive(Clone)]
-pub struct EClass<L: Language, N: Analysis<L>> {
+pub(crate) struct EClass<L: Language, N: Analysis<L>> {
     // The set of equivalent ENodes that make up this eclass.
     // for (sh, bij) in nodes; sh.apply_slotmap(bij) represents the actual ENode.
     nodes: HashMap<L, ProvenSourceNode>,
@@ -56,6 +53,7 @@ pub struct EClass<L: Language, N: Analysis<L>> {
 // 3. AppliedId::m is always a bijection. (eg. c1(s0, s1, s0) is illegal!)
 //    AppliedId::m also always has the same keys as the class expects slots.
 // 4. Slot(0) should not be in EClass::slots of any class.
+/// A datastructure to efficiently represent congruence relations on terms with binders.
 pub struct EGraph<L: Language, N: Analysis<L> = ()> {
     // an entry (l, r(sa, sb)) in unionfind corresponds to the equality l(s0, s1, s2) = r(sa, sb), where sa, sb in {s0, s1, s2}.
     // normalizes the eclass.
@@ -98,7 +96,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         self.classes[&id].slots.clone()
     }
 
-    pub fn syn_slots(&self, id: Id) -> HashSet<Slot> {
+    pub(crate) fn syn_slots(&self, id: Id) -> HashSet<Slot> {
         self.classes[&id].syn_enode.slots()
     }
 
@@ -159,6 +157,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         self.hashcons.len()
     }
 
+    /// Checks that two AppliedIds are semantically equal.
     pub fn eq(&self, a: &AppliedId, b: &AppliedId) -> bool {
         let a = self.find_applied_id(a);
         let b = self.find_applied_id(b);
@@ -186,13 +185,13 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     }
 
     // refreshes all internal slots of l.
-    pub fn refresh_internals(&self, l: &L) -> L {
+    pub(crate) fn refresh_internals(&self, l: &L) -> L {
         let i = self.lookup(l).unwrap();
         l.refresh_internals(i.slots())
     }
 
     // converts l to its class normal form, so that calling lookup on it yields the identity AppliedId.
-    pub fn class_nf(&self, l: &L) -> L {
+    pub(crate) fn class_nf(&self, l: &L) -> L {
         let l = self.refresh_internals(l);
         let i = self.lookup(&l).unwrap();
         let l = l.apply_slotmap(&i.m);
@@ -204,6 +203,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         l
     }
 
+    /// Prints the contents of the E-Graph. Helpful for debugging.
     pub fn dump(&self) {
         println!("");
         let mut v: Vec<(&Id, &EClass<L, N>)> = self.classes.iter().collect();
@@ -232,7 +232,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     }
 
     // The resulting e-nodes are written as they exist in the e-class.
-    pub fn usages(&self, i: Id) -> Vec<L> {
+    pub(crate) fn usages(&self, i: Id) -> Vec<L> {
         let mut out = Vec::new();
         for x in &self.classes[&i].usages {
             let j = self.lookup(x).unwrap().id;
@@ -243,12 +243,12 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         out
     }
 
-    pub fn shape(&self, e: &L) -> (L, Bijection) {
+    pub(crate) fn shape(&self, e: &L) -> (L, Bijection) {
         let (pnode, bij) = self.proven_shape(e);
         (pnode.elem, bij)
     }
 
-    pub fn proven_shape(&self, e: &L) -> (ProvenNode<L>, Bijection) {
+    pub(crate) fn proven_shape(&self, e: &L) -> (ProvenNode<L>, Bijection) {
         let e = self.proven_find_enode(e);
         self.proven_proven_get_group_compatible_variants(&e)
             .into_iter()
@@ -257,7 +257,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
             .unwrap()
     }
 
-    pub fn proven_proven_get_group_compatible_variants(&self, enode: &ProvenNode<L>) -> HashSet<ProvenNode<L>> {
+    pub(crate) fn proven_proven_get_group_compatible_variants(&self, enode: &ProvenNode<L>) -> HashSet<ProvenNode<L>> {
         // should only be called with an up-to-date e-node.
         if CHECKS {
             for x in enode.elem.applied_id_occurences() {
@@ -286,15 +286,15 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
 
     // for all AppliedIds that are contained in `enode`, permute their arguments as their groups allow.
     // TODO every usage of this function hurts performance drastically. Which of them can I eliminate?
-    pub fn proven_get_group_compatible_variants(&self, enode: &L) -> HashSet<ProvenNode<L>> {
+    pub(crate) fn proven_get_group_compatible_variants(&self, enode: &L) -> HashSet<ProvenNode<L>> {
         self.proven_proven_get_group_compatible_variants(&self.refl_pn(enode))
     }
 
-    pub fn get_group_compatible_variants(&self, enode: &L) -> HashSet<L> {
+    pub(crate) fn get_group_compatible_variants(&self, enode: &L) -> HashSet<L> {
         self.proven_get_group_compatible_variants(enode).into_iter().map(|pnode| pnode.elem).collect()
     }
 
-    pub fn get_group_compatible_weak_variants(&self, enode: &L) -> HashSet<L> {
+    pub(crate) fn get_group_compatible_weak_variants(&self, enode: &L) -> HashSet<L> {
         let set = self.get_group_compatible_variants(enode);
         let mut shapes = HashSet::default();
         let mut out = HashSet::default();
@@ -309,7 +309,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         out
     }
 
-    pub fn synify_app_id(&self, app: AppliedId) -> AppliedId {
+    pub(crate) fn synify_app_id(&self, app: AppliedId) -> AppliedId {
         let mut app = app;
         for s in self.syn_slots(app.id) {
             if !app.m.contains_key(s) {
@@ -319,11 +319,11 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         app
     }
 
-    pub fn synify_enode(&self, enode: L) -> L {
+    pub(crate) fn synify_enode(&self, enode: L) -> L {
         enode.map_applied_ids(|app| self.synify_app_id(app))
     }
 
-    pub fn semify_app_id(&self, app: AppliedId) -> AppliedId {
+    pub(crate) fn semify_app_id(&self, app: AppliedId) -> AppliedId {
         let slots = self.slots(app.id);
 
         let mut app = app;
@@ -335,11 +335,11 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         app
     }
 
-    pub fn semify_enode(&self, enode: L) -> L {
+    pub(crate) fn semify_enode(&self, enode: L) -> L {
         enode.map_applied_ids(|app| self.semify_app_id(app))
     }
 
-    pub fn get_syn_expr(&self, i: &AppliedId) -> RecExpr<L> {
+    pub(crate) fn get_syn_expr(&self, i: &AppliedId) -> RecExpr<L> {
         let enode = self.get_syn_node(i);
         let cs = enode.applied_id_occurences()
                       .iter()
@@ -351,7 +351,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         }
     }
 
-    pub fn get_syn_node(&self, i: &AppliedId) -> L {
+    pub(crate) fn get_syn_node(&self, i: &AppliedId) -> L {
         let syn = &self.classes[&i.id].syn_enode;
         syn.apply_slotmap(&i.m)
     }

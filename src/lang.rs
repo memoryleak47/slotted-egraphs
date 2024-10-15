@@ -193,7 +193,7 @@ pub trait Language: Debug + Clone + Hash + Eq {
 }
 
 // sorts as_set(v) by their first usage in v.
-pub fn firsts(v: Vec<Slot>) -> Vec<Slot> {
+pub(crate) fn firsts(v: Vec<Slot>) -> Vec<Slot> {
     let mut out = Vec::new();
     for x in v {
         if !out.contains(&x) {
@@ -203,6 +203,6 @@ pub fn firsts(v: Vec<Slot>) -> Vec<Slot> {
     out
 }
 
-pub fn as_set(v: Vec<Slot>) -> HashSet<Slot> {
+pub(crate) fn as_set(v: Vec<Slot>) -> HashSet<Slot> {
     v.into_iter().collect()
 }

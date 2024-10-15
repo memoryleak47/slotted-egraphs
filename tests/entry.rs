@@ -1,7 +1,10 @@
 pub use std::hash::Hash;
-pub use slotted_egraphs::*;
+pub use slotted_egraphs::{*, lang::*, types::*, extract::*, pattern::*, slotmap::*};
 
 pub use symbol_table::GlobalSymbol as Symbol;
+
+pub type HashMap<K, V> = fnv::FnvHashMap<K, V>;
+pub type HashSet<T> = fnv::FnvHashSet<T>;
 
 mod arith;
 pub use arith::*;
