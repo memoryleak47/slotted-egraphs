@@ -488,43 +488,18 @@ impl<L: Language> EGraph<L> {
     }
 
     pub(in crate::egraph) fn handle_congruence(&mut self, a: Id) {
-        let a_identity = &self.mk_syn_identity_applied_id(a);
-        let a_node = self.get_syn_node(a_identity);
+        let pc1 = self.pc_from_src_id(a);
+
+        let a_identity = self.mk_syn_identity_applied_id(a);
+        let a_node = self.get_syn_node(&a_identity);
         let (pn1, bij1) = self.proven_shape(&a_node);
-        let ProvenNode { elem: sh1, .. } = pn1.clone();
+        let t = (pn1.elem.clone(), bij1);
+        let b = self.lookup_internal(&t).expect("One should only call handle_congruence if there is a hashcons collision!").id;
+        let b = self.classes[&b].nodes[&pn1.elem].src_id;
+        let pc2 = self.pc_from_src_id(b);
 
-        let t = (sh1.clone(), bij1.clone());
-        let b = self.lookup_internal(&t).expect("handle_congruence should only be called on hashcons collision!");
-        let psn = self.classes[&b.id].nodes[&t.0].clone();
-        let ProvenSourceNode { elem: bij, src_id: c } = psn.clone();
-        let c_identity = &self.mk_syn_identity_applied_id(c);
-        let c_node = self.get_syn_node(&c_identity);
-        let (pn2, bij2) = self.proven_shape(&c_node);
-        let ProvenNode { elem: sh2, .. } = pn2.clone();
-        let t2 = (sh2.clone(), bij2.clone());
-        if CHECKS {
-            assert_eq!(&t.0, &t2.0);
-        }
-
-        #[cfg(feature = "explanations")]
-        let mut vec = Vec::new();
-        #[cfg(feature = "explanations")]
-        for (l, r) in pn1.proofs.into_iter().zip(pn2.proofs.into_iter()) {
-            let r_inv = self.prove_symmetry(r);
-            let l_to_r = self.prove_transitivity(l, r_inv);
-            vec.push(l_to_r);
-        }
-
-        let proven_eq = ghost!(self.prove_congruence(a, c, &vec));
-
-        // l.m :: slots(a) -> X
-        // r.m :: slots(b) -> X
-
-        // bij1 :: SHAPE -> slots(a)
-        // bij2 :: SHAPE -> slots(b)
-        let l = self.mk_sem_applied_id(a, bij1.inverse());
-        let r = self.mk_sem_applied_id(c, bij2.inverse());
-        self.union_internal(&l, &r, proven_eq);
+        let (a, b, prf) = self.pc_congruence(&pc1, &pc2);
+        self.union_internal(&a, &b, prf);
     }
 
     // upon touching an e-class, you need to update all usages of it.
