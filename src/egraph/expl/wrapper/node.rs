@@ -2,7 +2,7 @@ use crate::*;
 
 use std::hash::*;
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct ProvenNode<L> {
     pub elem: L,
 

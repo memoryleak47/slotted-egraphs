@@ -397,83 +397,31 @@ impl<L: Language> EGraph<L> {
 
     // finds self-symmetries caused by the e-node `src_id`.
     fn determine_self_symmetries(&mut self, src_id: Id) {
-        let pai = self.proven_unionfind_get(src_id);
-        let ProvenAppliedId { elem: leader, .. } = pai.clone();
-        #[cfg(feature = "explanations")]
-        let neg_leader_prf = self.prove_symmetry(pai.proof.clone());
-        let i = leader.id;
-        let leader_bij = leader.m;
+        let pc1 = self.pc_from_src_id(src_id);
 
-        let syn_slots = self.syn_slots(src_id);
-        let src_identity = AppliedId::new(src_id, Perm::identity(&syn_slots));
-        let syn_node = self.get_syn_node(&src_identity);
-        if CHECKS {
-            assert_eq!(&syn_slots, &syn_node.slots());
-        }
-
-        let pn1 = self.proven_find_enode(&syn_node);
-        let ProvenNode { elem: enode, .. } = pn1.clone();
-        let (weak, bij) = enode.weak_shape();
-        for pn2  in self.proven_get_group_compatible_variants(&enode) {
-            let ProvenNode { elem: n, .. } = pn2.clone();
-            let (weak2, bij2) = n.weak_shape();
+        let i = pc1.target_id();
+        let weak = pc1.node.elem.weak_shape().0;
+        for pn2 in self.proven_proven_get_group_compatible_variants(&pc1.node) {
+            let pc2 = ProvenContains {
+                pai: pc1.pai.clone(),
+                node: pn2,
+            };
+            let (weak2, bij2) = pc2.node.elem.weak_shape();
             if weak == weak2 {
-                // I'm looking for an equation like i == i * BIJ to add BIJ to the group.
+                self.check_pc(&pc1);
+                self.check_pc(&pc2);
+                assert_eq!(pc1.target_id(), pc2.target_id());
+                let (a, b, proof) = self.pc_congruence(&pc1, &pc2);
 
-                // - i == sh * bij == enode == n
-                // - sh2 * bij2 == n
-                // - sh2 == sh
+                // or is it the opposite direction? (flip a with b)
+                let perm = a.m.compose(&b.m.inverse());
 
-                // simplify:
-                // - i == sh * bij
-                // - i == sh * bij2
-
-                // -> i == i * bij^-1 * bij2
-
-                let perm = bij.inverse().compose(&bij2);
-
-                // no need to add the identity permutation.
-                if perm.iter().all(|(x, y)| x == y) { continue; }
-
-                if CHECKS { assert!(perm.is_perm()); }
-
-                #[cfg(feature = "explanations")]
-                let mut combined_prfs = Vec::new();
-                #[cfg(feature = "explanations")]
-                for (old_to_new_ids, perm_prf) in pn1.proofs.iter().zip(pn2.proofs.iter()) {
-                    let new_to_old_ids = self.prove_symmetry(old_to_new_ids.clone());
-
-                    let eq = self.prove_transitivity(self.prove_transitivity(old_to_new_ids.clone(), perm_prf.clone()), new_to_old_ids.clone());
-                    let combined = TransitivityProof(self.prove_transitivity(old_to_new_ids.clone(), perm_prf.clone()), new_to_old_ids.clone()).check(&eq, &self.proof_registry);
-                    combined_prfs.push(combined);
-                }
-
-                // src_id[...] == src_id[...]
-
-                #[cfg(feature = "explanations")]
-                let prf = self.prove_congruence(src_id, src_id, &combined_prfs);
-                #[cfg(feature = "explanations")]
-                if CHECKS {
-                    assert_eq!(prf.l.id, src_id);
-                    assert_eq!(prf.r.id, src_id);
-                }
-
-                // i[...] == i[...]
-                #[cfg(feature = "explanations")]
-                let prf = self.prove_transitivity(neg_leader_prf.clone(), self.prove_transitivity(prf, pai.proof.clone()));
-                let perm = leader_bij.compose_partial(&perm.compose_partial(&leader_bij.inverse()));
-
-                let slots = self.slots(i);
-                let syn_slots = self.syn_slots(i);
-                #[cfg(feature = "explanations")]
-                if CHECKS {
-                    assert_eq!(prf.l.id, i);
-                    assert_eq!(prf.r.id, i);
-                }
                 let proven_perm = ProvenPerm {
                     elem: perm,
+
                     #[cfg(feature = "explanations")]
-                    proof: prf,
+                    proof,
+
                     #[cfg(feature = "explanations")]
                     reg: self.proof_registry.clone(),
                 };
@@ -508,5 +456,4 @@ impl<L: Language> EGraph<L> {
             self.pending.insert(sh.clone());
         }
     }
-
 }

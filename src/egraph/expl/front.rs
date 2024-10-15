@@ -185,11 +185,13 @@ impl<L: Language> EGraph<L> {
 
         let l_id = self.mk_syn_identity_applied_id(l);
         let r_id = self.mk_syn_identity_applied_id(r);
-        let l_node = alpha_normalize(&self.get_syn_node(&l_id));
-        let r_node = alpha_normalize(&self.get_syn_node(&r_id));
+        let ll = self.get_syn_node(&l_id);
+        let rr = self.get_syn_node(&r_id);
+        let l_node = alpha_normalize(&ll);
+        let r_node = alpha_normalize(&rr);
 
         let mut map = SlotMap::new();
-        for (l, r) in l_node.private_slot_occurences().iter().zip(r_node.private_slot_occurences().iter()) {
+        for (l, r) in nullify_app_ids(&l_node).all_slot_occurences().iter().zip(nullify_app_ids(&r_node).all_slot_occurences().iter()) {
             try_insert(*l, *r, &mut map);
         }
 

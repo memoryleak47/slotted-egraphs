@@ -161,6 +161,7 @@ impl TransitivityProof {
     }
 }
 
+// replaces 'private' slots with enumerated slot-names, like a shape.
 pub fn alpha_normalize<L: Language>(n: &L) -> L {
     let (sh, bij) = n.weak_shape();
     if CHECKS {

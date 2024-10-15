@@ -4,7 +4,7 @@ use crate::*;
 // target_id: right
 
 // the existance of a ProvenContains `pc` implies that `pc.node` is contained in the e-class `pai` (assuming we are in non-ghost mode).
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct ProvenContains<L> {
     // contains the proof that the e-node is equal to some app-ids syn-enode.
     // lhs of this proof is the syn-enode, rhs is the current e-node represented by this ProvenContains when explanations are off.
@@ -18,11 +18,11 @@ pub struct ProvenContains<L> {
 
 impl<L: Language> ProvenContains<L> {
     #[cfg(feature = "explanations")]
-    fn src_id(&self) -> Id {
+    pub fn src_id(&self) -> Id {
         self.pai.proof.l.id
     }
 
-    fn target_id(&self) -> Id {
+    pub fn target_id(&self) -> Id {
         self.pai.elem.id
     }
 }
