@@ -219,7 +219,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
                 let n = sh.apply_slotmap(&psn.elem);
 
                 #[cfg(feature = "explanations")]
-                println!(" - {n:?}    [originally {:?}]", todo!("psn.src_id"));
+                println!(" - {n:?}    [originally {:?}]", psn.src_id());
 
                 #[cfg(not(feature = "explanations"))]
                 println!(" - {n:?}");

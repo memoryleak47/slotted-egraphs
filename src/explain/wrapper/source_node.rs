@@ -10,8 +10,15 @@ pub(crate) struct ProvenSourceNode {
     pub proofs: Vec<ProvenEq>,
 }
 
+#[cfg(feature = "explanations")]
+impl ProvenSourceNode {
+    pub(crate) fn src_id(&self) -> Id {
+        self.pai.proof.l.id
+    }
+}
+
 impl<L: Language, N: Analysis<L>> EGraph<L, N> {
-    pub fn refl_psn(&self, start: &L, syn_id: &AppliedId) -> (L, ProvenSourceNode) {
+    pub(crate) fn refl_psn(&self, start: &L, syn_id: &AppliedId) -> (L, ProvenSourceNode) {
         let (sh, bij) = start.weak_shape();
 
         #[cfg(feature = "explanations")]
