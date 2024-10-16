@@ -154,15 +154,15 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
 
         let from_nodes = self.classes.get(&from.id).unwrap().nodes.clone();
         let from_id = self.mk_sem_identity_applied_id(from.id);
-        for (sh, psn) in from_nodes {
-            self.raw_remove_from_class(from.id, sh.clone());
+        for (sh, _) in from_nodes {
+            let mut psn = self.raw_remove_from_class(from.id, sh.clone());
+
             // if `sh` contains redundant slots, these won't be covered by 'map'.
             // Thus we need compose_fresh.
-            let new_bij = psn.elem.compose_fresh(&map.inverse());
 
-            let src_id = todo!("psn.src_id");
+            psn.elem = psn.elem.compose_fresh(&map.inverse());
 
-            self.raw_add_to_class(to.id, todo!()); // (sh.clone(), new_bij), src_id);
+            self.raw_add_to_class(to.id, (sh.clone(), psn));
             self.pending.insert(sh);
         }
 
