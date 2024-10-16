@@ -32,7 +32,7 @@ impl<L: Language> ProvenContains<L> {
             elem: bij,
 
             #[cfg(feature = "explanations")]
-            proofs: node.proofs.clone(),
+            proofs: self.node.proofs.clone(),
 
             pai: self.pai.clone(),
         };
