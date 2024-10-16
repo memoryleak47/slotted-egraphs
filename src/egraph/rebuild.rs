@@ -137,7 +137,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
 
         let enode = &node;
         let i_orig = &app_i;
-        let src_id = psn.src_id;
+        let src_id = todo!("psn.src_id");
 
         let mut enode = self.find_enode(&enode);
         let mut i = self.find_applied_id(i_orig);
@@ -255,7 +255,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
 
     pub(crate) fn pc_from_shape(&self, sh: &L) -> ProvenContains<L> {
         let i = self.hashcons.get(&sh).expect("pc_from_shape should only be called if the shape exists in the e-graph!");
-        let c = self.classes[&i].nodes[&sh].src_id;
+        let c = todo!("self.classes[&i].nodes[&sh].src_id");
 
         // this shall change! Later on we want to deprecate the src-id.
         self.pc_from_src_id(c)

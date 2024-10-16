@@ -8,9 +8,6 @@ pub(crate) struct ProvenSourceNode {
 
     #[cfg(feature = "explanations")]
     pub proofs: Vec<ProvenEq>,
-
-    // TODO remove.
-    pub src_id: Id,
 }
 
 impl<L: Language, N: Analysis<L>> EGraph<L, N> {
@@ -30,8 +27,6 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
             proofs: rfl,
 
             pai: self.refl_pai(&syn_id),
-
-            src_id: syn_id.id,
         })
     }
 }

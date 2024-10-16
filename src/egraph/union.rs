@@ -160,7 +160,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
             // Thus we need compose_fresh.
             let new_bij = psn.elem.compose_fresh(&map.inverse());
 
-            let src_id = psn.src_id;
+            let src_id = todo!("psn.src_id");
 
             self.raw_add_to_class(to.id, todo!()); // (sh.clone(), new_bij), src_id);
             self.pending.insert(sh);
