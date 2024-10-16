@@ -240,14 +240,10 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
 
     pub(in crate::egraph) fn handle_congruence(&mut self, a: Id) {
         let pc1 = self.pc_from_src_id(a);
-        self.check_pc(&pc1);
 
-        let a_identity = self.mk_syn_identity_applied_id(a);
-        let a_node = self.get_syn_node(&a_identity);
-        let (pn1, bij1) = self.proven_shape(&a_node);
-        let t = (pn1.elem.clone(), bij1);
-        let b = self.lookup_internal(&t).expect("One should only call handle_congruence if there is a hashcons collision!").id;
-        let b = self.classes[&b].nodes[&pn1.elem].src_id;
+        let (sh, _) = self.shape(&pc1.node.elem);
+        let i = self.hashcons.get(&sh).expect("handle_congruence should only be called upon a hashcons collision!");
+        let b = self.classes[&i].nodes[&sh].src_id;
         let pc2 = self.pc_from_src_id(b);
 
         let (a, b, prf) = self.pc_congruence(&pc1, &pc2);
