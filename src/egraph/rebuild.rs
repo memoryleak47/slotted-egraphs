@@ -129,49 +129,29 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
 
         self.update_analysis(&sh, i);
 
-
         let psn = self.classes[&i].nodes[&sh].clone();
         let node = sh.apply_slotmap(&psn.elem);
-        self.raw_remove_from_class(i, sh.clone());
-        let app_i = self.mk_sem_identity_applied_id(i);
+        let psn = self.raw_remove_from_class(i, sh.clone());
+        let pc = self.pc_from_psn((sh.clone(), psn.clone()));
+        let mut pc = self.pc_find(&pc);
 
-        let enode = &node;
-        let i_orig = &app_i;
-        let src_id = todo!("psn.src_id");
+        while !pc.pai.elem.slots().is_subset(&pc.node.elem.slots()) {
+            self.handle_shrink_in_upwards_merge(pc.clone());
 
-        let mut enode = self.find_enode(&enode);
-        let mut i = self.find_applied_id(i_orig);
-        // i.m :: slots(i) -> X
-        // i_orig.m :: slots(i_orig) -> X
-        let theta = i_orig.m.compose(&i.m.inverse());
-        if !i.slots().is_subset(&enode.slots()) {
-            self.handle_shrink_in_upwards_merge(src_id);
-
-            enode = self.find_enode(&enode);
-            i = self.find_applied_id(&i);
+            pc = self.pc_find(&pc);
         }
 
-        let t = self.shape(&enode);
-
         // upwards merging found a match!
-        if self.lookup_internal(&t).is_some() {
-            self.handle_congruence(self.pc_from_src_id(src_id));
+        let (sh, _) = pc.node.elem.weak_shape();
+        if self.hashcons.contains_key(&sh) {
+            self.handle_congruence(pc.clone());
             return;
         }
 
-        let (sh, bij) = t;
-        let mut m = i.m.inverse();
+        let (sh, psn) = pc.weak_shape();
+        self.raw_add_to_class(pc.target_id(), (sh, psn));
 
-        for x in bij.values() {
-            if !m.contains_key(x) {
-                m.insert(x, Slot::fresh());
-            }
-        }
-        let bij = bij.compose(&m);
-        let t = (sh, bij);
-        self.raw_add_to_class(i.id, todo!()); // t.clone(), src_id);
-
-        self.determine_self_symmetries(src_id);
+        self.determine_self_symmetries(pc.clone());
     }
 
     fn update_analysis(&mut self, sh: &L, i: Id) {
@@ -187,8 +167,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         }
     }
 
-    fn handle_shrink_in_upwards_merge(&mut self, src_id: Id) {
-        let pc1 = self.pc_from_src_id(src_id);
+    fn handle_shrink_in_upwards_merge(&mut self, pc1: ProvenContains<L>) {
         let pc2 = self.chain_pc_map(&pc1, |_, pai| self.proven_proven_find_applied_id(&pai));
 
         let (a, b, prf) = self.pc_congruence(&pc1, &pc2);
@@ -199,9 +178,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     }
 
     // finds self-symmetries caused by the e-node `src_id`.
-    fn determine_self_symmetries(&mut self, src_id: Id) {
-        let pc1 = self.pc_from_src_id(src_id);
-
+    fn determine_self_symmetries(&mut self, pc1: ProvenContains<L>) {
         let i = pc1.target_id();
         let weak = pc1.node.elem.weak_shape().0;
         for pn2 in self.proven_proven_get_group_compatible_variants(&pc1.node) {

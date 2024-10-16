@@ -25,6 +25,20 @@ impl<L: Language> ProvenContains<L> {
     pub fn target_id(&self) -> Id {
         self.pai.elem.id
     }
+
+    pub fn weak_shape(&self) -> (L, ProvenSourceNode) {
+        let (sh, bij) = self.node.elem.weak_shape();
+        let psn = ProvenSourceNode {
+            elem: bij,
+
+            #[cfg(feature = "explanations")]
+            proofs: node.proofs.clone(),
+
+            pai: self.pai.clone(),
+        };
+
+        (sh, psn)
+    }
 }
 
 impl<L: Language, N: Analysis<L>> EGraph<L, N> {
