@@ -121,7 +121,9 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         dbg!(&pc.pai.elem);
         dbg!(&pc.node.elem);
 
+        #[cfg(feature = "explanations")]
         dbg!(&pc.pai.proof.equ());
+        #[cfg(feature = "explanations")]
         dbg!(&pc.node.proofs.iter().map(|x| x.equ()).collect::<Vec<_>>());
         println!("///////////////////////////////////////////");
     }
