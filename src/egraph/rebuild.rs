@@ -116,21 +116,21 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         }
     }
 
+    fn consider_pc(pc: &ProvenContains<L>) {
+        println!("-------------------------------------------");
+        dbg!(&pc.pai.elem);
+        dbg!(&pc.node.elem);
+
+        dbg!(&pc.pai.proof.equ());
+        dbg!(&pc.node.proofs.iter().map(|x| x.equ()).collect::<Vec<_>>());
+        println!("///////////////////////////////////////////");
+    }
+
     fn handle_pending(&mut self, sh: L) {
         let i = self.hashcons[&sh];
 
-        /*
-        let t = self.shape(&sh);
-        if t.0 != sh {
-            let psn = self.raw_remove_from_class(i, sh.clone());
-            self.raw_add_to_class(i.id, (t.clone(), todo!());
-        }
-        */
-
         self.update_analysis(&sh, i);
 
-        let psn = self.classes[&i].nodes[&sh].clone();
-        let node = sh.apply_slotmap(&psn.elem);
         let psn = self.raw_remove_from_class(i, sh.clone());
         let pc = self.pc_from_psn((sh.clone(), psn.clone()));
         let mut pc = self.pc_find(&pc);
