@@ -66,12 +66,6 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         }
     }
 
-    #[cfg(feature = "explanations")]
-    // If we take the `proofs` to go backward from `elem`, where do we land?
-    pub(crate) fn pn_source_node(&self, pn: &ProvenNode<L>) -> L {
-        todo!()
-    }
-
     pub(crate) fn refl_pn(&self, start: &L) -> ProvenNode<L> {
         #[cfg(feature = "explanations")]
         let rfl = start.applied_id_occurences()

@@ -18,12 +18,6 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         }
     }
 
-    #[cfg(feature = "explanations")]
-    // if we use the proof to go backwards from `elem`, where do we end up?
-    pub(crate) fn pai_source_applied_id(&self, pai: &ProvenAppliedId) -> AppliedId {
-        todo!()
-    }
-
     // x=y & y=z make x=z
     // It will return "next.elem" but using the slots of "start". The proofs concatenate.
     // Assumes that "next.m.values() ~ slots(start.id)"
