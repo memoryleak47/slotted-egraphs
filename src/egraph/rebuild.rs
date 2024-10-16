@@ -240,6 +240,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
 
     pub(in crate::egraph) fn handle_congruence(&mut self, a: Id) {
         let pc1 = self.pc_from_src_id(a);
+        self.check_pc(&pc1);
 
         let a_identity = self.mk_syn_identity_applied_id(a);
         let a_node = self.get_syn_node(&a_identity);

@@ -40,24 +40,26 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         }
     }
 
-    pub(crate) fn pc_from_src_id(&self, i: Id) -> ProvenContains<L> {
+    pub(crate) fn refl_pc(&self, i: Id) -> ProvenContains<L> {
         let identity = self.mk_syn_identity_applied_id(i);
         let n = self.get_syn_node(&identity);
-        let (sh, bij) = self.proven_shape(&n);
 
-        let pai = self.proven_find_applied_id(&identity);
+        ProvenContains {
+            node: self.refl_pn(&n),
+            pai: self.refl_pai(&identity),
+        }
+    }
 
-        let out = ProvenContains {
-            node: ProvenNode {
-                elem: sh.elem.apply_slotmap_fresh(&bij),
+    pub(crate) fn pc_from_src_id(&self, i: Id) -> ProvenContains<L> {
+        self.pc_find(&self.refl_pc(i))
+    }
 
-                #[cfg(feature = "explanations")]
-                proofs: sh.proofs,
-            },
-            pai,
-        };
-        self.check_pc(&out);
-        out
+    // "finds" both the node & the id to be "up-to-date".
+    pub(crate) fn pc_find(&self, pc: &ProvenContains<L>) -> ProvenContains<L> {
+        ProvenContains {
+            node: self.proven_proven_pre_shape(&pc.node),
+            pai: self.proven_proven_find_applied_id(&pc.pai),
+        }
     }
 
     pub(crate) fn chain_pc_map(&self, start: &ProvenContains<L>, f: impl Fn(usize, ProvenAppliedId) -> ProvenAppliedId) -> ProvenContains<L> {

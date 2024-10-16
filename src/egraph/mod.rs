@@ -249,11 +249,18 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     }
 
     pub(crate) fn proven_shape(&self, e: &L) -> (ProvenNode<L>, Bijection) {
-        let e = self.proven_find_enode(e);
+        self.proven_proven_shape(&self.refl_pn(e))
+    }
+
+    pub(crate) fn proven_proven_shape(&self, e: &ProvenNode<L>) -> (ProvenNode<L>, Bijection) {
+        self.proven_proven_pre_shape(&e).weak_shape()
+    }
+
+    pub(crate) fn proven_proven_pre_shape(&self, e: &ProvenNode<L>) -> ProvenNode<L> {
+        let e = self.proven_proven_find_enode(e);
         self.proven_proven_get_group_compatible_variants(&e)
             .into_iter()
-            .map(|pn| pn.weak_shape())
-            .min_by_key(|(pn, _)| pn.elem.all_slot_occurences())
+            .min_by_key(|pn| pn.weak_shape().0.elem.all_slot_occurences())
             .unwrap()
     }
 
