@@ -16,6 +16,7 @@ pub trait Language: Debug + Clone + Hash + Eq {
     fn from_op(op: &str, children: Vec<Child>) -> Option<Self>;
 
     #[track_caller]
+    #[doc(hidden)]
     fn check(&self) {
         let mut c = self.clone();
         let all: HashSet<*mut Slot> = c.all_slot_occurences_mut().into_iter().map(|x| x as *mut Slot).collect();
@@ -35,6 +36,7 @@ pub trait Language: Debug + Clone + Hash + Eq {
 
     // generated methods:
 
+    #[doc(hidden)]
     fn private_slot_occurences_mut(&mut self) -> Vec<&mut Slot> {
         let public = self.public_slot_occurences();
         let mut out = self.all_slot_occurences_mut();
@@ -42,26 +44,32 @@ pub trait Language: Debug + Clone + Hash + Eq {
         out
     }
 
+    #[doc(hidden)]
     fn all_slot_occurences(&self) -> Vec<Slot> {
         self.clone().all_slot_occurences_mut().into_iter().map(|x| x.clone()).collect()
     }
 
+    #[doc(hidden)]
     fn public_slot_occurences(&self) -> Vec<Slot> {
         self.clone().public_slot_occurences_mut().into_iter().map(|x| x.clone()).collect()
     }
 
+    #[doc(hidden)]
     fn applied_id_occurences(&self) -> Vec<AppliedId> {
         self.clone().applied_id_occurences_mut().into_iter().map(|x| x.clone()).collect()
     }
 
+    #[doc(hidden)]
     fn private_slot_occurences(&self) -> Vec<Slot> {
         self.clone().private_slot_occurences_mut().into_iter().map(|x| x.clone()).collect()
     }
 
+    #[doc(hidden)]
     fn private_slots(&self) -> HashSet<Slot> {
         self.private_slot_occurences().into_iter().collect()
     }
 
+    #[doc(hidden)]
     fn map_applied_ids(&self, mut f: impl FnMut(AppliedId) -> AppliedId) -> Self {
         let mut c = self.clone();
         for x in c.applied_id_occurences_mut() {
@@ -72,6 +80,7 @@ pub trait Language: Debug + Clone + Hash + Eq {
 
     // TODO m.values() might collide with your private slot names.
     // Should we rename our private slots to be safe?
+    #[doc(hidden)]
     fn apply_slotmap_partial(&self, m: &SlotMap) -> Self {
         let prv = self.private_slots();
 
@@ -91,6 +100,7 @@ pub trait Language: Debug + Clone + Hash + Eq {
 
 
     #[track_caller]
+    #[doc(hidden)]
     fn apply_slotmap(&self, m: &SlotMap) -> Self {
         if CHECKS {
             assert!(m.keys().is_superset(&self.slots()), "Language::apply_slotmap: The SlotMap doesn't map all free slots!");
@@ -98,6 +108,7 @@ pub trait Language: Debug + Clone + Hash + Eq {
         self.apply_slotmap_partial(m)
     }
 
+    #[doc(hidden)]
     fn apply_slotmap_fresh(&self, m: &SlotMap) -> Self {
         let prv = self.private_slots();
 
@@ -116,13 +127,18 @@ pub trait Language: Debug + Clone + Hash + Eq {
     }
 
 
+    #[doc(hidden)]
     fn slot_occurences(&self) -> Vec<Slot> {
         self.public_slot_occurences()
     }
 
+    #[doc(hidden)]
     fn slot_order(&self) -> Vec<Slot> { firsts(self.slot_occurences()) }
+
+    #[doc(hidden)]
     fn slots(&self) -> HashSet<Slot> { as_set(self.slot_occurences()) }
 
+    #[doc(hidden)]
     fn ids(&self) -> Vec<Id> {
         self.applied_id_occurences().into_iter().map(|x| x.id).collect()
     }
@@ -131,6 +147,7 @@ pub trait Language: Debug + Clone + Hash + Eq {
     // - sh.apply_slotmap(bij) is equivalent to n (excluding lambda variable renames)
     // - bij.slots() == n.slots(). Note that these would also include redundant slots.
     // - sh is the lexicographically lowest equivalent version of n, reachable by bijective renaming of slots (including redundant ones).
+    #[doc(hidden)]
     fn weak_shape(&self) -> (Self, Bijection) {
         let mut c = self.clone();
         let mut m = SlotMap::new();
@@ -156,6 +173,7 @@ pub trait Language: Debug + Clone + Hash + Eq {
         (c, m)
     }
 
+    #[doc(hidden)]
     fn refresh_private(&self) -> Self {
         let mut c = self.clone();
         let prv: HashSet<Slot> = c.private_slot_occurences().into_iter().collect();
@@ -166,6 +184,7 @@ pub trait Language: Debug + Clone + Hash + Eq {
         c
     }
 
+    #[doc(hidden)]
     fn refresh_slots(&self, set: HashSet<Slot>) -> Self {
         let mut c = self.clone();
         let fresh = SlotMap::bijection_from_fresh_to(&set).inverse();
@@ -179,6 +198,7 @@ pub trait Language: Debug + Clone + Hash + Eq {
 
     // refreshes private and redundant slots.
     // The public slots are given by `public`.
+    #[doc(hidden)]
     fn refresh_internals(&self, public: HashSet<Slot>) -> Self {
         let mut c = self.clone();
         let internals = &c.all_slot_occurences().into_iter().collect::<HashSet<_>>() - &public;
