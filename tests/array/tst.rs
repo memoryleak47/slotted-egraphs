@@ -26,7 +26,7 @@ fn assert_reaches(start: &str, goal: &str, steps: usize, rules: &[&'static str])
             if eg.eq(&i1, &i2) {
                 dbg!(eg.total_number_of_nodes());
                 #[cfg(feature = "explanations")]
-                eg.explain_equivalence(start, goal).show_expr(&eg);
+                println!("{}", eg.explain_equivalence(start, goal).to_string(&eg));
                 return;
             }
         }

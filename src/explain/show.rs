@@ -3,24 +3,16 @@ use crate::*;
 type ShowMap = HashMap<*const ProvenEqRaw, (usize, String)>;
 
 impl ProvenEqRaw {
-    pub fn show(&self) {
-        println!("{}", self.to_string());
-    }
-
-    pub fn show_expr<L: Language, N: Analysis<L>>(&self, eg: &EGraph<L, N>) {
-        println!("{}", self.to_string_expr(eg));
-    }
-
-    // to string API:
-
-    pub fn to_string(&self) -> String {
-        self.show_impl(&|i| format!("{i:?}"))
-    }
-
-    pub fn to_string_expr<L: Language, N: Analysis<L>>(&self, eg: &EGraph<L, N>) -> String {
+    /// Prints the proof steps.
+    pub fn to_string<L: Language, N: Analysis<L>>(&self, eg: &EGraph<L, N>) -> String {
         self.show_impl(&|i| {
             eg.get_syn_expr(i).to_string()
         })
+    }
+
+    /// Prints the proof steps, using the internal [AppliedId]s to represent terms.
+    fn to_string_applied_ids(&self) -> String {
+        self.show_impl(&|i| format!("{i:?}"))
     }
 
     // internals:

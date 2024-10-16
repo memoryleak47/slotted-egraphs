@@ -44,7 +44,7 @@ pub struct ProvenEqRaw {
 }
 
 impl ProvenEqRaw {
-    pub fn null() -> ProvenEq {
+    pub(crate) fn null() -> ProvenEq {
         let app_id = AppliedId::new(Id(0), Default::default());
         Arc::new(ProvenEqRaw {
             eq: Equation { l: app_id.clone(), r: app_id.clone() },
@@ -56,7 +56,7 @@ impl ProvenEqRaw {
         (**self).clone()
     }
 
-    pub fn check<L: Language, N: Analysis<L>>(&self, eg: &EGraph<L, N>) {
+    pub(crate) fn check<L: Language, N: Analysis<L>>(&self, eg: &EGraph<L, N>) {
         let Equation { l, r } = self.equ();
         eg.check_syn_applied_id(&l);
         eg.check_syn_applied_id(&r);

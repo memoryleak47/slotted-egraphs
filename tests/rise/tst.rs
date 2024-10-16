@@ -15,7 +15,7 @@ fn assert_reaches(start: &str, goal: &str, steps: usize) {
             if eg.eq(&i1, &i2) {
                 dbg!(eg.total_number_of_nodes());
                 #[cfg(feature = "explanations")]
-                eg.explain_equivalence(start, goal).show_expr(&eg);
+                println!("{}", eg.explain_equivalence(start, goal).to_string(&eg));
                 return;
             }
         }
@@ -166,7 +166,7 @@ fn small3() {
     dbg!(&x1x3);
     dbg!(&x2x3);
     #[cfg(feature = "explanations")]
-    eg.explain_equivalence(x1x3, x2x3).show_expr(&eg);
+    println!("{}", eg.explain_equivalence(x1x3, x2x3).to_string(&eg));
 }
 
 #[test]
@@ -185,5 +185,5 @@ fn small2() {
     eg.union(&y3, &y4);
     eg.union(&y2, &y3);
     #[cfg(feature = "explanations")]
-    eg.explain_equivalence(x1, x4).show_expr(&eg);
+    println!("{}", eg.explain_equivalence(x1, x4).to_string(&eg));
 }
