@@ -24,7 +24,7 @@ impl ProvenEqRaw {
     }
 
     // internals:
-    pub fn show_impl(&self, f: &impl Fn(&AppliedId) -> String) -> String {
+    pub(crate) fn show_impl(&self, f: &impl Fn(&AppliedId) -> String) -> String {
         let mut map = Default::default();
         self.show_impl2(&mut map, f);
 
@@ -48,7 +48,7 @@ impl ProvenEqRaw {
         }
     }
 
-    pub fn show_impl2(&self, v: &mut ShowMap, f: &impl Fn(&AppliedId) -> String) {
+    pub(crate) fn show_impl2(&self, v: &mut ShowMap, f: &impl Fn(&AppliedId) -> String) {
         let mut stack: Vec<&ProvenEqRaw> = vec![self];
 
         'outer: while let Some(x) = stack.last().cloned() {
@@ -77,8 +77,7 @@ impl ProvenEqRaw {
 
             let i = v.len();
             let Equation { l, r } = &**x;
-            let out = format!("lemma{i}: '{} = {}'", f(l), f(r));
-            let out = format!("{out}\n  by {prf_string}\n");
+            let out = format!("{i}: {} = {} by {prf_string}", f(l), f(r));
             v.insert(x as *const ProvenEqRaw, (i, out));
             assert_eq!(stack.pop(), Some(x));
         }
