@@ -348,7 +348,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
 
     /// Returns the canonical term corresponding to `i`.
     ///
-    /// This function will use [get_syn_node] repeatedly to build up this term.
+    /// This function will use [EGraph::get_syn_node] repeatedly to build up this term.
     pub fn get_syn_expr(&self, i: &AppliedId) -> RecExpr<L> {
         let enode = self.get_syn_node(i);
         let cs = enode.applied_id_occurences()
