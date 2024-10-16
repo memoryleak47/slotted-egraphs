@@ -240,9 +240,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
 
     pub(in crate::egraph) fn handle_congruence(&mut self, pc1: ProvenContains<L>) {
         let (sh, _) = self.shape(&pc1.node.elem);
-        let i = self.hashcons.get(&sh).expect("handle_congruence should only be called upon a hashcons collision!");
-        let b = self.classes[&i].nodes[&sh].src_id;
-        let pc2 = self.pc_from_src_id(b);
+        let pc2 = self.pc_from_shape(&sh);
 
         let (a, b, prf) = self.pc_congruence(&pc1, &pc2);
         self.union_internal(&a, &b, prf);
@@ -253,5 +251,13 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         for sh in &self.classes[&i].usages {
             self.pending.insert(sh.clone());
         }
+    }
+
+    pub(crate) fn pc_from_shape(&self, sh: &L) -> ProvenContains<L> {
+        let i = self.hashcons.get(&sh).expect("pc_from_shape should only be called if the shape exists in the e-graph!");
+        let c = self.classes[&i].nodes[&sh].src_id;
+
+        // this shall change! Later on we want to deprecate the src-id.
+        self.pc_from_src_id(c)
     }
 }
