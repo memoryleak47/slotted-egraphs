@@ -346,7 +346,10 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         enode.map_applied_ids(|app| self.semify_app_id(app))
     }
 
-    pub(crate) fn get_syn_expr(&self, i: &AppliedId) -> RecExpr<L> {
+    /// Returns the canonical term corresponding to `i`.
+    ///
+    /// This function will use [get_syn_node] repeatedly to build up this term.
+    pub fn get_syn_expr(&self, i: &AppliedId) -> RecExpr<L> {
         let enode = self.get_syn_node(i);
         let cs = enode.applied_id_occurences()
                       .iter()
@@ -358,7 +361,8 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         }
     }
 
-    pub(crate) fn get_syn_node(&self, i: &AppliedId) -> L {
+    /// Returns the canonical e-node corresponding to `i`.
+    pub fn get_syn_node(&self, i: &AppliedId) -> L {
         let syn = &self.classes[&i.id].syn_enode;
         syn.apply_slotmap(&i.m)
     }
