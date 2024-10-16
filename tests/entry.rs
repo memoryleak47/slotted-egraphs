@@ -1,5 +1,5 @@
 pub use std::hash::Hash;
-pub use slotted_egraphs::{*, lang::*, types::*, extract::*, pattern::*, slotmap::*};
+pub use slotted_egraphs::{*, lang::*, types::*, extract::*, rewrite::*, slotmap::*};
 
 pub use symbol_table::GlobalSymbol as Symbol;
 

@@ -37,7 +37,7 @@ pub(crate) struct EClass<L: Language, N: Analysis<L>> {
     usages: HashSet<L>,
 
     // Expresses the self-symmetries of this e-class.
-    group: Group<ProvenPerm>,
+    pub(crate) group: Group<ProvenPerm>,
 
     // TODO remove this if explanations are disabled.
     syn_enode: L,
@@ -64,7 +64,7 @@ pub struct EGraph<L: Language, N: Analysis<L> = ()> {
 
     // if a class does't have unionfind[x].id = x, then it doesn't contain nodes / usages.
     // It's "shallow" if you will.
-    classes: HashMap<Id, EClass<L, N>>,
+    pub(crate) classes: HashMap<Id, EClass<L, N>>,
 
     // For each shape contained in the EGraph, maps to the EClass that contains it.
     hashcons: HashMap<L, Id>,
@@ -77,7 +77,7 @@ pub struct EGraph<L: Language, N: Analysis<L> = ()> {
     pending: HashSet<L>,
 
     // TODO remove this if explanations are disabled.
-    proof_registry: ProofRegistry,
+    pub(crate) proof_registry: ProofRegistry,
 }
 
 impl<L: Language, N: Analysis<L>> EGraph<L, N> {
