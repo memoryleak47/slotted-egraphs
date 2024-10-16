@@ -155,7 +155,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
 
         // upwards merging found a match!
         if self.lookup_internal(&t).is_some() {
-            self.handle_congruence(src_id);
+            self.handle_congruence(self.pc_from_src_id(src_id));
             return;
         }
 
@@ -238,9 +238,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         }
     }
 
-    pub(in crate::egraph) fn handle_congruence(&mut self, a: Id) {
-        let pc1 = self.pc_from_src_id(a);
-
+    pub(in crate::egraph) fn handle_congruence(&mut self, pc1: ProvenContains<L>) {
         let (sh, _) = self.shape(&pc1.node.elem);
         let i = self.hashcons.get(&sh).expect("handle_congruence should only be called upon a hashcons collision!");
         let b = self.classes[&i].nodes[&sh].src_id;

@@ -33,7 +33,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         let c = self.alloc_eclass(&old_to_fresh.values(), new_enode.clone());
 
         let c_a = self.mk_syn_applied_id(c, fresh_to_old.clone());
-        self.handle_congruence(c_a.id);
+        self.handle_congruence(self.pc_from_src_id(c_a.id));
 
         if CHECKS {
             assert_eq!(enode.slots(), c_a.slots());
