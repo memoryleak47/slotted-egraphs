@@ -73,7 +73,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
 
     // self.add(x) = y implies that x.slots() is a superset of y.slots().
     // x.slots() - y.slots() are redundant slots.
-    pub fn add_internal(&mut self, t: (L, SlotMap)) -> AppliedId {
+    pub(in crate::egraph) fn add_internal(&mut self, t: (L, SlotMap)) -> AppliedId {
         if let Some(x) = self.lookup_internal(&t) {
             return x;
         }
