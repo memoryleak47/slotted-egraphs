@@ -52,3 +52,13 @@ fn const_prop() {
 
     assert_eq!(eg.analysis_data(i.id), &ConstProp(Some(8)));
 }
+
+#[test]
+fn const_prop_union() {
+    let mut eg = EGraph::<Arith, ConstProp>::new();
+    let a = eg.add_expr(RecExpr::parse("a").unwrap());
+    let b = eg.add_expr(RecExpr::parse("42").unwrap());
+    eg.union(&a, &b);
+
+    assert_eq!(eg.analysis_data(a.id), &ConstProp(Some(42)));
+}
