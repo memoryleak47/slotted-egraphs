@@ -162,7 +162,6 @@ fn parse_child<L: Language>(tok: &[Token]) -> Result<(ChildImpl<L>, &[Token]), P
 impl<L: Language> std::fmt::Display for Pattern<L> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Pattern::PVar(p) => write!(f, "?{p}"),
             Pattern::ENode(node, children) => {
                 let (x, rest) = node.to_op();
 
@@ -187,6 +186,8 @@ impl<L: Language> std::fmt::Display for Pattern<L> {
                 }
                 write!(f, ")")
             }
+            Pattern::PVar(p) => write!(f, "?{p}"),
+            Pattern::Let(x, t, b) => write!(f, "{b}[{x} := {t}]"),
         }
     }
 }

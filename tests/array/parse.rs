@@ -10,7 +10,6 @@ pub fn array_parse_pattern(s: &str) -> Pattern<Array> {
 
 fn translate(p: Pattern<Sym>) -> Pattern<Array> {
     match p {
-        Pattern::PVar(x) => Pattern::PVar(x),
         Pattern::ENode(Sym { op, children }, p_children) => {
             assert_eq!(children.len(), p_children.len());
             match (&*op.to_string(), &*p_children) {
@@ -36,5 +35,7 @@ fn translate(p: Pattern<Sym>) -> Pattern<Array> {
                 },
             }
         }
+        Pattern::PVar(x) => Pattern::PVar(x),
+        Pattern::Let(..) => panic!(),
     }
 }

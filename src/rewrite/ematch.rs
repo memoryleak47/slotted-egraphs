@@ -71,6 +71,7 @@ fn ematch_impl<L: Language, N: Analysis<L>>(pattern: &Pattern<L>, st: State, i: 
             }
             out
         },
+        Pattern::Let(..) => panic!(),
     }
 }
 
