@@ -1,12 +1,6 @@
 use crate::*;
 use std::fmt::*;
 
-impl Debug for Slot {
-    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
-        write!(f, "{}", self.to_string())
-    }
-}
-
 impl Debug for Id {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
         write!(f, "id{}", self.0)

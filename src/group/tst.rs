@@ -63,7 +63,7 @@ fn enrich(perms: HashSet<Perm>) -> HashSet<Perm> {
     perms
 }
 
-fn s(n: usize) -> Slot { Slot::new(n) }
+fn s(n: usize) -> Slot { Slot::numeric(n as _) }
 
 fn mk_perm(n: usize, f: impl Fn(usize) -> usize) -> Perm {
     (0..n).map(|x| (s(x), s(f(x)))).collect()

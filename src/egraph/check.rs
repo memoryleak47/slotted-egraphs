@@ -120,7 +120,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
 
         // check that no EClass has Slot(0) in its API.
         for (_, c) in &self.classes {
-            assert!(!c.slots.contains(&Slot::new(0)));
+            assert!(!c.slots.contains(&Slot::numeric(0)));
         }
 
         // Check that the Unionfind has valid AppliedIds.

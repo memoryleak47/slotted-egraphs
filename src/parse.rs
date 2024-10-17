@@ -92,11 +92,8 @@ fn parse_child<L: Language>(s: &str) -> Option<(ChildImpl<L>, &str)> {
 
 fn parse_slot(s: &str) -> Option<(Slot, &str)> {
     let (op, rest) = op_str(s);
-    if !op.starts_with("s") { return None; }
-    let num = &op[1..];
-
-    let i = num.parse::<i64>().ok()?;
-    Some((Slot::new_unchecked(i), rest))
+    if !op.starts_with("$") { return None; }
+    Some((Slot::named(&op[1..]), rest))
 }
 
 // Returns the relevant substring for op parsing.

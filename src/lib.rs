@@ -26,6 +26,9 @@ const CHECKS: bool = true;
 #[cfg(not(feature = "checks"))]
 const CHECKS: bool = false;
 
+mod slot;
+pub use slot::*;
+
 mod types;
 pub use types::*;
 

@@ -253,11 +253,11 @@ impl<const N: usize> From<[(Slot, Slot); N]> for SlotMap {
 #[test]
 fn test_slotmap() {
     let mut m: SlotMap = SlotMap::new();
-    m.insert(Slot::new(3), Slot::new(7));
-    m.insert(Slot::new(2), Slot::new(7));
-    m.insert(Slot::new(3), Slot::new(8));
-    m.insert(Slot::new(4), Slot::new(7));
-    assert_eq!(m[Slot::new(3)], Slot::new(8));
+    m.insert(Slot::numeric(3), Slot::numeric(7));
+    m.insert(Slot::numeric(2), Slot::numeric(7));
+    m.insert(Slot::numeric(3), Slot::numeric(8));
+    m.insert(Slot::numeric(4), Slot::numeric(7));
+    assert_eq!(m[Slot::numeric(3)], Slot::numeric(8));
 
     m.check();
 }

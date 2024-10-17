@@ -3,19 +3,6 @@ use crate::*;
 #[derive(Clone, Copy, Hash, PartialEq, Eq, PartialOrd, Ord)]
 pub struct Id(pub usize);
 
-#[derive(Clone, Copy, Hash, PartialEq, Eq, PartialOrd, Ord)]
-/// Slots represent the concept of Variable Names.
-///
-/// Internally, they are just a number.
-//
-// An ENode contains three kinds of slots:
-// - free / exposed
-// - lambda
-// - internal (not really part of the ENode API, it's rather the exposed slots of its children)
-//
-// A slot is "flexible" if it's free or lambda.
-pub struct Slot(i64);
-
 #[derive(Clone, Hash, PartialEq, Eq, PartialOrd, Ord)]
 pub struct AppliedId {
     pub id: Id,
@@ -79,43 +66,5 @@ impl AppliedId {
 
     pub fn null() -> Self {
         AppliedId { id: Id(0), m: SlotMap::new() }
-    }
-}
-
-impl Slot {
-    /// Generates a fresh slot (with negative sign).
-    /// The only way to create an equivalent Slot is by copying this one.
-    /// Hence we can rule out any form of naming collisions with this Slot.
-    // (In theory, another thread could also create the same Slot, but we don't do multithreading for now so it's fine)
-    pub fn fresh() -> Self {
-        use std::cell::RefCell;
-
-        // We choose ThreadLocal here, so that tests (that run in parallel threads) don't interfere.
-        // There were situations, where different Slot-names did affect hashmap ordering, and with that actually changed the output of the algorithm.
-        // Using this, all tests should run deterministically.
-
-        thread_local! {
-            static CTR: RefCell<i64> = RefCell::new(-1);
-        }
-
-        let u = CTR.with_borrow(|v| *v);
-
-        CTR.with_borrow_mut(|v| *v -= 1);
-
-        Slot(u)
-    }
-
-    /// creates the slot `s_u`.
-    /// These slots can never collide with the Slots returned from `Slot::fresh()` due to their sign.
-    pub fn new(u: usize) -> Slot {
-        Slot(u as i64)
-    }
-
-    pub fn to_string(&self) -> String {
-        format!("s{}", self.0)
-    }
-
-    pub fn new_unchecked(i: i64) -> Slot {
-        Slot(i)
     }
 }
