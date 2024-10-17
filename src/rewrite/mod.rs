@@ -1,14 +1,11 @@
 use crate::*;
 use std::any::Any;
 
-mod enode_or;
-pub use enode_or::*;
-
 mod ematch;
 pub use ematch::*;
 
-mod pattern_subst;
-pub use pattern_subst::*;
+mod pattern;
+pub use pattern::*;
 
 /// An equational rewrite rule.
 pub struct Rewrite<L: Language, N: Analysis<L> = ()> {
