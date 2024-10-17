@@ -136,6 +136,11 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
             #[cfg(feature = "explanations")]
             assert_eq!(to.id, proof.r.id);
         }
+
+        let analysis_from = self.analysis_data(from.id).clone();
+        let analysis_to = self.analysis_data_mut(to.id);
+        *analysis_to = N::merge(analysis_from, analysis_to.clone());
+
         // from.m :: slots(from.id) -> X
         // to.m :: slots(to.id) -> X
         let map = to.m.compose_partial(&from.m.inverse());

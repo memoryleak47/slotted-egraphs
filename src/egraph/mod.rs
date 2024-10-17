@@ -108,11 +108,11 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     }
 
     pub fn analysis_data(&self, i: Id) -> &N {
-        &self.classes[&i].analysis_data
+        &self.classes[&self.find_id(i)].analysis_data
     }
 
     pub fn analysis_data_mut(&mut self, i: Id) -> &mut N {
-        &mut self.classes.get_mut(&i).unwrap().analysis_data
+        &mut self.classes.get_mut(&self.find_id(i)).unwrap().analysis_data
     }
 
     // TODO For non-normalized inputs i, the slots in the output will definitely be wrong.
