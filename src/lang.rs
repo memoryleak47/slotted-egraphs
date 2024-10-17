@@ -1,5 +1,6 @@
 use crate::*;
 
+#[derive(Debug, Clone)]
 pub enum Child {
     AppliedId(AppliedId),
     Slot(Slot),
