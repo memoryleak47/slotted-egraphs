@@ -26,31 +26,31 @@ const CHECKS: bool = true;
 #[cfg(not(feature = "checks"))]
 const CHECKS: bool = false;
 
-pub mod types;
-pub(crate) use types::*;
+mod types;
+pub use types::*;
 
 mod parse;
 pub(crate) use parse::*;
 
-pub mod lang;
-pub(crate) use lang::*;
+mod lang;
+pub use lang::*;
 
-pub mod slotmap;
-pub(crate) use slotmap::*;
+mod slotmap;
+pub use slotmap::*;
 
-pub mod explain;
-pub(crate) use explain::*;
+mod explain;
+pub use explain::*;
 
 mod debug;
 
 mod egraph;
 pub use egraph::*;
 
-pub mod extract;
-pub(crate) use extract::*;
+mod extract;
+pub use extract::*;
 
-pub mod rewrite;
-pub(crate) use rewrite::*;
+mod rewrite;
+pub use rewrite::*;
 
 mod group;
 use group::*;
