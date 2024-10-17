@@ -1,5 +1,76 @@
 use crate::*;
 
+enum Token {
+    Slot(Slot), // s42
+    Ident(String), // map
+    PVar(String), // ?x
+    ColonEquals, // :=
+    LParen, // (
+    RParen, // )
+    LBracket, // [
+    RBracket, // ]
+}
+
+fn ident_char(c: char) -> bool {
+    if c.is_whitespace() { return false; }
+    if "()[]?$:=".contains(c) { return false; }
+    true
+}
+
+fn crop_ident(s: &str) -> Option<(/*ident*/ &str, /*rest*/ &str)> {
+    let out = if let Some((i, _)) = s.char_indices().find(|(_, x)| !ident_char(*x)) {
+        (&s[..i], &s[i..])
+    } else {
+        (s, "")
+    };
+
+    if out.0.is_empty() { return None; }
+
+    Some(out)
+}
+
+fn tokenize(mut s: &str) -> Option<Vec<Token>> {
+    let mut current = String::new();
+    let mut tokens = Vec::new();
+
+    loop {
+        s = s.trim_start();
+        if s.is_empty() { break; }
+
+        if s.starts_with('(') {
+            tokens.push(Token::LParen);
+            s = &s[1..];
+        } else if s.starts_with(')') {
+            tokens.push(Token::RParen);
+            s = &s[1..];
+        } else if s.starts_with('[') {
+            tokens.push(Token::LBracket);
+            s = &s[1..];
+        } else if s.starts_with(']') {
+            tokens.push(Token::RBracket);
+            s = &s[1..];
+        } else if s.starts_with(":=") {
+            tokens.push(Token::ColonEquals);
+            s = &s[2..];
+        } else if s.starts_with('?') {
+            let (op, rst) = crop_ident(&s[1..])?;
+            tokens.push(Token::PVar(op.to_string()));
+            s = rst;
+        } else if s.starts_with('$') {
+            let (op, rst) = crop_ident(&s[1..])?;
+            tokens.push(Token::Slot(Slot::named(op)));
+            s = rst;
+        } else {
+            let (op, rst) = crop_ident(s)?;
+            tokens.push(Token::Ident(op.to_string()));
+            s = rst;
+        }
+    }
+
+    Some(tokens)
+}
+
+// print:
 impl<L: Language> std::fmt::Display for RecExpr<L> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let (x, rest) = self.node.to_op();
@@ -33,6 +104,7 @@ impl<L: Language> std::fmt::Debug for RecExpr<L> {
     }
 }
 
+// parse:
 impl<L: Language> RecExpr<L> {
     pub fn parse(s: &str) -> Option<Self> {
         let (re, rest) = parse_rec_expr(s)?;
@@ -93,6 +165,7 @@ fn parse_child<L: Language>(s: &str) -> Option<(ChildImpl<L>, &str)> {
 fn parse_slot(s: &str) -> Option<(Slot, &str)> {
     let (op, rest) = op_str(s);
     if !op.starts_with("$") { return None; }
+
     Some((Slot::named(&op[1..]), rest))
 }
 
