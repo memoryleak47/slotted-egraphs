@@ -2,16 +2,16 @@ use crate::lambda::*;
 
 // The Y combinator.
 pub fn y() -> String {
-    let a = format!("(lam s0 (app (var s1) (app (var s0) (var s0))))");
+    let a = format!("(lam $0 (app (var $1) (app (var $0) (var $0))))");
 
-    format!("(lam s1 (app {a} {a}))") }
+    format!("(lam $1 (app {a} {a}))") }
 
 pub fn zero() -> String {
-    format!("(lam s0 (lam s1 (var s0)))")
+    format!("(lam $0 (lam $1 (var $0)))")
 }
 
 pub fn suc() -> String {
-    format!("(lam s0 (lam s1 (lam s2 (app (var s2) (var s0)))))")
+    format!("(lam $0 (lam $1 (lam $2 (app (var $2) (var $0)))))")
 }
 
 pub fn num(x: u32) -> String {
@@ -38,10 +38,10 @@ pub fn add() -> String {
 
 pub fn add_impl() -> String {
     let s = suc();
-    let add = "s0";
-    let x = "s1";
-    let y = "s2";
-    let z = "s3";
+    let add = "$0";
+    let x = "$1";
+    let y = "$2";
+    let z = "$3";
 
     format!("(lam {add} (lam {x} (lam {y}
         (app (app (var {x}) (var {y})) (lam {z} (app (app (var {add}) (var {z})) (app {s} (var {y})))))

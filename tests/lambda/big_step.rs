@@ -26,7 +26,7 @@ pub fn rewrite_big_step(eg: &mut EGraph<Lambda>) {
 
         let Lambda::App(l, t) = cand.app.clone() else { panic!() };
         let Lambda::Lam(x, b) = cand.lam.clone() else { panic!() };
-        assert_eq!(x, Slot::new(0));
+        assert_eq!(x, Slot::numeric(0));
 
         // l.m :: slots(lam) -> slots(app)
         let mut m = l.m.clone();

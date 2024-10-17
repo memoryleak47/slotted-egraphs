@@ -47,79 +47,79 @@ pub fn rise_rules(subst_m: SubstMethod) -> Vec<Rewrite<Rise>> {
 }
 
 fn beta() -> Rewrite<Rise> {
-    let pat = "(app (lam s1 ?body) ?e)";
-    let outpat = "(let s1 ?e ?body)";
+    let pat = "(app (lam $1 ?body) ?e)";
+    let outpat = "(let $1 ?e ?body)";
 
     Rewrite::new("beta", pat, outpat)
 }
 
 fn eta() -> Rewrite<Rise> {
-    let pat = "(lam s1 (app ?f (var s1)))";
+    let pat = "(lam $1 (app ?f (var $1)))";
     let outpat = "?f";
 
     Rewrite::new_if("eta", pat, outpat, |subst| {
-        !subst["f"].slots().contains(&Slot::new(1))
+        !subst["f"].slots().contains(&Slot::numeric(1))
     })
 }
 
 fn eta_expansion() -> Rewrite<Rise> {
     let pat = "?f";
-    let outpat = "(lam s1 (app ?f (var s1)))";
+    let outpat = "(lam $1 (app ?f (var $1)))";
 
     Rewrite::new("eta-expansion", pat, outpat)
 }
 
 fn my_let_unused() -> Rewrite<Rise> {
-    let pat = "(let s1 ?t ?b)";
+    let pat = "(let $1 ?t ?b)";
     let outpat = "?b";
     Rewrite::new_if("my-let-unused", pat, outpat, |subst| {
-        !subst["b"].slots().contains(&Slot::new(1))
+        !subst["b"].slots().contains(&Slot::numeric(1))
     })
 }
 
 fn let_var_same() -> Rewrite<Rise> {
-    let pat = "(let s1 ?e (var s1))";
+    let pat = "(let $1 ?e (var $1))";
     let outpat = "?e";
     Rewrite::new("let-var-same", pat, outpat)
 }
 
 fn let_var_diff() -> Rewrite<Rise> {
-    let pat = "(let s1 ?e (var s2))";
-    let outpat = "(var s2)";
+    let pat = "(let $1 ?e (var $2))";
+    let outpat = "(var $2)";
     Rewrite::new("let-var-diff", pat, outpat)
 }
 
 fn let_app() -> Rewrite<Rise> {
-    let pat = "(let s1 ?e (app ?a ?b))";
-    let outpat = "(app (let s1 ?e ?a) (let s1 ?e ?b))";
+    let pat = "(let $1 ?e (app ?a ?b))";
+    let outpat = "(app (let $1 ?e ?a) (let $1 ?e ?b))";
     Rewrite::new_if("let-app", pat, outpat, |subst| {
-        subst["a"].slots().contains(&Slot::new(1)) || subst["b"].slots().contains(&Slot::new(1))
+        subst["a"].slots().contains(&Slot::numeric(1)) || subst["b"].slots().contains(&Slot::numeric(1))
     })
 }
 
 fn let_app_unopt() -> Rewrite<Rise> {
-    let pat = "(let s1 ?e (app ?a ?b))";
-    let outpat = "(app (let s1 ?e ?a) (let s1 ?e ?b))";
+    let pat = "(let $1 ?e (app ?a ?b))";
+    let outpat = "(app (let $1 ?e ?a) (let $1 ?e ?b))";
     Rewrite::new("let-app-unopt", pat, outpat)
 }
 
 fn let_lam_diff() -> Rewrite<Rise> {
-    let pat = "(let s1 ?e (lam s2 ?body))";
-    let outpat = "(lam s2 (let s1 ?e ?body))";
+    let pat = "(let $1 ?e (lam $2 ?body))";
+    let outpat = "(lam $2 (let $1 ?e ?body))";
     Rewrite::new_if("let-lam-diff", pat, outpat, |subst| {
-        subst["body"].slots().contains(&Slot::new(1))
+        subst["body"].slots().contains(&Slot::numeric(1))
     })
 }
 
 fn let_lam_diff_unopt() -> Rewrite<Rise> {
-    let pat = "(let s1 ?e (lam s2 ?body))";
-    let outpat = "(lam s2 (let s1 ?e ?body))";
+    let pat = "(let $1 ?e (lam $2 ?body))";
+    let outpat = "(lam $2 (let $1 ?e ?body))";
     Rewrite::new("let-lam-diff-unopt", pat, outpat)
 }
 
 fn let_const() -> Rewrite<Rise> {
     // is the const-detection at the same time as the baseline? probably not relevant.
-    let pat = Pattern::parse("(let s1 ?t ?c)").unwrap();
+    let pat = Pattern::parse("(let $1 ?t ?c)").unwrap();
 
     let rt: RewriteT<Rise, (), ()> = RewriteT {
         searcher: Box::new(|_| ()),
@@ -138,7 +138,7 @@ fn let_const() -> Rewrite<Rise> {
 /////////////////////
 
 fn map_fusion() -> Rewrite<Rise> {
-    let mfu = "s0";
+    let mfu = "$0";
     let pat = "(app (app map ?f) (app (app map ?g) ?arg))";
     let outpat = &format!("(app (app map (lam {mfu} (app ?f (app ?g (var {mfu}))))) ?arg)");
     Rewrite::new("map-fusion", pat, outpat)
@@ -149,15 +149,15 @@ fn map_fission() -> Rewrite<Rise> {
     let mfi = 1;
 
     let pat = &format!(
-        "(app map (lam s{x} (app ?f ?gx)))"
+        "(app map (lam ${x} (app ?f ?gx)))"
     );
 
     let outpat = &format!(
-        "(lam s{mfi} (app (app map ?f) (app (app map (lam s{x} ?gx)) (var s{mfi}))))"
+        "(lam ${mfi} (app (app map ?f) (app (app map (lam ${x} ?gx)) (var ${mfi}))))"
     );
 
     Rewrite::new_if("map-fission", pat, outpat, move |subst| {
-        !subst["f"].slots().contains(&Slot::new(x))
+        !subst["f"].slots().contains(&Slot::numeric(x))
     })
 }
 
@@ -186,8 +186,8 @@ fn slide_before_map_map_f() -> Rewrite<Rise> {
 }
 
 fn separate_dot_vh_simplified() -> Rewrite<Rise> {
-    let x = "s0";
-    let sdvh = "s1";
+    let x = "$0";
+    let sdvh = "$1";
 
     let pat = &format!(
         "(app (app (app reduce add) 0) (app (app map (lam {x} (app (app mul (app fst (var {x}))) (app snd (var {x})))))
@@ -202,8 +202,8 @@ fn separate_dot_vh_simplified() -> Rewrite<Rise> {
 }
 
 fn separate_dot_hv_simplified() -> Rewrite<Rise> {
-    let x = "s0";
-    let sdhv = "s1";
+    let x = "$0";
+    let sdhv = "$1";
 
     let pat = &format!(
         "(app (app (app reduce add) 0) (app (app map (lam {x} (app (app mul (app fst (var {x}))) (app snd (var {x})))))
@@ -220,8 +220,8 @@ fn separate_dot_hv_simplified() -> Rewrite<Rise> {
 
 // subst using extraction
 fn beta_extr() -> Rewrite<Rise> {
-    let pat = Pattern::parse("(app (lam s1 ?b) ?t)").unwrap();
-    let s = Slot::new(1);
+    let pat = Pattern::parse("(app (lam $1 ?b) ?t)").unwrap();
+    let s = Slot::numeric(1);
 
     let a = pat.clone();
     let a2 = pat.clone();
@@ -253,8 +253,8 @@ fn beta_extr() -> Rewrite<Rise> {
 // why is this faster than beta_extr?
 // Probably because it can extract smaller terms after more rewrites?
 fn beta_extr_direct() -> Rewrite<Rise> {
-    let pat = Pattern::parse("(app (lam s1 ?b) ?t)").unwrap();
-    let s = Slot::new(1);
+    let pat = Pattern::parse("(app (lam $1 ?b) ?t)").unwrap();
+    let s = Slot::numeric(1);
 
     let a = pat.clone();
     let a2 = pat.clone();

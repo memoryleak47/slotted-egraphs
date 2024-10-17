@@ -8,10 +8,10 @@ macro_rules! unpack_tests {
             use crate::lambda::*;
 
             let s = [
-                "(lam s0 (var s0))",
-                "(lam s0 (lam s1 (var s0)))",
-                "(lam s0 (lam s1 (var s1)))",
-                "(lam s0 (lam s1 (app (var s0) (var s1))))",
+                "(lam $0 (var $0))",
+                "(lam $0 (lam $1 (var $0)))",
+                "(lam $0 (lam $1 (var $1)))",
+                "(lam $0 (lam $1 (app (var $0) (var $1))))",
             ];
 
             for p in s {
@@ -33,7 +33,7 @@ macro_rules! unpack_tests {
             // C = \y. y | \z. C z
             //
             // This sometimes causes infinite loops, if you iterate by depth-first-search.
-            let s = "(lam s0 (app (lam s1 (var s1)) (var s0)))";
+            let s = "(lam $0 (app (lam $1 (var $1)) (var $0)))";
             check_simplify_to_nf::<$R>(&s);
         }
 
@@ -42,8 +42,8 @@ macro_rules! unpack_tests {
             use lambda::*;
 
             // This caught a bug. The "lam 0" (aka "lam z z") was shifted to "lam 0 1" incorrectly.
-            let l = "(lam s0 (lam s1 (var s0)))";
-            let r = "(lam s2 (var s2))";
+            let l = "(lam $0 (lam $1 (var $0)))";
+            let r = "(lam $2 (var $2))";
             let s = format!("(app {l} {r})");
             check_simplify_to_nf::<$R>(&s);
         }
@@ -52,7 +52,7 @@ macro_rules! unpack_tests {
         fn nested_identity1() {
             use lambda::*;
 
-            let p = "(app (lam s0 (var s0)) (lam s1 (var s1)))";
+            let p = "(app (lam $0 (var $0)) (lam $1 (var $1)))";
             check_simplify_to_nf::<$R>(p);
         }
 
@@ -60,7 +60,7 @@ macro_rules! unpack_tests {
         fn nested_identity2() {
             use lambda::*;
 
-            let p = "(app (lam s0 (var s0)) (lam s1 (app (var s1) (var s1))))";
+            let p = "(app (lam $0 (var $0)) (lam $1 (app (var $1) (var $1))))";
             check_simplify_to_nf::<$R>(p);
         }
 
@@ -68,7 +68,7 @@ macro_rules! unpack_tests {
         fn nested_identity3() {
             use lambda::*;
 
-            let p = "(app (lam s0 (app (var s0) (var s0))) (lam s1 (var s1)))";
+            let p = "(app (lam $0 (app (var $0) (var $0))) (lam $1 (var $1)))";
             check_simplify_to_nf::<$R>(p);
         }
 
@@ -76,10 +76,10 @@ macro_rules! unpack_tests {
         fn simple_beta() {
             use lambda::*;
 
-            let p = "(lam s0 (lam s1
+            let p = "(lam $0 (lam $1
                 (app
-                    (lam s2 (app (var s0) (var s2)))
-                (var s1))
+                    (lam $2 (app (var $0) (var $2)))
+                (var $1))
             ))";
             check_simplify_to_nf::<$R>(p);
         }
@@ -89,7 +89,7 @@ macro_rules! unpack_tests {
             use lambda::*;
 
             // y is unused, and hence x is effectively redundant.
-            let p = "(lam s0 (app (lam s1 (lam s2 (var s2))) (var s0)))";
+            let p = "(lam $0 (app (lam $1 (lam $2 (var $2))) (var $0)))";
             check_simplify_to_nf::<$R>(p);
         }
 
@@ -98,7 +98,7 @@ macro_rules! unpack_tests {
             use lambda::*;
 
             // y is unused, and hence x is effectively redundant.
-            let p = "(lam s0 (lam s2 (app (lam s1 (var s2)) (var s0))))";
+            let p = "(lam $0 (lam $2 (app (lam $1 (var $2)) (var $0))))";
             check_simplify_to_nf::<$R>(p);
         }
 
@@ -106,7 +106,7 @@ macro_rules! unpack_tests {
         fn inf_loop() {
             use lambda::*;
 
-            let p = "(app (lam s0 (app (var s0) (var s0))) (lam s1 (app (var s1) (var s1))))";
+            let p = "(app (lam $0 (app (var $0) (var $0))) (lam $1 (app (var $1) (var $1))))";
             let out = simplify::<$R>(p);
             assert_alpha_eq(&out, p);
         }
@@ -116,11 +116,11 @@ macro_rules! unpack_tests {
         fn y_identity() {
             use lambda::*;
 
-            let p = "(lam s0 (lam s1 (var s1)))";
+            let p = "(lam $0 (lam $1 (var $1)))";
             let s = app(y(), String::from(p));
 
             let out = simplify::<$R>(&s);
-            assert_alpha_eq(&out, "(lam s0 (var s0))");
+            assert_alpha_eq(&out, "(lam $0 (var $0))");
         }
 
         #[test]

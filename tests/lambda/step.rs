@@ -76,7 +76,7 @@ fn lam_subst(re: &RecExpr<Lambda>, x: Slot, t: &RecExpr<Lambda>) -> RecExpr<Lamb
                 let mut b: RecExpr<Lambda> = b.clone();
 
                 if f.contains(&y) {
-                    let y2 = (0..).map(|i| Slot::new(i))
+                    let y2 = (0..).map(|i| Slot::numeric(i))
                                   .filter(|i| !f.contains(i))
                                   .next()
                                   .unwrap();

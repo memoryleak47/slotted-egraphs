@@ -8,11 +8,11 @@ pub(crate) struct ProofRegistry(Rc<RefCell<HashMap<Equation, ProvenEq>>>);
 fn normalize_eq(eq: &Equation) -> Equation {
     let mut theta = SlotMap::new();
     for x in eq.l.slots() {
-        theta.insert(x, Slot::numeric(theta.len()));
+        theta.insert(x, Slot::numeric(theta.len() as _));
     }
     for x in eq.r.slots() {
         if !theta.contains_key(x) {
-            theta.insert(x, Slot::numeric(theta.len()));
+            theta.insert(x, Slot::numeric(theta.len() as _));
         }
     }
     eq.apply_slotmap(&theta)

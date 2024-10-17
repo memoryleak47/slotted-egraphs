@@ -25,8 +25,8 @@ fn assert_reaches(start: &str, goal: &str, steps: usize) {
 
 #[test]
 fn t1() { // x+y = y+x
-    let x = "s0";
-    let y = "s1";
+    let x = "$0";
+    let y = "$1";
 
     let a = &format!("(add (var {x}) (var {y}))");
     let b = &format!("(add (var {y}) (var {x}))");
@@ -35,9 +35,9 @@ fn t1() { // x+y = y+x
 
 #[test]
 fn t2() { // (x+y) * (x+y) = (x+y) * (y+x)
-    let x = "s0";
-    let y = "s1";
-    let z = "s2";
+    let x = "$0";
+    let y = "$1";
+    let z = "$2";
 
     let a = &format!("(mul (add (var {x}) (var {y})) (add (var {x}) (var {y})))");
     let b = &format!("(mul (add (var {x}) (var {y})) (add (var {y}) (var {x})))");
@@ -47,9 +47,9 @@ fn t2() { // (x+y) * (x+y) = (x+y) * (y+x)
 
 #[test]
 fn t3() { // (x+y) * (y+z) = (z+y) * (y+x)
-    let x = "s0";
-    let y = "s1";
-    let z = "s2";
+    let x = "$0";
+    let y = "$1";
+    let z = "$2";
 
     let a = &format!("(mul (add (var {x}) (var {y})) (add (var {y}) (var {z})))");
     let b = &format!("(mul (add (var {z}) (var {y})) (add (var {y}) (var {x})))");
@@ -58,21 +58,17 @@ fn t3() { // (x+y) * (y+z) = (z+y) * (y+x)
 
 #[test]
 fn t4() { // (x+y)**2 = x**2 + x*y + x*y + y**2
-    let x = "s0";
-    let y = "s1";
-    let z = "s2";
-
-    let a = "(mul (add (var {x}) (var {y})) (add (var {x}) (var {y})))";
-    let b = "(add (mul (var {x}) (var {x}))
-             (add (mul (var {x}) (var {y}))
-             (add (mul (var {x}) (var {y}))
-                  (mul (var {y}) (var {y}))
+    let a = "(mul (add (var $x) (var $y)) (add (var $x) (var $y)))";
+    let b = "(add (mul (var $x) (var $x))
+             (add (mul (var $x) (var $y))
+             (add (mul (var $x) (var $y))
+                  (mul (var $y) (var $y))
              )))";
     assert_reaches(a, b, 10);
 }
 
 fn add_chain(it: impl Iterator<Item=usize>) -> String {
-    let mut it = it.map(|u| format!("(var s{u})"));
+    let mut it = it.map(|u| format!("(var ${u})"));
     let mut x = format!("{}", it.next().unwrap());
     for y in it {
         x = format!("(add {x} {y})");
@@ -94,9 +90,9 @@ fn t5() { // x0+...+xN = xN+...+x0
 
 #[test]
 fn t6() { // z*(x+y) = z*(y+x)
-    let x = "s0";
-    let y = "s1";
-    let z = "s2";
+    let x = "$0";
+    let y = "$1";
+    let z = "$2";
 
     let a = &format!("(mul (var {z}) (add (var {x}) (var {y})))");
     let b = &format!("(mul (var {z}) (add (var {y}) (var {x})))");

@@ -8,7 +8,7 @@ pub fn lam_normalize(re: &RecExpr<Lambda>) -> RecExpr<Lambda> {
 // map :: original name -> normalized name.
 fn lam_normalize_impl(re: &RecExpr<Lambda>, counter: &mut usize, map: HashMap<Slot, Slot>) -> RecExpr<Lambda> {
     let mut alloc_slot = || {
-        let out = Slot::new(*counter);
+        let out = Slot::numeric(*counter as _);
         *counter += 1;
         out
     };

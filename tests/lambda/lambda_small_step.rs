@@ -22,7 +22,7 @@ pub fn rewrite_small_step(eg: &mut EGraph<Lambda>) {
 
         let Lambda::App(l, t) = cand.app.clone() else { panic!() };
         let Lambda::Lam(x, b) = cand.lam.clone() else { panic!() };
-        assert_eq!(x, Slot::new(0));
+        assert_eq!(x, Slot::numeric(0));
 
         // b.m :: slots(b.id) -> L1
         // l.m :: slots(l.id) -> L0 (and thus L1 -> L0)

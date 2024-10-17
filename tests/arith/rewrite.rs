@@ -24,54 +24,54 @@ pub fn rewrite_arith(eg: &mut EGraph<Arith>) {
 }
 
 fn beta() -> Rewrite<Arith> {
-    let pat = "(app (lam s1 ?b) ?t)";
-    let outpat = "(let s1 ?t ?b)";
+    let pat = "(app (lam $1 ?b) ?t)";
+    let outpat = "(let $1 ?t ?b)";
 
     Rewrite::new("beta", pat, outpat)
 }
 
 fn eta() -> Rewrite<Arith> {
-    let pat = "(lam s1 (app ?b (var s1)))";
+    let pat = "(lam $1 (app ?b (var $1)))";
     let outpat = "?b";
 
     Rewrite::new_if("eta", pat, outpat, |subst| {
-        !subst["b"].slots().contains(&Slot::new(1))
+        !subst["b"].slots().contains(&Slot::numeric(1))
     })
 }
 
 fn eta_expansion() -> Rewrite<Arith> {
     let pat = "?b";
-    let outpat = "(lam s1 (app ?b (var s1)))";
+    let outpat = "(lam $1 (app ?b (var $1)))";
     Rewrite::new("eta-expansion", pat, outpat)
 }
 
 fn my_let_unused() -> Rewrite<Arith> {
-    let pat = "(let s1 ?t ?b)";
+    let pat = "(let $1 ?t ?b)";
     let outpat = "?b";
     Rewrite::new_if("my-let-unused", pat, outpat, |subst| {
-        !subst["b"].slots().contains(&Slot::new(1))
+        !subst["b"].slots().contains(&Slot::numeric(1))
     })
 }
 
 fn let_var_same() -> Rewrite<Arith> {
-    let pat = "(let s1 ?e (var s1))";
+    let pat = "(let $1 ?e (var $1))";
     let outpat = "?e";
     Rewrite::new("let-var-same", pat, outpat)
 }
 
 fn let_app() -> Rewrite<Arith> {
-    let pat = "(let s1 ?e (app ?a ?b))";
-    let outpat = "(app (let s1 ?e ?a) (let s1 ?e ?b))";
+    let pat = "(let $1 ?e (app ?a ?b))";
+    let outpat = "(app (let $1 ?e ?a) (let $1 ?e ?b))";
     Rewrite::new_if("let-app", pat, outpat, |subst| {
-        subst["a"].slots().contains(&Slot::new(1)) || subst["b"].slots().contains(&Slot::new(1))
+        subst["a"].slots().contains(&Slot::numeric(1)) || subst["b"].slots().contains(&Slot::numeric(1))
     })
 }
 
 fn let_lam_diff() -> Rewrite<Arith> {
-    let pat = "(let s1 ?e (lam s2 ?b))";
-    let outpat = "(lam s2 (let s1 ?e ?b))";
+    let pat = "(let $1 ?e (lam $2 ?b))";
+    let outpat = "(lam $2 (let $1 ?e ?b))";
     Rewrite::new_if("let-lam-diff", pat, outpat, |subst| {
-        subst["b"].slots().contains(&Slot::new(1))
+        subst["b"].slots().contains(&Slot::numeric(1))
     })
 }
 
