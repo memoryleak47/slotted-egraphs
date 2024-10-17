@@ -29,7 +29,7 @@ thread_local! {
 impl Slot {
     /// Generates a fresh slot.
     ///
-    /// Any slot return from this function has never been constructed before.
+    /// Any slot returned from this function has never been constructed before.
     pub fn fresh() -> Self {
         SLOT_TABLE.with_borrow_mut(|tab| {
             let old_val = tab.fresh_idx;
