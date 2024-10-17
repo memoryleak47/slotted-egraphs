@@ -22,8 +22,7 @@ enum Token {
 
 fn ident_char(c: char) -> bool {
     if c.is_whitespace() { return false; }
-    // TODO re-add '?' character here.
-    if "()[]$:=".contains(c) { return false; }
+    if "()[]$:=?".contains(c) { return false; }
     true
 }
 
@@ -62,7 +61,7 @@ fn tokenize(mut s: &str) -> Result<Vec<Token>, ParseError> {
         } else if s.starts_with(":=") {
             tokens.push(Token::ColonEquals);
             s = &s[2..];
-        } else if s.starts_with('?') && false { // temporary disable.
+        } else if s.starts_with('?') {
             let (op, rst) = crop_ident(&s[1..])?;
             tokens.push(Token::PVar(op.to_string()));
             s = rst;
@@ -81,10 +80,10 @@ fn tokenize(mut s: &str) -> Result<Vec<Token>, ParseError> {
 }
 
 // parse:
-impl<L: Language> RecExpr<L> {
+impl<L: Language> Pattern<L> {
     pub fn parse(s: &str) -> Result<Self, ParseError> {
         let tok = tokenize(s)?;
-        let (re, rest) = parse_rec_expr(&tok)?;
+        let (re, rest) = parse_pattern(&tok)?;
 
         if !rest.is_empty() {
             return Err(ParseError::RemainingRest(to_vec(rest)));
@@ -94,7 +93,19 @@ impl<L: Language> RecExpr<L> {
     }
 }
 
-fn parse_rec_expr<L: Language>(mut tok: &[Token]) -> Result<(RecExpr<L>, &[Token]), ParseError> {
+impl<L: Language> RecExpr<L> {
+    pub fn parse(s: &str) -> Result<Self, ParseError> {
+        let pat = Pattern::parse(s)?;
+        Ok(pattern_to_re(&pat))
+    }
+}
+
+fn parse_pattern<L: Language>(mut tok: &[Token]) -> Result<(Pattern<L>, &[Token]), ParseError> {
+    if let Token::PVar(p) = &tok[0] {
+        let pat = Pattern::PVar(p.to_string());
+        return Ok((pat, &tok[1..]));
+    }
+
     if let Token::LParen = tok[0] {
         tok = &tok[1..];
 
@@ -114,28 +125,28 @@ fn parse_rec_expr<L: Language>(mut tok: &[Token]) -> Result<(RecExpr<L>, &[Token
         let children_mock: Vec<_> = children.iter().map(|x|
             match x {
                 ChildImpl::Slot(s) => Child::Slot(*s),
-                ChildImpl::RecExpr(_) => Child::AppliedId(AppliedId::null()),
+                ChildImpl::Pattern(_) => Child::AppliedId(AppliedId::null()),
             }
         ).collect();
         let node = L::from_op(op, children_mock.clone()).ok_or_else(|| ParseError::FromOpFailed(op.to_string(), children_mock))?;
         let children = children.into_iter().filter_map(|x| match x {
-            ChildImpl::RecExpr(re) => Some(re),
+            ChildImpl::Pattern(pat) => Some(pat),
             ChildImpl::Slot(_) => None,
         }).collect();
-        let re = RecExpr { node, children };
+        let re = Pattern::ENode(node, children);
         Ok((re, tok))
     } else {
         let Token::Ident(op) = &tok[0] else { return Err(ParseError::ParseState(to_vec(tok))) };
         tok = &tok[1..];
 
         let node = L::from_op(op, vec![]).ok_or_else(|| ParseError::FromOpFailed(op.to_string(), vec![]))?;
-        let re = RecExpr { node, children: Vec::new() };
-        Ok((re, tok))
+        let pat = Pattern::ENode(node, Vec::new());
+        Ok((pat, tok))
     }
 }
 
 enum ChildImpl<L: Language> {
-    RecExpr(RecExpr<L>),
+    Pattern(Pattern<L>),
     Slot(Slot),
 }
 
@@ -144,40 +155,57 @@ fn parse_child<L: Language>(tok: &[Token]) -> Result<(ChildImpl<L>, &[Token]), P
         return Ok((ChildImpl::Slot(slot), &tok[1..]));
     }
 
-    parse_rec_expr::<L>(tok).map(|(x, rest)| (ChildImpl::RecExpr(x), rest))
+    parse_pattern::<L>(tok).map(|(x, rest)| (ChildImpl::Pattern(x), rest))
 }
 
 // print:
+impl<L: Language> std::fmt::Display for Pattern<L> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Pattern::PVar(p) => write!(f, "?{p}"),
+            Pattern::ENode(node, children) => {
+                let (x, rest) = node.to_op();
+
+                if rest.is_empty() {
+                    return write!(f, "{}", x);
+                }
+
+                write!(f, "({} ", x)?;
+                let mut child_idx = 0;
+                let n = rest.len();
+                for (i, r) in rest.into_iter().enumerate() {
+                    match r {
+                        Child::AppliedId(_) => {
+                            write!(f, "{}", &children[child_idx])?;
+                            child_idx += 1;
+                        },
+                        Child::Slot(slot) => {
+                            write!(f, "{}", slot.to_string())?;
+                        },
+                    }
+                    if i != n-1 { write!(f, " ")?; }
+                }
+                write!(f, ")")
+            }
+        }
+    }
+}
+
+impl<L: Language> std::fmt::Debug for Pattern<L> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self)
+    }
+}
+
 impl<L: Language> std::fmt::Display for RecExpr<L> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let (x, rest) = self.node.to_op();
-
-        if rest.is_empty() {
-            return write!(f, "{}", x);
-        }
-
-        write!(f, "({} ", x)?;
-        let mut child_idx = 0;
-        let n = rest.len();
-        for (i, r) in rest.into_iter().enumerate() {
-            match r {
-                Child::AppliedId(_) => {
-                    write!(f, "{}", &self.children[child_idx])?;
-                    child_idx += 1;
-                },
-                Child::Slot(slot) => {
-                    write!(f, "{}", slot.to_string())?;
-                },
-            }
-            if i != n-1 { write!(f, " ")?; }
-        }
-        write!(f, ")")
+        write!(f, "{}", re_to_pattern(self))
     }
 }
 
 impl<L: Language> std::fmt::Debug for RecExpr<L> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "RE({})", self)
+        write!(f, "{:?}", re_to_pattern(self))
     }
 }
 

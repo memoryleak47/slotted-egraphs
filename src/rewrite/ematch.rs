@@ -26,8 +26,8 @@ pub fn ematch_all<L: Language, N: Analysis<L>>(eg: &EGraph<L, N>, pattern: &Patt
 
 // `i` uses egraph slots instead of pattern slots.
 fn ematch_impl<L: Language, N: Analysis<L>>(pattern: &Pattern<L>, st: State, i: AppliedId, eg: &EGraph<L, N>) -> Vec<State> {
-    match &pattern.node {
-        ENodeOrPVar::PVar(v) => {
+    match &pattern {
+        Pattern::PVar(v) => {
             let mut st = st;
             if let Some(j) = st.partial_subst.get(v) {
                 if !eg.eq(&i, j) { return Vec::new(); }
@@ -36,7 +36,7 @@ fn ematch_impl<L: Language, N: Analysis<L>>(pattern: &Pattern<L>, st: State, i: 
             }
             vec![st]
         },
-        ENodeOrPVar::ENode(n) => {
+        Pattern::ENode(n, children) => {
             let mut out = Vec::new();
             for nn in eg.enodes_applied(&i) {
                 'nodeloop: for n2 in eg.get_group_compatible_weak_variants(&nn) {
@@ -58,7 +58,7 @@ fn ematch_impl<L: Language, N: Analysis<L>>(pattern: &Pattern<L>, st: State, i: 
                     }
 
                     let mut acc = vec![st];
-                    for (sub_id, sub_pat) in n2.applied_id_occurences().into_iter().zip(pattern.children.iter()) {
+                    for (sub_id, sub_pat) in n2.applied_id_occurences().into_iter().zip(children.iter()) {
                         let mut next = Vec::new();
                         for a in acc {
                             next.extend(ematch_impl(sub_pat, a, sub_id.clone(), eg));
