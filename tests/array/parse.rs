@@ -36,6 +36,6 @@ fn translate(p: Pattern<Sym>) -> Pattern<Array> {
             }
         }
         Pattern::PVar(x) => Pattern::PVar(x),
-        Pattern::Let(..) => panic!(),
+        Pattern::Subst(..) => panic!(),
     }
 }

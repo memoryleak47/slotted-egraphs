@@ -5,7 +5,9 @@ pub enum ParseError {
     TokenState(String),
     ParseState(Vec<Token>),
     RemainingRest(Vec<Token>),
-    FromOpFailed(String, Vec<Child>)
+    FromOpFailed(String, Vec<Child>),
+    ExpectedColonEquals(Vec<Token>),
+    ExpectedRBracket(Vec<Token>)
 }
 
 #[derive(Debug, Clone)]
@@ -100,7 +102,28 @@ impl<L: Language> RecExpr<L> {
     }
 }
 
-fn parse_pattern<L: Language>(mut tok: &[Token]) -> Result<(Pattern<L>, &[Token]), ParseError> {
+fn parse_pattern<L: Language>(tok: &[Token]) -> Result<(Pattern<L>, &[Token]), ParseError> {
+    let (mut pat, mut tok) = parse_pattern_nosubst(tok)?;
+    while let Some(Token::LBracket) = tok.get(0) {
+        tok = &tok[1..];
+        let (l, tok2) = parse_pattern(tok)?;
+        tok = tok2;
+
+        let Token::ColonEquals = &tok[0] else { return Err(ParseError::ExpectedColonEquals(to_vec(tok))) };
+        tok = &tok[1..];
+
+        let (r, tok2) = parse_pattern(tok)?;
+        tok = tok2;
+
+        let Token::RBracket = &tok[0] else { return Err(ParseError::ExpectedRBracket(to_vec(tok))) };
+        tok = &tok[1..];
+
+        pat = Pattern::Subst(Box::new(pat), Box::new(l), Box::new(r));
+    }
+    Ok((pat, tok))
+}
+
+fn parse_pattern_nosubst<L: Language>(mut tok: &[Token]) -> Result<(Pattern<L>, &[Token]), ParseError> {
     if let Token::PVar(p) = &tok[0] {
         let pat = Pattern::PVar(p.to_string());
         return Ok((pat, &tok[1..]));
@@ -109,7 +132,7 @@ fn parse_pattern<L: Language>(mut tok: &[Token]) -> Result<(Pattern<L>, &[Token]
     if let Token::LParen = tok[0] {
         tok = &tok[1..];
 
-        let Token::Ident(op) = &tok[0] else { return Err(ParseError::ParseState(to_vec(tok))) };
+        let Token::Ident(op) = &tok[0] else { panic!("1"); return Err(ParseError::ParseState(to_vec(tok))) };
         tok = &tok[1..];
 
         let mut children = Vec::new();
@@ -136,7 +159,7 @@ fn parse_pattern<L: Language>(mut tok: &[Token]) -> Result<(Pattern<L>, &[Token]
         let re = Pattern::ENode(node, children);
         Ok((re, tok))
     } else {
-        let Token::Ident(op) = &tok[0] else { return Err(ParseError::ParseState(to_vec(tok))) };
+        let Token::Ident(op) = &tok[0] else { panic!("2"); return Err(ParseError::ParseState(to_vec(tok))) };
         tok = &tok[1..];
 
         let node = L::from_op(op, vec![]).ok_or_else(|| ParseError::FromOpFailed(op.to_string(), vec![]))?;
@@ -187,7 +210,7 @@ impl<L: Language> std::fmt::Display for Pattern<L> {
                 write!(f, ")")
             }
             Pattern::PVar(p) => write!(f, "?{p}"),
-            Pattern::Let(x, t, b) => write!(f, "{b}[{x} := {t}]"),
+            Pattern::Subst(b, x, t) => write!(f, "{b}[{x} := {t}]"),
         }
     }
 }

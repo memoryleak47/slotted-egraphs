@@ -5,7 +5,7 @@ use crate::*;
 pub enum Pattern<L: Language> {
     ENode(L, Vec<Pattern<L>>),
     PVar(String), // ?x
-    Let(Box<Pattern<L>>, Box<Pattern<L>>, Box<Pattern<L>>), // Let(x, t, b) means let x=t in b
+    Subst(Box<Pattern<L>>, Box<Pattern<L>>, Box<Pattern<L>>), // Subst(b, x, t) means `b[x := t]`
 }
 
 // We write this as pattern[subst] for short.
@@ -23,7 +23,7 @@ pub fn pattern_subst<L: Language, N: Analysis<L>>(eg: &mut EGraph<L, N>, pattern
         Pattern::PVar(v) => {
             subst[v].clone()
         },
-        Pattern::Let(..) => panic!(),
+        Pattern::Subst(..) => panic!(),
     }
 }
 
