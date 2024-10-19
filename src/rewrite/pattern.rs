@@ -30,7 +30,10 @@ pub fn pattern_subst<L: Language, N: Analysis<L>>(eg: &mut EGraph<L, N>, pattern
             let b = pattern_subst(eg, &*b, subst);
             let x = pattern_subst(eg, &*x, subst);
             let t = pattern_subst(eg, &*t, subst);
-            let term = ast_size_extract(b, eg);
+
+            // ast-size extraction is also an option. but slower without an e-graph analysis.
+            let term = eg.get_syn_expr(&eg.synify_app_id(b));
+
             do_subst(eg, &term, &x, &t)
         },
     }
