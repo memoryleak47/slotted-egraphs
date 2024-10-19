@@ -30,6 +30,9 @@ pub use lambda_small_step::*;
 mod let_small_step;
 pub use let_small_step::*;
 
+mod native;
+pub use native::*;
+
 #[derive(Clone, Hash, PartialEq, Eq, PartialOrd, Ord)]
 pub enum Lambda {
     Lam(Slot, AppliedId),

@@ -1,7 +1,10 @@
 use crate::*;
 
 #[derive(Clone, Hash, PartialEq, Eq)]
-// PVar = pattern variable.
+/// A Pattern to match against, or as the rhs of a rewrite rule.
+///
+/// - It supports pattern-variables `?x` to match against anything.
+/// - It supports (on the rhs) substitutions `b[x := t]` to substitute natively.
 pub enum Pattern<L: Language> {
     ENode(L, Vec<Pattern<L>>),
     PVar(String), // ?x
@@ -28,14 +31,26 @@ pub fn pattern_subst<L: Language, N: Analysis<L>>(eg: &mut EGraph<L, N>, pattern
             let x = pattern_subst(eg, &*x, subst);
             let t = pattern_subst(eg, &*t, subst);
             let term = ast_size_extract(b, eg);
-            do_subst(eg, term, x, t)
+            do_subst(eg, &term, &x, &t)
         },
     }
 }
 
-// returns term[x := t]
-fn do_subst<L: Language, N: Analysis<L>>(eg: &mut EGraph<L, N>, term: RecExpr<L>, x: AppliedId, t: AppliedId) -> AppliedId {
-    todo!()
+// returns re[x := t]
+fn do_subst<L: Language, N: Analysis<L>>(eg: &mut EGraph<L, N>, re: &RecExpr<L>, x: &AppliedId, t: &AppliedId) -> AppliedId {
+    let mut n = re.node.clone();
+    let mut refs: Vec<&mut AppliedId> = n.applied_id_occurences_mut();
+    assert_eq!(re.children.len(), refs.len());
+    for i in 0..refs.len() {
+        *(refs[i]) = do_subst(eg, &re.children[i], x, t);
+    }
+    let app_id = eg.add_syn(n);
+
+    if app_id == *x {
+        return t.clone();
+    } else {
+        app_id
+    }
 }
 
 // TODO maybe move into EGraph API?
