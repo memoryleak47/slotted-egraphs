@@ -23,8 +23,19 @@ pub fn pattern_subst<L: Language, N: Analysis<L>>(eg: &mut EGraph<L, N>, pattern
         Pattern::PVar(v) => {
             subst[v].clone()
         },
-        Pattern::Subst(..) => panic!(),
+        Pattern::Subst(b, x, t) => {
+            let b = pattern_subst(eg, &*b, subst);
+            let x = pattern_subst(eg, &*x, subst);
+            let t = pattern_subst(eg, &*t, subst);
+            let term = ast_size_extract(b, eg);
+            do_subst(eg, term, x, t)
+        },
     }
+}
+
+// returns term[x := t]
+fn do_subst<L: Language, N: Analysis<L>>(eg: &mut EGraph<L, N>, term: RecExpr<L>, x: AppliedId, t: AppliedId) -> AppliedId {
+    todo!()
 }
 
 // TODO maybe move into EGraph API?

@@ -96,7 +96,7 @@ pub fn check_eq<R: Realization>(s1: &str, s2: &str) {
 // Non-Realization functions:
 
 fn extract_ast(eg: &EGraph<Lambda>, i: AppliedId) -> RecExpr<Lambda> {
-    extract::<_, AstSizeNoLet>(i, eg)
+    extract::<_, _, AstSizeNoLet>(i, eg)
 }
 
 pub fn norm(s: &str) -> String {

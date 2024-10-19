@@ -13,7 +13,7 @@ pub struct Extractor<L: Language, CF: CostFunction<L>> {
 }
 
 impl<L: Language, CF: CostFunction<L>> Extractor<L, CF> {
-    pub fn new(eg: &EGraph<L>) -> Self {
+    pub fn new<N: Analysis<L>>(eg: &EGraph<L, N>) -> Self {
         eg.check();
 
         // all the L in `map` and `queue` have to be
@@ -56,7 +56,7 @@ impl<L: Language, CF: CostFunction<L>> Extractor<L, CF> {
         Self { map }
     }
 
-    pub fn extract(&self, i: AppliedId, eg: &EGraph<L>) -> RecExpr<L> {
+    pub fn extract<N: Analysis<L>>(&self, i: AppliedId, eg: &EGraph<L, N>) -> RecExpr<L> {
         let i = eg.find_applied_id(&i);
 
         let mut children = Vec::new();
@@ -75,11 +75,11 @@ impl<L: Language, CF: CostFunction<L>> Extractor<L, CF> {
     }
 }
 
-pub fn ast_size_extract<L: Language>(i: AppliedId, eg: &EGraph<L>) -> RecExpr<L> {
-    extract::<L, AstSize>(i, eg)
+pub fn ast_size_extract<L: Language, N: Analysis<L>>(i: AppliedId, eg: &EGraph<L, N>) -> RecExpr<L> {
+    extract::<L, N, AstSize>(i, eg)
 }
 
 // `i` is not allowed to have free variables, hence prefer `Id` over `AppliedId`.
-pub fn extract<L: Language, CF: CostFunction<L>>(i: AppliedId, eg: &EGraph<L>) -> RecExpr<L> {
+pub fn extract<L: Language, N: Analysis<L>, CF: CostFunction<L>>(i: AppliedId, eg: &EGraph<L, N>) -> RecExpr<L> {
     Extractor::<L, CF>::new(eg).extract(i, eg)
 }

@@ -21,7 +21,7 @@ fn assert_reaches(start: &str, goal: &str, steps: usize) {
         }
     }
 
-    dbg!(extract::<_, AstSizeNoLet>(i1, &eg));
+    dbg!(extract::<_, _, AstSizeNoLet>(i1, &eg));
     dbg!(&goal);
     assert!(false);
 }

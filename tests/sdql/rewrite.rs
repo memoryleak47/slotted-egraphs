@@ -26,7 +26,7 @@ fn t1() {
     let id = eg.add_syn_expr(re.clone());
 
     apply_rewrites(&mut eg, &rewrites);
-    let term = extract::<_, AstSize>(id.clone(), &eg);
+    let term = extract::<_, _, AstSize>(id.clone(), &eg);
     eprintln!("{}", re.to_string());
     eprintln!("{}", term.to_string());
 }

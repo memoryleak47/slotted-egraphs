@@ -46,7 +46,7 @@ fn assert_reaches(start: &str, goal: &str, steps: usize, extra_rules: &[&'static
         }
     }
 
-    dbg!(extract::<_, AstSize>(i1, &eg));
+    dbg!(extract::<_, _, AstSize>(i1, &eg));
     dbg!(&goal);
     assert!(false);
 }
