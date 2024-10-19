@@ -66,6 +66,12 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         for (i, c) in &self.classes {
             if !self.is_alive(*i) { continue; }
 
+            // There should be no symmetries witnessed by the unionfind.
+            // It would make stuff just weird.
+            let sem = self.mk_sem_identity_applied_id(*i);
+            let sem2 = self.find_applied_id(&sem);
+            assert_eq!(sem, sem2);
+
             #[cfg(feature = "explanations")]
             {
                 let eq = self.proven_unionfind_get(*i).proof.equ();

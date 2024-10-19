@@ -210,7 +210,11 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         v.sort_by_key(|(x, _)| *x);
 
         for (i, c) in v {
-            let slot_str = c.slots.iter().map(|x| x.to_string()).collect::<Vec<_>>().join(", ");
+            if c.nodes.len() == 0 { continue; }
+
+            let mut slot_order: Vec<Slot> = c.slots.iter().cloned().collect();
+            slot_order.sort();
+            let slot_str = slot_order.iter().map(|x| x.to_string()).collect::<Vec<_>>().join(", ");
             println!("\n{:?}({}):", i, &slot_str);
 
             println!(">> {:?}", &c.syn_enode);

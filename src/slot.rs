@@ -65,8 +65,10 @@ impl Slot {
             }
 
             let i = tab.named_vec.len() as u64;
+            let i = 4*i + 2;
             tab.named_vec.push(s.to_string());
-            Slot(4*i+2) // new named
+            tab.named_map.insert(s.to_string(), i);
+            Slot(i) // new named
         })
     }
 }
