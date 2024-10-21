@@ -3,12 +3,15 @@ use std::ops::Index;
 
 // Permutations are a special kind of Bijections.
 // Their key & value sets agree!
-pub type Perm = Bijection;
+pub(crate) type Perm = Bijection;
 
 // Bijections are bijective SlotMaps.
-pub type Bijection = SlotMap;
+pub(crate) type Bijection = SlotMap;
 
 #[derive(Clone, Hash, PartialEq, Eq, PartialOrd, Ord, Default)]
+/// A mapping between the parameter-slots of an e-class, and some "invocation" slots that you want to put into them.
+///
+/// This type is relevant for [AppliedId]s.
 pub struct SlotMap {
     // if (l, r) in map, then there is no (l, r') in map. Each key is uniquely contained.
     // Also: map is sorted by their keys.

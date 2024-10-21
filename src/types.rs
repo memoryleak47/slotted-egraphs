@@ -1,8 +1,13 @@
 use crate::*;
 
+/// Ids identity e-classes.
 #[derive(Clone, Copy, Hash, PartialEq, Eq, PartialOrd, Ord)]
 pub struct Id(pub usize);
 
+/// AppliedIds are invocations of e-classes.
+///
+/// Recall that in slotted egraphs, e-classes have arguments - and in order to talk about the set of terms in an e-class, you always need to invocate your e-class using a bunch of arguments.
+/// This "invocation" is what an AppliedId represents. The [Id] part identifies an e-class, and the [SlotMap] is used to map the argument-slots of the e-class to the values that you put into them.
 #[derive(Clone, Hash, PartialEq, Eq, PartialOrd, Ord)]
 pub struct AppliedId {
     pub id: Id,
@@ -13,6 +18,7 @@ pub struct AppliedId {
     pub m: SlotMap,
 }
 
+/// A "term" or "expression" from some given [Language] L.
 // The AppliedIds in `node` are ignored (any typically set to AppliedId::null()). They are replaced by the children RecExpr.
 // A non-fancy version of RecExpr that uses the slots as "names".
 #[derive(Clone, PartialEq, Eq)]

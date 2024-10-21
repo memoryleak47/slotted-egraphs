@@ -8,6 +8,10 @@ pub use with_ord::*;
 
 use std::collections::BinaryHeap;
 
+/// An object used for quickly extracting terms (i.e. [RecExpr]s) using a given [CostFunction].
+///
+/// Creating an Extractor will setup an extraction-table which then allows you to extract terms from many e-classes efficiently.
+/// It is most useful when doing "bulk" extractions for many classes.
 pub struct Extractor<L: Language, CF: CostFunction<L>> {
     pub(crate) map: HashMap<Id, WithOrdRev<L, CF::Cost>>,
 }

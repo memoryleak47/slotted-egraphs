@@ -1,19 +1,39 @@
 use crate::*;
 
 #[derive(Debug, Clone)]
+/// A child node of some term ("child" in the sense of an AST).
+///
+/// This type is used for parsing and displaying of your e-node.
+/// You only need to implement [Language::to_op] and [Language::from_op] to express, whether your E-Node expects [Slot]s or [AppliedId]s at particular positions.
 pub enum Child {
     AppliedId(AppliedId),
     Slot(Slot),
 }
 
+/// A trait to define your Language (i.e. the of your E-Node).
 pub trait Language: Debug + Clone + Hash + Eq {
-    // returns non-deduplicated lists of all occurences of these things, in order.
+    /// List the mutable references of all child [Slot]s in your E-Node, in order of occurence.
     fn all_slot_occurences_mut(&mut self) -> Vec<&mut Slot>;
+
+    /// List the mutable references to all *public* child [Slot]s in your E-Node, in order of occurence.
+    ///
+    /// Public Slots are those, which are visible from the outside of that e-node.
+    /// * A typical example would be a `(var $x)` e-node, which has a *public* slot `$x`.
+    /// * A typical counter-example would be the `(lam $x body)` e-node, which has a *private* slot `$x`.
     fn public_slot_occurences_mut(&mut self) -> Vec<&mut Slot>;
+
+    /// List the mutable references to all child [AppliedId]s in your E-Node, in the order of occurence.
     fn applied_id_occurences_mut(&mut self) -> Vec<&mut AppliedId>;
 
     // for parsing and pretty-printing.
+    /// Decomposes an E-Node into it's "operator" string and a list of children.
+    ///
+    /// This function will be used to display your E-Node.
     fn to_op(&self) -> (String, Vec<Child>);
+
+    /// Computes your E-Node from an "operator" string and a list of children.
+    ///
+    /// This function will be used to parse your E-Node.
     fn from_op(op: &str, children: Vec<Child>) -> Option<Self>;
 
     #[track_caller]
