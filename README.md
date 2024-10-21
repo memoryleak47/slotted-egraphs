@@ -9,3 +9,5 @@ For a higher level introduction to slotted e-graphs, consider
 
 For an example implementation of a Language with binders in slotted e-graphs,
 consider the RISE implementation in [here](https://github.com/memoryleak47/slotted-egraphs/tree/main/tests/rise/mod.rs).
+
+For documentation, see [here](https://docs.rs/slotted-egraphs/latest/slotted_egraphs/).
