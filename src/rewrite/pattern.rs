@@ -31,28 +31,12 @@ pub fn pattern_subst<L: Language, N: Analysis<L>>(eg: &mut EGraph<L, N>, pattern
             let x = pattern_subst(eg, &*x, subst);
             let t = pattern_subst(eg, &*t, subst);
 
-            // ast-size extraction is also an option. but slower without an e-graph analysis.
-            let term = eg.get_syn_expr(&eg.synify_app_id(b));
-
-            do_subst(eg, &term, &x, &t)
+            // temporary swap-out so that we can access both the e-graph and the subst-method fully.
+            let mut method = eg.subst_method.take().unwrap();
+            let out = method.subst(b, x, t, eg);
+            eg.subst_method = Some(method);
+            out
         },
-    }
-}
-
-// returns re[x := t]
-fn do_subst<L: Language, N: Analysis<L>>(eg: &mut EGraph<L, N>, re: &RecExpr<L>, x: &AppliedId, t: &AppliedId) -> AppliedId {
-    let mut n = re.node.clone();
-    let mut refs: Vec<&mut AppliedId> = n.applied_id_occurences_mut();
-    assert_eq!(re.children.len(), refs.len());
-    for i in 0..refs.len() {
-        *(refs[i]) = do_subst(eg, &re.children[i], x, t);
-    }
-    let app_id = eg.add_syn(n);
-
-    if app_id == *x {
-        return t.clone();
-    } else {
-        app_id
     }
 }
 

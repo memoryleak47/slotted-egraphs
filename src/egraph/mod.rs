@@ -78,10 +78,18 @@ pub struct EGraph<L: Language, N: Analysis<L> = ()> {
 
     // TODO remove this if explanations are disabled.
     pub(crate) proof_registry: ProofRegistry,
+
+    pub(crate) subst_method: Option<Box<dyn SubstMethod<L, N>>>,
 }
 
 impl<L: Language, N: Analysis<L>> EGraph<L, N> {
+    /// Creates an empty e-graph.
     pub fn new() -> Self {
+        Self::with_subst_method::<SynExprSubst>()
+    }
+
+    /// Creates an empty e-graph, while specifying the substitution method to use.
+    pub fn with_subst_method<S: SubstMethod<L, N>>() -> Self {
         EGraph {
             unionfind: Default::default(),
             classes: Default::default(),
@@ -89,6 +97,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
             syn_hashcons: Default::default(),
             pending: Default::default(),
             proof_registry: ProofRegistry::default(),
+            subst_method: Some(S::new_boxed()),
         }
     }
 

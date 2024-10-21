@@ -7,6 +7,9 @@ pub use ematch::*;
 mod pattern;
 pub use pattern::*;
 
+mod subst_method;
+pub use subst_method::*;
+
 /// An equational rewrite rule.
 pub struct Rewrite<L: Language, N: Analysis<L> = ()> {
     pub(crate) searcher: Box<dyn Fn(&EGraph<L, N>) -> Box<dyn Any>>,

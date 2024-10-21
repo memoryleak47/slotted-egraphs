@@ -1,12 +1,12 @@
 use crate::*;
 
-pub enum SubstMethod {
+pub enum RiseSubstMethod {
     Extraction,
     SmallStep,
     SmallStepUnoptimized,
 }
 
-pub fn rise_rules(subst_m: SubstMethod) -> Vec<Rewrite<Rise>> {
+pub fn rise_rules(subst_m: RiseSubstMethod) -> Vec<Rewrite<Rise>> {
     let mut rewrites = Vec::new();
 
     rewrites.push(eta());
@@ -23,17 +23,17 @@ pub fn rise_rules(subst_m: SubstMethod) -> Vec<Rewrite<Rise>> {
     rewrites.push(separate_dot_hv_simplified());
 
     match subst_m {
-        SubstMethod::Extraction => {
+        RiseSubstMethod::Extraction => {
             rewrites.push(beta_extr_direct());
         },
-        SubstMethod::SmallStep => {
+        RiseSubstMethod::SmallStep => {
             rewrites.push(beta());
             rewrites.push(my_let_unused());
             rewrites.push(let_var_same());
             rewrites.push(let_app());
             rewrites.push(let_lam_diff());
         },
-        SubstMethod::SmallStepUnoptimized => {
+        RiseSubstMethod::SmallStepUnoptimized => {
             rewrites.push(beta());
             rewrites.push(let_var_same());
             rewrites.push(let_var_diff());
