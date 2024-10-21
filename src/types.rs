@@ -1,6 +1,6 @@
 use crate::*;
 
-/// Ids identity e-classes.
+/// Ids identify e-classes.
 #[derive(Clone, Copy, Hash, PartialEq, Eq, PartialOrd, Ord)]
 pub struct Id(pub usize);
 
