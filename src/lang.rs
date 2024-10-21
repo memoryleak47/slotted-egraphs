@@ -10,7 +10,7 @@ pub enum Child {
     Slot(Slot),
 }
 
-/// A trait to define your Language (i.e. the of your E-Node).
+/// A trait to define your Language (i.e. your E-Node type).
 pub trait Language: Debug + Clone + Hash + Eq {
     /// List the mutable references of all child [Slot]s in your E-Node, in order of occurence.
     fn all_slot_occurences_mut(&mut self) -> Vec<&mut Slot>;
