@@ -5,7 +5,7 @@ use std::cmp::Ordering;
 impl CostFunction<Arith> for AstSizeNoLet {
     type Cost = MyCost;
 
-    fn cost<C>(enode: &Arith, costs: C) -> MyCost where C: Fn(Id) -> MyCost {
+    fn cost<C>(&self, enode: &Arith, costs: C) -> MyCost where C: Fn(Id) -> MyCost {
         if let Arith::Let(..) = enode {
             MyCost::Infinite
         } else {

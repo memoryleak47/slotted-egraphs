@@ -13,7 +13,7 @@ pub struct Extractor<L: Language, CF: CostFunction<L>> {
 }
 
 impl<L: Language, CF: CostFunction<L>> Extractor<L, CF> {
-    pub fn new<N: Analysis<L>>(eg: &EGraph<L, N>) -> Self {
+    pub fn new<N: Analysis<L>>(eg: &EGraph<L, N>, cost_fn: CF) -> Self {
         eg.check();
 
         // all the L in `map` and `queue` have to be
@@ -28,7 +28,7 @@ impl<L: Language, CF: CostFunction<L>> Extractor<L, CF> {
             for x in eg.enodes(id) {
                 if x.applied_id_occurences().is_empty() {
                     let x = eg.class_nf(&x);
-                    let c = CF::cost(&x, |_| panic!());
+                    let c = cost_fn.cost(&x, |_| panic!());
                     queue.push(WithOrdRev(x, c));
                 }
             }
@@ -47,7 +47,7 @@ impl<L: Language, CF: CostFunction<L>> Extractor<L, CF> {
                         continue;
                     }
                     let x = eg.class_nf(&x);
-                    let c = CF::cost(&x, |i| map[&i].1.clone());
+                    let c = cost_fn.cost(&x, |i| map[&i].1.clone());
                     queue.push(WithOrdRev(x, c));
                 }
             }
@@ -80,6 +80,7 @@ pub fn ast_size_extract<L: Language, N: Analysis<L>>(i: AppliedId, eg: &EGraph<L
 }
 
 // `i` is not allowed to have free variables, hence prefer `Id` over `AppliedId`.
-pub fn extract<L: Language, N: Analysis<L>, CF: CostFunction<L>>(i: AppliedId, eg: &EGraph<L, N>) -> RecExpr<L> {
-    Extractor::<L, CF>::new(eg).extract(i, eg)
+pub fn extract<L: Language, N: Analysis<L>, CF: CostFunction<L> + Default>(i: AppliedId, eg: &EGraph<L, N>) -> RecExpr<L> {
+    let cost_fn = CF::default();
+    Extractor::<L, CF>::new(eg, cost_fn).extract(i, eg)
 }

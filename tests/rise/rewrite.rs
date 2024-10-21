@@ -228,7 +228,7 @@ fn beta_extr() -> Rewrite<Rise> {
 
     let rt: RewriteT<Rise, (), Vec<(Subst, RecExpr<Rise>)>> = RewriteT {
         searcher: Box::new(move |eg| {
-            let extractor = Extractor::<_, AstSize>::new(eg);
+            let extractor = Extractor::<_, AstSize>::new(eg, AstSize);
 
             let mut out: Vec<(Subst, RecExpr<Rise>)> = Vec::new();
             for subst in ematch_all(eg, &a) {
@@ -262,7 +262,7 @@ fn beta_extr_direct() -> Rewrite<Rise> {
     let rt: RewriteT<Rise, (), ()> = RewriteT {
         searcher: Box::new(|_| ()),
         applier: Box::new(move |(), eg| {
-            let extractor = Extractor::<_, AstSize>::new(eg);
+            let extractor = Extractor::<_, AstSize>::new(eg, AstSize);
 
             let mut out: Vec<(Subst, RecExpr<Rise>)> = Vec::new();
             for subst in ematch_all(eg, &a) {

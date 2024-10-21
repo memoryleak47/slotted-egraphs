@@ -2,12 +2,13 @@ use crate::*;
 
 use std::cmp::Ordering;
 
+#[derive(Default)]
 pub struct AstSizeNoLet;
 
 impl CostFunction<Lambda> for AstSizeNoLet {
     type Cost = MyCost;
 
-    fn cost<C>(enode: &Lambda, costs: C) -> MyCost where C: Fn(Id) -> MyCost {
+    fn cost<C>(&self, enode: &Lambda, costs: C) -> MyCost where C: Fn(Id) -> MyCost {
         if let Lambda::Lambda(..) = enode {
             MyCost::Infinite
         } else {
