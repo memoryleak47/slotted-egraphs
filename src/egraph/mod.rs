@@ -109,14 +109,6 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         self.classes[&id].syn_enode.slots()
     }
 
-    // TODO this function should be cached. It's unnecessarily slow.
-    pub fn ids(&self) -> Vec<Id> {
-        self.unionfind_iter()
-                       .filter(|(x, y)| x == &y.id)
-                       .map(|(x, _)| x)
-                       .collect()
-    }
-
     pub fn analysis_data(&self, i: Id) -> &N {
         &self.classes[&self.find_id(i)].analysis_data
     }
@@ -188,10 +180,6 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         }
 
         self.classes[&id].group.contains(&perm)
-    }
-
-    fn is_alive(&self, i: Id) -> bool {
-        self.find_id(i) == i
     }
 
     // refreshes all internal slots of l.

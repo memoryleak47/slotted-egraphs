@@ -44,6 +44,12 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         self.proven_unionfind_get(i).elem
     }
 
+    /// Returns whether an id is still alive, or whether it was merged into another class.
+    pub fn is_alive(&self, i: Id) -> bool {
+        let map = self.unionfind.try_lock().unwrap();
+        map[i.0].elem.id == i
+    }
+
     pub(crate) fn unionfind_iter(&self) -> impl Iterator<Item=(Id, AppliedId)> {
         let mut map = self.unionfind.try_lock().unwrap();
         let mut out = Vec::new();
@@ -72,6 +78,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     pub(crate) fn proven_proven_find_enode(&self, enode: &ProvenNode<L>) -> ProvenNode<L> {
         self.chain_pn_map(enode, |_, pai| self.proven_proven_find_applied_id(&pai))
     }
+
 
     // normalize i.id
     //
@@ -110,4 +117,14 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     pub(crate) fn find_id(&self, i: Id) -> Id {
         self.unionfind_get(i).id
     }
+
+    pub fn ids(&self) -> Vec<Id> {
+        let mut map = self.unionfind.try_lock().unwrap();
+        (0..map.len())
+            .map(Id)
+            .filter(|x| map[x.0].elem.id == *x)
+            .collect()
+    }
+
+
 }

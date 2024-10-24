@@ -20,7 +20,7 @@ pub fn rewrite_arith(eg: &mut EGraph<Arith>) {
 
         distr1(),
         distr2(),
-    ])
+    ]);
 }
 
 fn beta() -> Rewrite<Arith> {
