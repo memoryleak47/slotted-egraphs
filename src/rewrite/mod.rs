@@ -44,11 +44,16 @@ fn any_to_t<T: Any>(t: Box<dyn Any>) -> T {
 }
 
 /// Applies each given rewrite rule to the E-Graph once.
-pub fn apply_rewrites<L: Language, N: Analysis<L>>(eg: &mut EGraph<L, N>, rewrites: &[Rewrite<L, N>]) {
+/// Returns an indicator for whether the e-graph changed as a result.
+pub fn apply_rewrites<L: Language, N: Analysis<L>>(eg: &mut EGraph<L, N>, rewrites: &[Rewrite<L, N>]) -> bool {
+    let prog = eg.progress();
+    
     let ts: Vec<Box<dyn Any>> = rewrites.iter().map(|rw| (*rw.searcher)(eg)).collect();
     for (rw, t) in rewrites.iter().zip(ts.into_iter()) {
         (*rw.applier)(t, eg);
     }
+    
+    prog != eg.progress()
 }
 
 impl<L: Language + 'static, N: Analysis<L> + 'static> Rewrite<L, N> {
@@ -76,5 +81,14 @@ impl<L: Language + 'static, N: Analysis<L> + 'static> Rewrite<L, N> {
                 }
             }),
         }.into()
+    }
+}
+
+type ProgressMeasure = (Option<AppliedId>, u64, u64, u64);
+
+impl<L: Language, N: Analysis<L>> EGraph<L, N> {
+
+    pub fn progress(&self) -> ProgressMeasure {
+        (None, 0, 0, 0)
     }
 }
