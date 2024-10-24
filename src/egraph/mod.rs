@@ -109,6 +109,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         self.classes[&id].syn_enode.slots()
     }
 
+    // TODO this function should be cached. It's unnecessarily slow.
     pub fn ids(&self) -> Vec<Id> {
         self.unionfind_iter()
                        .filter(|(x, y)| x == &y.id)

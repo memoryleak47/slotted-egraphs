@@ -84,11 +84,33 @@ impl<L: Language + 'static, N: Analysis<L> + 'static> Rewrite<L, N> {
     }
 }
 
-type ProgressMeasure = (Option<AppliedId>, u64, u64, u64);
+
+#[derive(PartialEq, Eq)]
+/// A Progress Measure to check saturation of an e-graph with.
+pub struct ProgressMeasure {
+    /// How many classes that were allocated in this e-graph. This measure is strictly growing.
+    pub number_of_classes: usize,
+
+    /// How many classes are still "live". If "number_of_classes" isn't changed, this can only decrease (by union).
+    pub number_of_live_classes: usize,
+
+    /// How many parameter-slots are still in the e-classes. If number_of_classes & number_of_live_classes isn't changed, this can only decrease (by proving a redundancy by union).
+    pub sum_of_slots: usize,
+
+    /// How many symmetries the egraphs knows. If numer_of_classes & number_of_live_classes & sum_of_slots isn't changed, this can only increase (by proving a symmetry by union).
+    pub sum_of_symmetries: usize,
+
+}
 
 impl<L: Language, N: Analysis<L>> EGraph<L, N> {
-
+    /// Computes the [ProgressMeasure] of this E-Graph.
     pub fn progress(&self) -> ProgressMeasure {
-        (None, 0, 0, 0)
+        let ids = self.ids();
+        ProgressMeasure {
+            number_of_classes: self.classes.len(),
+            number_of_live_classes: ids.len(),
+            sum_of_symmetries: ids.iter().map(|x| self.classes[x].group.count()).sum(),
+            sum_of_slots: ids.iter().map(|x| self.slots(*x).len()).sum(),
+        }
     }
 }
