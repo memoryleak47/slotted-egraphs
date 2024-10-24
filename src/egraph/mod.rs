@@ -18,7 +18,44 @@ pub use check::*;
 mod analysis;
 pub use analysis::*;
 
-use std::sync::Mutex;
+use std::cell::RefCell;
+
+// invariants:
+// 1. If two ENodes (that are in the EGraph) have equal .shape(), they have to be in the same eclass.
+// 2. enode.slots() is always a superset of c.slots, if enode is within the eclass c.
+//    if ENode::Lam(si) = enode, then we require i to not be in c.slots.
+//    In practice, si will always be Slot(0).
+// 3. AppliedId::m is always a bijection. (eg. c1(s0, s1, s0) is illegal!)
+//    AppliedId::m also always has the same keys as the class expects slots.
+// 4. Slot(0) should not be in EClass::slots of any class.
+/// A datastructure to efficiently represent congruence relations on terms with binders.
+pub struct EGraph<L: Language, N: Analysis<L> = ()> {
+    // an entry (l, r(sa, sb)) in unionfind corresponds to the equality l(s0, s1, s2) = r(sa, sb), where sa, sb in {s0, s1, s2}.
+    // normalizes the eclass.
+    // Each Id i that is an output of the unionfind itself has unionfind[i] = (i, identity()).
+
+    // We use RefCell to allow for inter mutability, so that find(&self) can do path compression.
+    unionfind: RefCell<Vec<ProvenAppliedId>>,
+
+    // if a class does't have unionfind[x].id = x, then it doesn't contain nodes / usages.
+    // It's "shallow" if you will.
+    pub(crate) classes: HashMap<Id, EClass<L, N>>,
+
+    // For each shape contained in the EGraph, maps to the EClass that contains it.
+    hashcons: HashMap<L, Id>,
+
+    // For each (syn_slotset applied) non-normalized (i.e. "syntactic") weak shape, find the e-class who has this as syn_enode.
+    // TODO remove this if explanations are disabled.
+    syn_hashcons: HashMap<L, AppliedId>,
+
+    // E-Nodes that need to be re-processed, stored as shapes.
+    pending: HashSet<L>,
+
+    // TODO remove this if explanations are disabled.
+    pub(crate) proof_registry: ProofRegistry,
+
+    pub(crate) subst_method: Option<Box<dyn SubstMethod<L, N>>>,
+}
 
 /// Each E-Class can be understood "semantically" or "syntactically":
 /// - semantically means that it respects the equations already in the e-graph, and hence doesn't differentiate between equal things.
@@ -45,42 +82,6 @@ pub(crate) struct EClass<L: Language, N: Analysis<L>> {
     analysis_data: N,
 }
 
-// invariants:
-// 1. If two ENodes (that are in the EGraph) have equal .shape(), they have to be in the same eclass.
-// 2. enode.slots() is always a superset of c.slots, if enode is within the eclass c.
-//    if ENode::Lam(si) = enode, then we require i to not be in c.slots.
-//    In practice, si will always be Slot(0).
-// 3. AppliedId::m is always a bijection. (eg. c1(s0, s1, s0) is illegal!)
-//    AppliedId::m also always has the same keys as the class expects slots.
-// 4. Slot(0) should not be in EClass::slots of any class.
-/// A datastructure to efficiently represent congruence relations on terms with binders.
-pub struct EGraph<L: Language, N: Analysis<L> = ()> {
-    // an entry (l, r(sa, sb)) in unionfind corresponds to the equality l(s0, s1, s2) = r(sa, sb), where sa, sb in {s0, s1, s2}.
-    // normalizes the eclass.
-    // Each Id i that is an output of the unionfind itself has unionfind[i] = (i, identity()).
-
-    // We use mutex to allow for inter mutability, so that find(&self) can do path compression.
-    unionfind: Mutex<Vec<ProvenAppliedId>>,
-
-    // if a class does't have unionfind[x].id = x, then it doesn't contain nodes / usages.
-    // It's "shallow" if you will.
-    pub(crate) classes: HashMap<Id, EClass<L, N>>,
-
-    // For each shape contained in the EGraph, maps to the EClass that contains it.
-    hashcons: HashMap<L, Id>,
-
-    // For each (syn_slotset applied) non-normalized (i.e. "syntactic") weak shape, find the e-class who has this as syn_enode.
-    // TODO remove this if explanations are disabled.
-    syn_hashcons: HashMap<L, AppliedId>,
-
-    // E-Nodes that need to be re-processed, stored as shapes.
-    pending: HashSet<L>,
-
-    // TODO remove this if explanations are disabled.
-    pub(crate) proof_registry: ProofRegistry,
-
-    pub(crate) subst_method: Option<Box<dyn SubstMethod<L, N>>>,
-}
 
 impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     /// Creates an empty e-graph.
