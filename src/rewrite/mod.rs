@@ -97,7 +97,7 @@ pub struct ProgressMeasure {
     /// How many parameter-slots are still in the e-classes. If number_of_classes & number_of_live_classes isn't changed, this can only decrease (by proving a redundancy by union).
     pub sum_of_slots: usize,
 
-    /// How many symmetries the egraphs knows. If numer_of_classes & number_of_live_classes & sum_of_slots isn't changed, this can only increase (by proving a symmetry by union).
+    /// How many symmetries the egraphs knows. If number_of_classes & number_of_live_classes & sum_of_slots isn't changed, this can only increase (by proving a symmetry by union).
     pub sum_of_symmetries: usize,
 
 }
