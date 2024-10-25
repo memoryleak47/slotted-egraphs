@@ -3,13 +3,13 @@ use std::time::Instant;
 
 // TODO: Turn this into a nicer interface like egg's `Runner`.
 
-pub fn run_eqsat<L: Language, N: Analysis<L>>(
+pub fn run_eqsat<L: Language, N: Analysis<L>, F>(
     egraph: &mut EGraph<L, N>, 
     rws: Vec<Rewrite<L, N>>, 
     iter_limit: usize, 
-    time_limit: usize,
-    hook: &mut Box<dyn FnMut(&mut EGraph<L, N>) -> Result<(), String>>
-) -> Report {
+    time_limit: usize, 
+    mut hook: F
+) -> Report where F: FnMut(&mut EGraph<L, N>) -> Result<(), String> + 'static {
     let start_time = Instant::now();
     let mut iterations = 0;
     let stop_reason: StopReason;
