@@ -111,13 +111,17 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     }
 
     pub(crate) fn pc_congruence(&self, a: &ProvenContains<L>, b: &ProvenContains<L>) -> (AppliedId, AppliedId, ProvenEq) {
-        self.check_pc(a);
-        self.check_pc(b);
+        if CHECKS {
+            self.check_pc(a);
+            self.check_pc(b);
+        }
 
         let (a, b) = self.match_pcs(a, b);
 
-        self.check_pc(&a);
-        self.check_pc(&b);
+        if CHECKS {
+            self.check_pc(&a);
+            self.check_pc(&b);
+        }
 
         let prf = ghost!({
             let prf_a = &*a.node.proofs;
