@@ -29,7 +29,7 @@ impl<L: Language, N: Analysis<L>> SubstMethod<L, N> for ExtractionSubst {
     }
 
     fn subst(&mut self, b: AppliedId, x: AppliedId, t: AppliedId, eg: &mut EGraph<L, N>) -> AppliedId {
-        let term = ast_size_extract::<L, N>(b, eg);
+        let term = ast_size_extract::<L, N>(&b, eg);
         do_term_subst(eg, &term, &x, &t)
     }
 }

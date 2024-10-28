@@ -16,7 +16,7 @@ pub fn simplify_to_nf<R: Realization>(s: &str) -> String {
     for _ in 0..NO_ITERS {
         R::step(&mut eg);
 
-        re = extract_ast(&eg, i.clone());
+        re = extract_ast(&eg, &i);
         if lam_step(&re).is_none() {
             #[cfg(feature = "explanations")]
             eg.explain_equivalence(orig_re, re.clone());
@@ -41,7 +41,7 @@ pub fn simplify<R: Realization>(s: &str) -> String {
             break;
         }
     }
-    let out = extract_ast(&eg, i.clone());
+    let out = extract_ast(&eg, &i);
 
     #[cfg(feature = "explanations")]
     eg.explain_equivalence(re.clone(), out.clone());
@@ -95,7 +95,7 @@ pub fn check_eq<R: Realization>(s1: &str, s2: &str) {
 
 // Non-Realization functions:
 
-fn extract_ast(eg: &EGraph<Lambda>, i: AppliedId) -> RecExpr<Lambda> {
+fn extract_ast(eg: &EGraph<Lambda>, i: &AppliedId) -> RecExpr<Lambda> {
     extract::<_, _, AstSizeNoLet>(i, eg)
 }
 

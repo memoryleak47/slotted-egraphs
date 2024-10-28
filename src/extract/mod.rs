@@ -62,15 +62,15 @@ impl<L: Language, CF: CostFunction<L>> Extractor<L, CF> {
         Self { map }
     }
 
-    pub fn extract<N: Analysis<L>>(&self, i: AppliedId, eg: &EGraph<L, N>) -> RecExpr<L> {
-        let i = eg.find_applied_id(&i);
+    pub fn extract<N: Analysis<L>>(&self, i: &AppliedId, eg: &EGraph<L, N>) -> RecExpr<L> {
+        let i = eg.find_applied_id(i);
 
         let mut children = Vec::new();
 
         // do I need to refresh some slots here?
         let l = self.map[&i.id].0.apply_slotmap(&i.m);
         for child in l.applied_id_occurences() {
-            let n = self.extract(child, eg);
+            let n = self.extract(&child, eg);
             children.push(n);
         }
 
@@ -81,12 +81,19 @@ impl<L: Language, CF: CostFunction<L>> Extractor<L, CF> {
     }
 }
 
-pub fn ast_size_extract<L: Language, N: Analysis<L>>(i: AppliedId, eg: &EGraph<L, N>) -> RecExpr<L> {
+pub fn ast_size_extract<L: Language, N: Analysis<L>>(i: &AppliedId, eg: &EGraph<L, N>) -> RecExpr<L> {
     extract::<L, N, AstSize>(i, eg)
 }
 
 // `i` is not allowed to have free variables, hence prefer `Id` over `AppliedId`.
-pub fn extract<L: Language, N: Analysis<L>, CF: CostFunction<L> + Default>(i: AppliedId, eg: &EGraph<L, N>) -> RecExpr<L> {
+pub fn extract<L: Language, N: Analysis<L>, CF: CostFunction<L> + Default>(i: &AppliedId, eg: &EGraph<L, N>) -> RecExpr<L> {
     let cost_fn = CF::default();
-    Extractor::<L, CF>::new(eg, cost_fn).extract(i, eg)
+    let extractor = Extractor::<L, CF>::new(eg, cost_fn);
+    let out = extractor.extract(&i, eg);
+    if CHECKS {
+        let i = eg.find_id(i.id);
+        let cost_fn = CF::default();
+        assert_eq!(cost_fn.cost_rec(&out), extractor.map[&i].1);
+    }
+    out
 }

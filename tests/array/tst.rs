@@ -8,7 +8,7 @@ fn normalize(re: RecExpr<Array>) -> RecExpr<Array> {
     for _ in 0..40 {
         apply_rewrites(&mut eg, &rules);
     }
-    extract::<_, _, AstSizeNoLet>(i, &eg)
+    extract::<_, _, AstSizeNoLet>(&i, &eg)
 }
 
 fn assert_reaches(start: &str, goal: &str, steps: usize, rules: &[&'static str]) {
@@ -32,7 +32,7 @@ fn assert_reaches(start: &str, goal: &str, steps: usize, rules: &[&'static str])
         }
     }
 
-    dbg!(extract::<_, _, AstSizeNoLet>(i1, &eg));
+    dbg!(extract::<_, _, AstSizeNoLet>(&i1, &eg));
     dbg!(&goal);
     assert!(false);
 }
