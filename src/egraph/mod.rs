@@ -304,6 +304,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         self.proven_get_group_compatible_variants(enode).into_iter().map(|pnode| pnode.elem).collect()
     }
 
+    #[instrument(level = "trace", skip_all)]
     pub(crate) fn get_group_compatible_weak_variants(&self, enode: &L) -> HashSet<L> {
         let set = self.get_group_compatible_variants(enode);
         let mut shapes = HashSet::default();
