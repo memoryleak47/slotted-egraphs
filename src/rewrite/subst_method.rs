@@ -38,7 +38,9 @@ impl<L: Language, N: Analysis<L>> SubstMethod<L, N> for ExtractionSubst {
 fn do_term_subst<L: Language, N: Analysis<L>>(eg: &mut EGraph<L, N>, re: &RecExpr<L>, x: &AppliedId, t: &AppliedId) -> AppliedId {
     let mut n = re.node.clone();
     let mut refs: Vec<&mut AppliedId> = n.applied_id_occurences_mut();
-    assert_eq!(re.children.len(), refs.len());
+    if CHECKS {
+        assert_eq!(re.children.len(), refs.len());
+    }
     for i in 0..refs.len() {
         *(refs[i]) = do_term_subst(eg, &re.children[i], x, t);
     }

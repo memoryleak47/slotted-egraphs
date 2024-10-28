@@ -100,7 +100,9 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     }
 
     pub(crate) fn proven_proven_find_applied_id(&self, pai: &ProvenAppliedId) -> ProvenAppliedId {
-        self.check_pai(&pai);
+        if CHECKS {
+            self.check_pai(&pai);
+        }
 
         let mut pai2 = self.proven_unionfind_get(pai.elem.id);
 
@@ -109,7 +111,9 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         #[cfg(feature = "explanations")]
         { pai2.proof = prove_transitivity(pai.proof.clone(), pai2.proof, &self.proof_registry); }
 
-        self.check_pai(&pai);
+        if CHECKS {
+            self.check_pai(&pai);
+        }
 
         pai2
     }

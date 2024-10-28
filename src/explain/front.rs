@@ -113,14 +113,18 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
 impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     #[track_caller]
     pub(crate) fn prove_explicit(&self, l: &AppliedId, r: &AppliedId, j: Option<String>) -> ProvenEq {
-        self.check_syn_applied_id(l);
-        self.check_syn_applied_id(r);
+        if CHECKS {
+            self.check_syn_applied_id(l);
+            self.check_syn_applied_id(r);
+        }
         self.disassociate_proven_eq(prove_explicit(l, r, j, &self.proof_registry))
     }
 
     #[track_caller]
     pub(crate) fn prove_reflexivity(&self, id: &AppliedId) -> ProvenEq {
-        self.check_syn_applied_id(id);
+        if CHECKS {
+            self.check_syn_applied_id(id);
+        }
         self.disassociate_proven_eq(prove_reflexivity(id, &self.proof_registry))
     }
 

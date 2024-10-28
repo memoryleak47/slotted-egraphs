@@ -45,8 +45,10 @@ impl Hash for ProvenPerm {
 impl Permutation for ProvenPerm {
     fn iter(&self) -> impl Iterator<Item=(Slot, Slot)> { self.elem.iter() }
     fn compose(&self, other: &Self) -> Self {
-        self.check();
-        other.check();
+        if CHECKS {
+            self.check();
+            other.check();
+        }
         #[cfg(feature = "explanations")]
         if CHECKS {
             assert_eq!(self.proof.l.id, self.proof.r.id);
@@ -64,12 +66,16 @@ impl Permutation for ProvenPerm {
             #[cfg(feature = "explanations")]
             reg: self.reg.clone(),
         };
-        out.check();
+        if CHECKS {
+            out.check();
+        }
         out
     }
 
     fn inverse(&self) -> Self {
-        self.check();
+        if CHECKS {
+            self.check();
+        }
         let map = self.elem.inverse();
         #[cfg(feature = "explanations")]
         let prf = prove_symmetry(self.proof.clone(), &self.reg);
@@ -80,7 +86,9 @@ impl Permutation for ProvenPerm {
             #[cfg(feature = "explanations")]
             reg: self.reg.clone()
         };
-        out.check();
+        if CHECKS {
+            out.check();
+        }
         out
     }
 }

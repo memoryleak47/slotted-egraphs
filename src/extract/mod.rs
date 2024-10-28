@@ -18,7 +18,9 @@ pub struct Extractor<L: Language, CF: CostFunction<L>> {
 
 impl<L: Language, CF: CostFunction<L>> Extractor<L, CF> {
     pub fn new<N: Analysis<L>>(eg: &EGraph<L, N>, cost_fn: CF) -> Self {
-        eg.check();
+        if CHECKS {
+            eg.check();
+        }
 
         // all the L in `map` and `queue` have to be
         // - in "normal-form", i.e. calling lookup on them yields an identity AppliedId.

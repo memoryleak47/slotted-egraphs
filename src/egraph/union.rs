@@ -90,10 +90,13 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
                 #[cfg(feature = "explanations")]
                 reg: self.proof_registry.clone()
             };
-            #[cfg(feature = "explanations")]
-            assert_eq!(proven_perm.proof.l.id, id);
 
-            proven_perm.check();
+            if CHECKS {
+                #[cfg(feature = "explanations")]
+                assert_eq!(proven_perm.proof.l.id, id);
+
+                proven_perm.check();
+            }
             let grp = &mut self.classes.get_mut(&id).unwrap().group;
             if grp.contains(&proven_perm.to_slotmap()) { return false; }
 
@@ -121,10 +124,8 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     }
 
     fn assert_ty(&self, m: &SlotMap, keys: &HashSet<Slot>, values: &HashSet<Slot>) {
-        if CHECKS {
-            assert!(m.keys().is_subset(&keys));
-            assert!(m.values().is_subset(&values));
-        }
+        assert!(m.keys().is_subset(&keys));
+        assert!(m.values().is_subset(&values));
     }
 
     // moves everything from `from` to `to`.
@@ -144,7 +145,9 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         // from.m :: slots(from.id) -> X
         // to.m :: slots(to.id) -> X
         let map = to.m.compose_partial(&from.m.inverse());
-        self.assert_ty(&map, &self.slots(to.id), &self.slots(from.id));
+        if CHECKS {
+            self.assert_ty(&map, &self.slots(to.id), &self.slots(from.id));
+        }
 
         let app_id = self.mk_sem_applied_id(to.id, map.clone());
         let pai = ProvenAppliedId {

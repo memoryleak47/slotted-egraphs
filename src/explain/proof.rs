@@ -248,8 +248,10 @@ impl ProvenEqRaw {
 // returns the global renaming theta, s.t. a.apply_slotmap(theta) = b, if it exists.
 #[track_caller]
 pub(crate) fn match_app_id(a: &AppliedId, b: &AppliedId) -> SlotMap {
-    assert_eq!(a.id, b.id);
-    assert_eq!(a.m.keys(), b.m.keys(), "match_app_id failed: different set of arguments");
+    if CHECKS {
+        assert_eq!(a.id, b.id);
+        assert_eq!(a.m.keys(), b.m.keys(), "match_app_id failed: different set of arguments");
+    }
 
     // a.m :: slots(i) -> A
     // b.m :: slots(i) -> B
@@ -269,9 +271,10 @@ pub(crate) fn assert_match_equation(a: &Equation, b: &Equation) -> SlotMap {
     let theta_r = match_app_id(&a.r, &b.r);
 
     let theta = theta_l.try_union(&theta_r).unwrap_or_else(|| panic!("trying to union {theta_l:?} with {theta_r:?} while trying to match '{a:?}' against '{b:?}'"));
-    assert!(theta.is_bijection(), "trying to unify {theta_l:?} with {theta_r:?}, in assert_match_equation(\n  {a:?},\n  {b:?}\n)");
 
     if CHECKS {
+        assert!(theta.is_bijection(), "trying to unify {theta_l:?} with {theta_r:?}, in assert_match_equation(\n  {a:?},\n  {b:?}\n)");
+
         assert_eq!(&a.apply_slotmap(&theta), b);
     }
 

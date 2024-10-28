@@ -17,7 +17,9 @@ pub fn pattern_subst<L: Language, N: Analysis<L>>(eg: &mut EGraph<L, N>, pattern
         Pattern::ENode(n, children) => {
             let mut n = n.clone();
             let mut refs: Vec<&mut _> = n.applied_id_occurences_mut();
-            assert_eq!(children.len(), refs.len());
+            if CHECKS {
+                assert_eq!(children.len(), refs.len());
+            }
             for i in 0..refs.len() {
                 *(refs[i]) = pattern_subst(eg, &children[i], subst);
             }
@@ -44,7 +46,9 @@ pub fn pattern_subst<L: Language, N: Analysis<L>>(eg: &mut EGraph<L, N>, pattern
 pub fn lookup_rec_expr<L: Language, N: Analysis<L>>(re: &RecExpr<L>, eg: &EGraph<L, N>) -> Option<AppliedId> {
     let mut n = re.node.clone();
     let mut refs: Vec<&mut AppliedId> = n.applied_id_occurences_mut();
-    assert_eq!(re.children.len(), refs.len());
+    if CHECKS {
+        assert_eq!(re.children.len(), refs.len());
+    }
     for i in 0..refs.len() {
         *(refs[i]) = lookup_rec_expr(&re.children[i], eg)?;
     }
