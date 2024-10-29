@@ -239,7 +239,9 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
                     proven_perm.check();
                 }
                 let grp = &mut self.classes.get_mut(&i).unwrap().group;
-                grp.add(proven_perm);
+                if grp.add(proven_perm) {
+                    self.touched_class(i);
+                }
             }
         }
     }

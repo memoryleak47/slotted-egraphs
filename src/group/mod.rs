@@ -113,11 +113,11 @@ impl<P: Permutation> Group<P> {
         }
     }
 
-    pub fn add(&mut self, p: P) {
-        self.add_set([p].into_iter().collect());
+    pub fn add(&mut self, p: P) -> bool {
+        self.add_set([p].into_iter().collect())
     }
 
-    pub fn add_set(&mut self, mut perms: HashSet<P>) {
+    pub fn add_set(&mut self, mut perms: HashSet<P>) -> bool {
         // There might be ways to make this faster, by iterating through the stab chain and determining at which layer this perm actually has an effect.
         // But it's polytime, so fast enough I guess.
 
@@ -125,7 +125,9 @@ impl<P: Permutation> Group<P> {
 
         if !perms.is_empty() {
             *self = Group::new(&self.identity, &self.generators() | &perms);
-        }
+
+            true
+        } else { false }
     }
 
     pub fn count(&self) -> usize {
