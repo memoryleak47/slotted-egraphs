@@ -11,7 +11,7 @@ struct State {
     partial_slotmap: SlotMap,
 }
 
-#[instrument(level = "trace", skip_all)]
+#[cfg_attr(feature = "trace", instrument(level = "trace", skip_all))]
 pub fn ematch_all<L: Language, N: Analysis<L>>(eg: &EGraph<L, N>, pattern: &Pattern<L>) -> Vec<Subst> {
     let mut out = Vec::new();
     for i in eg.ids() {

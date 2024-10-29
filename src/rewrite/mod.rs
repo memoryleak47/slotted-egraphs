@@ -45,9 +45,8 @@ fn any_to_t<T: Any>(t: Box<dyn Any>) -> T {
 
 /// Applies each given rewrite rule to the E-Graph once.
 /// Returns an indicator for whether the e-graph changed as a result.
-#[instrument(level = "trace", skip_all)]
+#[cfg_attr(feature = "trace", instrument(level = "trace", skip_all))]
 pub fn apply_rewrites<L: Language, N: Analysis<L>>(eg: &mut EGraph<L, N>, rewrites: &[Rewrite<L, N>]) -> bool {
-    use tracing::trace;
     let prog = eg.progress();
 
     let ts: Vec<Box<dyn Any>> = rewrites.iter().map(|rw| (*rw.searcher)(eg)).collect();
