@@ -112,6 +112,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         self.touched_class(from.id);
     }
 
+    #[instrument(level = "trace", skip_all)]
     pub(crate) fn rebuild(&mut self) {
         if CHECKS { self.check(); }
         while let Some(sh) = self.pending.iter().cloned().next() {

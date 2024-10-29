@@ -60,3 +60,5 @@ use group::*;
 
 mod run;
 pub use run::*;
+
+pub(crate) use tracing::instrument;

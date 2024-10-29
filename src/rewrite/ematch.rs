@@ -11,6 +11,7 @@ struct State {
     partial_slotmap: SlotMap,
 }
 
+#[instrument(level = "trace", skip_all)]
 pub fn ematch_all<L: Language, N: Analysis<L>>(eg: &EGraph<L, N>, pattern: &Pattern<L>) -> Vec<Subst> {
     let mut out = Vec::new();
     for i in eg.ids() {
@@ -39,6 +40,10 @@ fn ematch_impl<L: Language, N: Analysis<L>>(pattern: &Pattern<L>, st: State, i: 
         Pattern::ENode(n, children) => {
             let mut out = Vec::new();
             for nn in eg.enodes_applied(&i) {
+                let d = std::mem::discriminant(n);
+                let dd = std::mem::discriminant(&nn);
+                if d != dd { continue };
+
                 'nodeloop: for n2 in eg.get_group_compatible_weak_variants(&nn) {
                     if CHECKS {
                         assert_eq!(&nullify_app_ids(n), n);
