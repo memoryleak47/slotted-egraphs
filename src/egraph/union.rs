@@ -220,10 +220,10 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
             .into_iter()
             .map(change_proven_permutation_from_from_to_to)
             .collect();
-        self.classes.get_mut(&to.id).unwrap().group.add_set(set);
 
-        // touched because the group might have grown.
-        self.touched_class(to.id);
+        if self.classes.get_mut(&to.id).unwrap().group.add_set(set) {
+            self.touched_class(to.id);
+        }
 
         // touched because the class is now dead and no e-nodes should point to it.
         self.touched_class(from.id);
