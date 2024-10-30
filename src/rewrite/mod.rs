@@ -71,15 +71,19 @@ impl<L: Language + 'static, N: Analysis<L> + 'static> Rewrite<L, N> {
         let a2 = a.clone();
         RewriteT {
             searcher: Box::new(move |eg| {
+                let span = tracing::trace_span!("rewrite new_if searcher").entered();
                 let x: Vec<Subst> = ematch_all(eg, &a);
+                span.exit();
                 x
             }),
             applier: Box::new(move |substs, eg| {
+                let span = tracing::trace_span!("rewrite new_if applier").entered();
                 for subst in substs {
                     if cond(&subst) {
                         eg.union_instantiations(&a2, &b, &subst, Some(rule.to_string()));
                     }
                 }
+                span.exit();
             }),
         }.into()
     }
@@ -105,6 +109,7 @@ pub struct ProgressMeasure {
 
 impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     /// Computes the [ProgressMeasure] of this E-Graph.
+    #[cfg_attr(feature = "trace", instrument(level = "trace", skip_all))]
     pub fn progress(&self) -> ProgressMeasure {
         let ids = self.ids();
         ProgressMeasure {

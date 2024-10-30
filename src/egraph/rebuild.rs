@@ -136,7 +136,6 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
 
         self.update_analysis(&sh, i);
 
-
         let psn = self.classes[&i].nodes[&sh].clone();
         let node = sh.apply_slotmap(&psn.elem);
         self.raw_remove_from_class(i, sh.clone());

@@ -15,6 +15,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         self.union_instantiations(&a, &b, &subst, j)
     }
 
+    #[cfg_attr(feature = "trace", instrument(level = "trace", skip_all))]
     pub fn union_instantiations(&mut self, from_pat: &Pattern<L>, to_pat: &Pattern<L>, subst: &Subst, justification: Option<String>) -> bool {
         let a = pattern_subst(self, from_pat, subst);
         let b = pattern_subst(self, to_pat, subst);
@@ -29,6 +30,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         out
     }
 
+    #[cfg_attr(feature = "trace", instrument(level = "trace", skip_all))]
     pub(in crate::egraph) fn union_internal(&mut self, l: &AppliedId, r: &AppliedId, proof: ProvenEq) -> bool {
         // normalize inputs
         let pai_l = self.proven_find_applied_id(&l);
