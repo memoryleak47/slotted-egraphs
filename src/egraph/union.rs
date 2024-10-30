@@ -138,9 +138,18 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
             assert_eq!(to.id, proof.r.id);
         }
 
-        let analysis_from = self.analysis_data(from.id).clone();
-        let analysis_to = self.analysis_data_mut(to.id);
-        *analysis_to = N::merge(analysis_from, analysis_to.clone());
+        {
+            let analysis_from = self.analysis_data(from.id).clone();
+            let analysis_to = self.analysis_data_mut(to.id);
+            let old_analysis_to = analysis_to.clone();
+            let new_analysis_to = N::merge(analysis_from, analysis_to.clone());
+            let changed = old_analysis_to != new_analysis_to;
+            *analysis_to = new_analysis_to;
+
+            if changed {
+                self.touched_class(to.id, PendingType::OnlyAnalysis);
+            }
+        }
 
         // from.m :: slots(from.id) -> X
         // to.m :: slots(to.id) -> X
@@ -223,8 +232,6 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
 
         if self.classes.get_mut(&to.id).unwrap().group.add_set(set) {
             self.touched_class(to.id, PendingType::Full);
-        } else {
-            self.touched_class(to.id, PendingType::OnlyAnalysis);
         }
 
         // touched because the class is now dead and no e-nodes should point to it.

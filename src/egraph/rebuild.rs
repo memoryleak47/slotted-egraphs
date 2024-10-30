@@ -193,7 +193,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         c.analysis_data = new.clone();
 
         if new != old {
-            self.touched_class(i, PendingType::Full);
+            self.touched_class(i, PendingType::OnlyAnalysis);
         }
     }
 
