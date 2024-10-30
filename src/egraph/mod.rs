@@ -49,12 +49,18 @@ pub struct EGraph<L: Language, N: Analysis<L> = ()> {
     syn_hashcons: HashMap<L, AppliedId>,
 
     // E-Nodes that need to be re-processed, stored as shapes.
-    pending: HashSet<L>,
+    pending: HashMap<L, PendingType>,
 
     // TODO remove this if explanations are disabled.
     pub(crate) proof_registry: ProofRegistry,
 
     pub(crate) subst_method: Option<Box<dyn SubstMethod<L, N>>>,
+}
+
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
+pub(crate) enum PendingType {
+    OnlyAnalysis, // only analysis needs to be updated.
+    Full, // the e-node, it's strong shape & the analysis need to be updated.
 }
 
 /// Each E-Class can be understood "semantically" or "syntactically":
@@ -369,6 +375,16 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     pub fn get_syn_node(&self, i: &AppliedId) -> L {
         let syn = &self.classes[&i.id].syn_enode;
         syn.apply_slotmap(&i.m)
+    }
+}
+
+impl PendingType {
+    pub(crate) fn merge(self, other: PendingType) -> PendingType {
+        match (self, other) {
+            (PendingType::Full, _) => PendingType::Full,
+            (_, PendingType::Full) => PendingType::Full,
+            (PendingType::OnlyAnalysis, PendingType::OnlyAnalysis) => PendingType::OnlyAnalysis,
+        }
     }
 }
 

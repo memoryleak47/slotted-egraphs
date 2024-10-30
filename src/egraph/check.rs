@@ -119,7 +119,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
             } else {
                 assert!(self.classes[&i].nodes.is_empty());
                 for sh in &self.classes[&i].usages {
-                    assert!(self.pending.contains(&sh));
+                    assert_eq!(self.pending.get(&sh), Some(&PendingType::Full));
                 }
             }
         }
@@ -140,7 +140,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
                 let real = sh.apply_slotmap(bij);
                 assert!(real.slots().is_superset(&c.slots));
 
-                if self.pending.contains(&sh) { continue; }
+                if self.pending.get(&sh) == Some(&PendingType::Full) { continue; }
 
                 let (computed_sh, computed_bij) = self.shape(&real);
                 assert_eq!(&computed_sh, sh);

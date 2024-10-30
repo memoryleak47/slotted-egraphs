@@ -102,7 +102,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
 
             grp.add(proven_perm);
 
-            self.touched_class(id);
+            self.touched_class(id, PendingType::Full);
 
             true
         } else {
@@ -171,7 +171,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
             let src_id = psn.src_id;
 
             self.raw_add_to_class(to.id, (sh.clone(), new_bij), src_id);
-            self.pending.insert(sh);
+            self.pending.insert(sh, PendingType::Full);
         }
 
         // re-add the group equations as well.
@@ -222,10 +222,12 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
             .collect();
 
         if self.classes.get_mut(&to.id).unwrap().group.add_set(set) {
-            self.touched_class(to.id);
+            self.touched_class(to.id, PendingType::Full);
+        } else {
+            self.touched_class(to.id, PendingType::OnlyAnalysis);
         }
 
         // touched because the class is now dead and no e-nodes should point to it.
-        self.touched_class(from.id);
+        self.touched_class(from.id, PendingType::Full);
     }
 }

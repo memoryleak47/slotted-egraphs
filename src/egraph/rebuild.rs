@@ -109,21 +109,21 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         let c = self.classes.get_mut(&id).unwrap();
         c.group = Group::new(&identity, generators);
 
-        self.touched_class(from.id);
+        self.touched_class(from.id, PendingType::Full);
     }
 
     #[cfg_attr(feature = "trace", instrument(level = "trace", skip_all))]
     pub(crate) fn rebuild(&mut self) {
         if CHECKS { self.check(); }
-        while let Some(sh) = self.pending.iter().cloned().next() {
-            self.pending.remove(&sh);
-            self.handle_pending(sh);
+        while let Some(sh) = self.pending.keys().cloned().next() {
+            let pending_ty = self.pending.remove(&sh).unwrap();
+            self.handle_pending(sh, pending_ty);
 
             if CHECKS { self.check(); }
         }
     }
 
-    fn handle_pending(&mut self, sh: L) {
+    fn handle_pending(&mut self, sh: L, pending_ty: PendingType) {
         let i = self.hashcons[&sh];
 
         /*
@@ -136,6 +136,9 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
 
         self.update_analysis(&sh, i);
 
+        if let PendingType::OnlyAnalysis = pending_ty {
+            return;
+        }
 
         let psn = self.classes[&i].nodes[&sh].clone();
         let node = sh.apply_slotmap(&psn.elem);
@@ -190,7 +193,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         c.analysis_data = new.clone();
 
         if new != old {
-            self.touched_class(i);
+            self.touched_class(i, PendingType::Full);
         }
     }
 
@@ -241,7 +244,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
                 }
                 let grp = &mut self.classes.get_mut(&i).unwrap().group;
                 if grp.add(proven_perm) {
-                    self.touched_class(i);
+                    self.touched_class(i, PendingType::Full);
                 }
             }
         }
@@ -256,9 +259,10 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     }
 
     // upon touching an e-class, you need to update all usages of it.
-    pub(crate) fn touched_class(&mut self, i: Id) {
+    pub(crate) fn touched_class(&mut self, i: Id, pending_ty: PendingType) {
         for sh in &self.classes[&i].usages {
-            self.pending.insert(sh.clone());
+            let v = self.pending.entry(sh.clone()).or_insert(pending_ty);
+            *v = v.merge(pending_ty);
         }
     }
 
