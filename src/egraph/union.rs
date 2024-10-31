@@ -104,7 +104,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
 
             grp.add(proven_perm);
 
-            self.touched_class(id);
+            self.touched_class(id, PendingType::Full);
 
             true
         } else {
@@ -140,9 +140,18 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
             assert_eq!(to.id, proof.r.id);
         }
 
-        let analysis_from = self.analysis_data(from.id).clone();
-        let analysis_to = self.analysis_data_mut(to.id);
-        *analysis_to = N::merge(analysis_from, analysis_to.clone());
+        {
+            let analysis_from = self.analysis_data(from.id).clone();
+            let analysis_to = self.analysis_data_mut(to.id);
+            let old_analysis_to = analysis_to.clone();
+            let new_analysis_to = N::merge(analysis_from, analysis_to.clone());
+            let changed = old_analysis_to != new_analysis_to;
+            *analysis_to = new_analysis_to;
+
+            if changed {
+                self.touched_class(to.id, PendingType::OnlyAnalysis);
+            }
+        }
 
         // from.m :: slots(from.id) -> X
         // to.m :: slots(to.id) -> X
@@ -173,7 +182,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
             let src_id = psn.src_id;
 
             self.raw_add_to_class(to.id, (sh.clone(), new_bij), src_id);
-            self.pending.insert(sh);
+            self.pending.insert(sh, PendingType::Full);
         }
 
         // re-add the group equations as well.
@@ -224,10 +233,10 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
             .collect();
 
         if self.classes.get_mut(&to.id).unwrap().group.add_set(set) {
-            self.touched_class(to.id);
+            self.touched_class(to.id, PendingType::Full);
         }
 
         // touched because the class is now dead and no e-nodes should point to it.
-        self.touched_class(from.id);
+        self.touched_class(from.id, PendingType::Full);
     }
 }

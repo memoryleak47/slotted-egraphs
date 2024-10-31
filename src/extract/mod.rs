@@ -81,6 +81,10 @@ impl<L: Language, CF: CostFunction<L>> Extractor<L, CF> {
             children,
         }
     }
+
+    pub fn get_best_cost<N: Analysis<L>>(&self, i: &AppliedId, eg: &EGraph<L, N>) -> CF::Cost {
+        self.map[&i.id].1.clone()
+    }
 }
 
 pub fn ast_size_extract<L: Language, N: Analysis<L>>(i: &AppliedId, eg: &EGraph<L, N>) -> RecExpr<L> {

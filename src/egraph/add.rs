@@ -141,7 +141,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         // we use semantic_add so that the redundancy, symmetry and congruence checks run on it.
         let t = syn_enode_fresh.weak_shape();
         self.raw_add_to_class(i, t.clone(), i);
-        self.pending.insert(t.0);
+        self.pending.insert(t.0, PendingType::Full);
         self.rebuild();
 
         self.mk_syn_applied_id(i, fresh_to_old)
