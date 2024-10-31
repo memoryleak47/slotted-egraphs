@@ -12,6 +12,7 @@ pub enum Pattern<L: Language> {
 }
 
 // We write this as pattern[subst] for short.
+#[cfg_attr(feature = "trace", instrument(level = "trace", skip_all))]
 pub fn pattern_subst<L: Language, N: Analysis<L>>(eg: &mut EGraph<L, N>, pattern: &Pattern<L>, subst: &Subst) -> AppliedId {
     match &pattern {
         Pattern::ENode(n, children) => {

@@ -70,18 +70,27 @@ impl<L: Language + 'static, N: Analysis<L> + 'static> Rewrite<L, N> {
         let rule = rule.to_string();
         let a2 = a.clone();
         RewriteT {
-            searcher: Box::new(move |eg| {
-                let x: Vec<Subst> = ematch_all(eg, &a);
-                x
-            }),
+            searcher: Box::new(move |eg| ematch_all(eg, &a)),
             applier: Box::new(move |substs, eg| {
-                for subst in substs {
-                    if cond(&subst) {
-                        eg.union_instantiations(&a2, &b, &subst, Some(rule.to_string()));
-                    }
-                }
+                Self::apply_substs_cond(substs, &cond, &a2, &b, &rule, eg)
             }),
         }.into()
+    }
+
+    #[cfg_attr(feature = "trace", instrument(level = "trace", skip_all))]
+    fn apply_substs_cond(
+        substs: Vec<Subst>,
+        cond: &(impl Fn(&Subst) -> bool + 'static),
+        a: &Pattern<L>,
+        b: &Pattern<L>,
+        rule: &str,
+        eg: &mut EGraph<L, N>
+    ) {
+        for subst in substs {
+            if cond(&subst) {
+                eg.union_instantiations(a, b, &subst, Some(rule.to_string()));
+            }
+        }
     }
 }
 
@@ -105,6 +114,7 @@ pub struct ProgressMeasure {
 
 impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     /// Computes the [ProgressMeasure] of this E-Graph.
+    #[cfg_attr(feature = "trace", instrument(level = "trace", skip_all))]
     pub fn progress(&self) -> ProgressMeasure {
         let ids = self.ids();
         ProgressMeasure {
