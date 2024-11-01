@@ -124,17 +124,15 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         &mut self.classes.get_mut(&self.find_id(i)).unwrap().analysis_data
     }
 
-    // TODO For non-normalized inputs i, the slots in the output will definitely be wrong.
-    // if x in enodes(i), then I'd expect x.slots() superset slots(i).
     pub fn enodes(&self, i: Id) -> HashSet<L> {
-        let i = self.find_id(i);
+        // We prevent this, as otherwise the output will have wrong slots.
+        assert!(self.is_alive(i), "Can't access e-nodes of dead class");
+
         self.classes[&i].nodes.iter().map(|(x, psn)| x.apply_slotmap(&psn.elem)).collect()
     }
 
     // Generates fresh slots for redundant slots.
     pub fn enodes_applied(&self, i: &AppliedId) -> HashSet<L> {
-        let i = self.find_applied_id(i);
-
         let mut out = HashSet::default();
         for x in self.enodes(i.id) {
             // This is necessary, as i.slots() might collide with the private/redundant slots of our e-nodes.
@@ -199,10 +197,13 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     pub(crate) fn class_nf(&self, l: &L) -> L {
         let l = self.refresh_internals(l);
         let i = self.lookup(&l).unwrap();
-        let l = l.apply_slotmap(&i.m);
+
+        // needs to be `apply_slotmap_fresh` in case `l` has redundancies.
+        let l = l.apply_slotmap_fresh(&i.m);
 
         if CHECKS {
-            assert!(self.lookup(&l).unwrap().m.iter().all(|(x, y)| x == y));
+            let identity = self.mk_sem_identity_applied_id(i.id);
+            assert!(self.eq(&i, &identity));
         }
 
         l

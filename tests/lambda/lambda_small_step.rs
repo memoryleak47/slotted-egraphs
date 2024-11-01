@@ -12,6 +12,7 @@ unpack_tests!(LambdaRealSmall);
 
 
 pub fn rewrite_small_step(eg: &mut EGraph<Lambda>) {
+    let mut future_unions = Vec::new();
     for cand in crate::lambda::big_step::candidates(eg) {
         let app_id = eg.lookup(&cand.app).unwrap();
 
@@ -34,10 +35,15 @@ pub fn rewrite_small_step(eg: &mut EGraph<Lambda>) {
         l_m.insert(x, x_root);
         let b = b.apply_slotmap(&l_m);
 
+        assert!(eg.is_alive(b.id));
         for b_node in eg.enodes_applied(&b) {
             let new = step(x_root, t.clone(), &b_node, eg);
-            eg.union_justified(&new, &app_id, Some("beta-rewrite-small-step".to_string()));
+            future_unions.push((new, app_id.clone()));
         }
+    }
+
+    for (x, y) in future_unions {
+        eg.union_justified(&x, &y, Some("beta-rewrite-small-step".to_string()));
     }
 }
 

@@ -48,6 +48,7 @@ pub fn candidates(eg: &EGraph<Lambda>) -> Vec<Candidate> {
     let mut lambdas: HashMap<Id, Vec<Lambda>> = Default::default();
     for c in eg.ids() {
         let mut v = Vec::new();
+        assert!(eg.is_alive(c));
         for enode in eg.enodes(c) {
             if matches!(enode, Lambda::Lam(..)) {
                 v.push(enode.clone());
