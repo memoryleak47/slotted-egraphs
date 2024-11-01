@@ -27,7 +27,9 @@ pub fn pattern_subst<L: Language, N: Analysis<L>>(eg: &mut EGraph<L, N>, pattern
             eg.add_syn(n)
         },
         Pattern::PVar(v) => {
-            subst[v].clone()
+            subst.get(v)
+                 .unwrap_or_else(|| panic!("encountered `?{v}` in pattern, but it is missing in the `subst`"))
+                 .clone()
         },
         Pattern::Subst(b, x, t) => {
             let b = pattern_subst(eg, &*b, subst);
