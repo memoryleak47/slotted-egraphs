@@ -6,6 +6,11 @@ mod proof;
 pub use proof::*;
 
 #[cfg(feature = "explanations")]
+mod flat;
+#[cfg(feature = "explanations")]
+pub use flat::*;
+
+#[cfg(feature = "explanations")]
 mod front;
 #[cfg(feature = "explanations")]
 pub use front::*;
