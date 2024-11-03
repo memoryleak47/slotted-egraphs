@@ -17,9 +17,27 @@ struct Step<L: Language> {
 impl<L: Language> Step<L> {
     
     fn to_string(&self) -> String {
-        // Print this in the egg format. That is, in the form 
-        // "(app (const foo) (Rewrite <= add0 (lit 12)))".
-        todo!()
+        if let Some((next, subpos)) = self.rw_pos.split_first() {
+            let (op, _) = self.dst.node.to_op();
+            let mut str = format!("{}", op);
+            for (idx, child) in self.dst.children.iter().enumerate() {
+                if idx == (*next as usize) {
+                    let substep = Step { 
+                        dst: child.clone(), 
+                        rw_pos: subpos.to_vec(), 
+                        jus: self.jus.clone(), 
+                        back: self.back 
+                    };
+                    str = format!("{} {}", str, substep.to_string());
+                } else {
+                    str = format!("{} {}", str, child);
+                }
+            }
+            format!("({})", str)
+        } else {
+            let dir_str = if self.back { "<=" } else { "=>" };
+            format!("(Rewrite {} {} {})", dir_str, self.jus, self.dst)
+        }
     }
 }
 
@@ -82,6 +100,13 @@ impl ProvenEqRaw {
 impl<L: Language> RecExpr<L> {
 
     fn replace_subexpr(&self, pos: &Pos, e: RecExpr<L>) -> RecExpr<L> {
-        todo!()
+        if let Some((next, subpos)) = pos.split_first() {
+            let mut children = self.children.clone();
+            let child_idx = *next as usize;
+            children[child_idx] = children[child_idx].replace_subexpr(&subpos.to_vec(), e);
+            RecExpr { node: self.node.clone(), children }
+        } else {
+            e
+        }
     }
 }
