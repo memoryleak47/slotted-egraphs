@@ -44,7 +44,7 @@ pub fn run_eqsat<L: Language, N: Analysis<L>, F>(
         iterations,
         stop_reason,
         egraph_nodes: egraph.total_number_of_nodes(),
-        egraph_classes: egraph.classes.len(),
+        egraph_classes: egraph.ids().len(),
         total_time: start_time.elapsed().as_secs_f64()
     }
 }
