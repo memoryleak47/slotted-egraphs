@@ -71,6 +71,9 @@ impl ProvenEqRaw {
     fn to_steps<L: Language, N: Analysis<L>>(
         graph: &EGraph<L, N>, eq: &ProvenEqRaw, pos: Pos, symm: bool, ctx: &mut FlatteningContext<L>
     ) -> Vec<Step<L>> {
+        let subsrc = eq.side(/*src:*/ true, symm, graph);
+        ctx.update_slot_map(&subsrc, &pos);
+
         match eq.proof() {
             Proof::Reflexivity(ReflexivityProof) => {
                 vec![]
@@ -99,11 +102,9 @@ impl ProvenEqRaw {
                 result
             },
             Proof::Explicit(ExplicitProof(jus)) => {
-                let Equation { l: lhs, r: rhs } = eq.equ();
-                let subdst_id = if symm { lhs } else { rhs };
-                let subdst = graph.get_syn_expr(&subdst_id);
+                let mut subdst = eq.side(/*src:*/ false, symm, graph);
+                subdst.apply_slot_map(&ctx.slot_map);
                 let dst = ctx.head.replace_subexpr(&pos, subdst);
-                // TODO: Apply the slot map to dst.
                 let step = Step { 
                     dst: dst.clone(), rw_pos: pos, jus: jus.as_ref().unwrap().clone(), back: symm 
                 };
@@ -114,7 +115,59 @@ impl ProvenEqRaw {
     }
 }
 
+impl ProvenEqRaw {
+
+    // The `src` variable indicates whether we want the source of destination of the equation. That 
+    // is, the left- or right-hand side modulo `symm`.
+    fn side<L: Language, N: Analysis<L>>(&self, src: bool, symm: bool, graph: &EGraph<L, N>) -> RecExpr<L> {
+        let Equation { l: lhs, r: rhs } = self.equ();
+        let subdst_id = if src ^ symm { lhs } else { rhs };
+        graph.get_syn_expr(&subdst_id)
+    }
+}
+
+impl<L: Language> FlatteningContext<L> {
+
+    fn update_slot_map(&mut self, subsrc: &RecExpr<L>, pos: &Pos) {
+        let subhead = self.head.subexpr(pos);
+        Self::update_slot_map_core(&mut self.slot_map, subhead, subsrc);
+    }
+
+    fn update_slot_map_core(map: &mut HashMap<Slot, Slot>, head: &RecExpr<L>, src: &RecExpr<L>) {
+        let (head_op, head_children) = head.node.to_op();
+        let (src_op, src_children)   = src.node.to_op();
+        
+        // `src` and `head` should be syntactically equal up to renaming of slots.
+        if head_op != src_op || head_children.len() != src_children.len() {
+            panic!("'FlatteningContext.update_slot_map_core' received distinct 'head' and 'src'.")
+         }
+
+        // Note: head_children.len() == src_children.len()
+        let mut child_idx = 0;
+        for idx in 0..head_children.len() {
+            match (&head_children[idx], &src_children[idx]) {
+                (Child::AppliedId(_), Child::AppliedId(_)) => { 
+                    Self::update_slot_map_core(map, &head.children[child_idx], &src.children[child_idx]);
+                    child_idx += 1;
+                },
+                (Child::Slot(h), Child::Slot(s)) => { 
+                    if h != s { map.insert(*s, *h); }
+                },
+                _ => panic!("'FlatteningContext.update_slot_map_core' found distinct children.")
+            }
+        }
+    }
+}
+
 impl<L: Language> RecExpr<L> {
+
+    fn subexpr(&self, pos: &Pos) -> &RecExpr<L> {
+        if let Some((next, subpos)) = pos.split_first() {
+            Self::subexpr(&self.children[*next as usize], &subpos.to_vec())
+        } else {
+            self
+        }
+    }
 
     fn replace_subexpr(&self, pos: &Pos, e: RecExpr<L>) -> RecExpr<L> {
         if let Some((next, subpos)) = pos.split_first() {
@@ -124,6 +177,24 @@ impl<L: Language> RecExpr<L> {
             RecExpr { node: self.node.clone(), children }
         } else {
             e
+        }
+    }
+
+    fn apply_slot_map(&mut self, m: &HashMap<Slot, Slot>) {
+        for slot in self.node.all_slot_occurences_mut().iter_mut() { 
+            **slot = Self::map_slot(**slot, m); 
+        }
+        for idx in 0..self.children.len() {
+            Self::apply_slot_map(&mut self.children[idx], m);
+        }
+    }
+
+    // Important: This will loop if the slot map contains a cycle!
+    fn map_slot(s: Slot, m: &HashMap<Slot, Slot>) -> Slot {
+        if let Some(&new) = m.get(&s) {
+            Self::map_slot(new, m)
+        } else {
+            s
         }
     }
 }
