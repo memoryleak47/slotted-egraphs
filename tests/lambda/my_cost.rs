@@ -9,7 +9,7 @@ impl CostFunction<Lambda> for AstSizeNoLet {
     type Cost = MyCost;
 
     fn cost<C>(&self, enode: &Lambda, costs: C) -> MyCost where C: Fn(Id) -> MyCost {
-        if let Lambda::Lambda(..) = enode {
+        if let Lambda::Let(..) = enode {
             MyCost::Infinite
         } else {
             let mut s = MyCost::Finite(1);

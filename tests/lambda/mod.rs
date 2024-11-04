@@ -38,7 +38,7 @@ pub enum Lambda {
     Lam(Slot, AppliedId),
     App(AppliedId, AppliedId),
     Var(Slot),
-    Lambda(Slot, AppliedId, AppliedId),
+    Let(Slot, AppliedId, AppliedId),
 }
 
 impl Language for Lambda {
@@ -56,7 +56,7 @@ impl Language for Lambda {
             Lambda::Var(x) => {
                 out.push(x);
             }
-            Lambda::Lambda(x, t, b) => {
+            Lambda::Let(x, t, b) => {
                 out.push(x);
                 out.extend(t.slots_mut());
                 out.extend(b.slots_mut());
@@ -78,7 +78,7 @@ impl Language for Lambda {
             Lambda::Var(x) => {
                 out.push(x);
             }
-            Lambda::Lambda(x, t, b) => {
+            Lambda::Let(x, t, b) => {
                 out.extend(b.slots_mut().into_iter().filter(|y| *y != x));
                 out.extend(t.slots_mut());
             }
@@ -91,7 +91,7 @@ impl Language for Lambda {
             Lambda::Lam(_, b) => vec![b],
             Lambda::App(l, r) => vec![l, r],
             Lambda::Var(_) => vec![],
-            Lambda::Lambda(_, t, b) => vec![t, b],
+            Lambda::Let(_, t, b) => vec![t, b],
         }
     }
 
@@ -100,7 +100,7 @@ impl Language for Lambda {
             Lambda::Lam(s, a) => (String::from("lam"), vec![Child::Slot(s), Child::AppliedId(a)]),
             Lambda::App(l, r) => (String::from("app"), vec![Child::AppliedId(l), Child::AppliedId(r)]),
             Lambda::Var(s) => (String::from("var"), vec![Child::Slot(s)]),
-            Lambda::Lambda(s, t, b) => (String::from("let"), vec![Child::Slot(s), Child::AppliedId(t), Child::AppliedId(b)]),
+            Lambda::Let(s, t, b) => (String::from("let"), vec![Child::Slot(s), Child::AppliedId(t), Child::AppliedId(b)]),
         }
     }
 
@@ -109,7 +109,7 @@ impl Language for Lambda {
             ("lam", [Child::Slot(s), Child::AppliedId(a)]) => Some(Lambda::Lam(*s, a.clone())),
             ("app", [Child::AppliedId(l), Child::AppliedId(r)]) => Some(Lambda::App(l.clone(), r.clone())),
             ("var", [Child::Slot(s)]) => Some(Lambda::Var(*s)),
-            ("let", [Child::Slot(s), Child::AppliedId(t), Child::AppliedId(b)]) => Some(Lambda::Lambda(*s, t.clone(), b.clone())),
+            ("let", [Child::Slot(s), Child::AppliedId(t), Child::AppliedId(b)]) => Some(Lambda::Let(*s, t.clone(), b.clone())),
             _ => None,
         }
     }
@@ -124,7 +124,7 @@ impl Debug for Lambda {
             Lambda::Lam(s, b) => write!(f, "(lam {s:?} {b:?})"),
             Lambda::App(l, r) => write!(f, "(app {l:?} {r:?})"),
             Lambda::Var(s) => write!(f, "{s:?}"),
-            Lambda::Lambda(x, t, b) => write!(f, "(let {x:?} {t:?} {b:?})"),
+            Lambda::Let(x, t, b) => write!(f, "(let {x:?} {t:?} {b:?})"),
         }
     }
 }

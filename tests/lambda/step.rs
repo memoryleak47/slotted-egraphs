@@ -59,7 +59,7 @@ pub fn lam_step(re: &RecExpr<Lambda>) -> Option<RecExpr<Lambda>> {
             None
         },
         Lambda::Var(_) => None,
-        Lambda::Lambda(..) => panic!(),
+        Lambda::Let(..) => panic!(),
     }
 }
 
@@ -109,7 +109,7 @@ fn lam_subst(re: &RecExpr<Lambda>, x: Slot, t: &RecExpr<Lambda>) -> RecExpr<Lamb
                 re.clone()
             }
         }
-        Lambda::Lambda(..) => panic!(),
+        Lambda::Let(..) => panic!(),
     }
 }
 
@@ -124,6 +124,6 @@ fn lam_free_variables(re: &RecExpr<Lambda>) -> HashSet<Slot> {
             &lam_free_variables(l) | &lam_free_variables(r)
         },
         Lambda::Var(x) => singleton_set(*x),
-        Lambda::Lambda(..) => panic!(),
+        Lambda::Let(..) => panic!(),
     }
 }

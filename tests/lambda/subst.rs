@@ -98,7 +98,7 @@ fn enode_subst(enode: Lambda, _b: &AppliedId, x: Slot, t: &AppliedId, eg: &mut E
             eg.add(Lambda::Lam(x2, b2))
         },
 
-        Lambda::Lambda(..) => panic!("This should never encounter a let!"),
+        Lambda::Let(..) => panic!("This should never encounter a let!"),
     };
 
     let correct = &(&enode.slots() - &singleton_set(x)) | &t.slots();

@@ -71,6 +71,6 @@ fn step(x: Slot, t: AppliedId, b: &Lambda, eg: &mut EGraph<Lambda>) -> AppliedId
             let a3 = eg.add(Lambda::Lam(*y, a2));
             a3
         },
-        Lambda::Lambda(..) => panic!(),
+        Lambda::Let(..) => panic!(),
     }
 }

@@ -47,6 +47,6 @@ fn lam_normalize_impl(re: &RecExpr<Lambda>, counter: &mut usize, map: HashMap<Sl
                 children: vec![],
             }
         },
-        Lambda::Lambda(..) => panic!(),
+        Lambda::Let(..) => panic!(),
     }
 }
