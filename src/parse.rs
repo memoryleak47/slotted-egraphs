@@ -24,7 +24,7 @@ enum Token {
 
 fn ident_char(c: char) -> bool {
     if c.is_whitespace() { return false; }
-    if "()[]$:=?".contains(c) { return false; }
+    if "()[]".contains(c) { return false; }
     true
 }
 
