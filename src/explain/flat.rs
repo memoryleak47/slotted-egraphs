@@ -15,28 +15,41 @@ struct Step<L: Language> {
 }
 
 impl<L: Language> Step<L> {
-    
+
     fn to_string(&self) -> String {
         if let Some((next, subpos)) = self.rw_pos.split_first() {
-            let (op, _) = self.dst.node.to_op();
+            let (op, children) = self.dst.node.to_op();
             let mut str = format!("{}", op);
-            for (idx, child) in self.dst.children.iter().enumerate() {
-                if idx == (*next as usize) {
-                    let substep = Step { 
-                        dst: child.clone(), 
-                        rw_pos: subpos.to_vec(), 
-                        jus: self.jus.clone(), 
-                        back: self.back 
-                    };
-                    str = format!("{} {}", str, substep.to_string());
-                } else {
-                    str = format!("{} {}", str, child);
+
+            if children.is_empty() { return str; }
+
+            let mut child_node_idx = 0;
+            for child in children.into_iter() {
+                match child {
+                    Child::AppliedId(_) => {
+                        let child_node = self.dst.children[child_node_idx].clone();
+                        if child_node_idx == (*next as usize) {
+                            let substep = Step { 
+                                dst: child_node, 
+                                rw_pos: subpos.to_vec(), 
+                                jus: self.jus.clone(), 
+                                back: self.back 
+                            };
+                            str = format!("{} {}", str, substep.to_string());
+                        } else {
+                            str = format!("{} {}", str, child_node);
+                        }
+                        child_node_idx += 1;
+                    },
+                    Child::Slot(slot) => {
+                        str = format!("{} {}", str, slot);
+                    }
                 }
             }
             format!("({})", str)
         } else {
             let dir_str = if self.back { "<=" } else { "=>" };
-            format!("(Rewrite {} {} {})", dir_str, self.jus, self.dst)
+            format!("(Rewrite{} {} {})", dir_str, self.jus, self.dst)
         }
     }
 }
@@ -45,14 +58,14 @@ impl ProvenEqRaw {
 
     /// Returns a string representation of a flattened explanation.
     pub fn to_flat_string<L: Language, N: Analysis<L>>(&self, graph: &EGraph<L, N>) -> String {
-        let mut init_ctx = FlatteningContext {
-            head:     graph.get_syn_expr(&self.l),
-            slot_map: Default::default()
-        };
+        let start = graph.get_syn_expr(&self.l);
 
-        Self::to_steps(graph, self, vec![], false, &mut init_ctx)
-            .into_iter()
-            .fold("".to_string(), |res, step| format!("{}{}\n", res, step.to_string()))
+        let mut init_ctx = FlatteningContext { head: start.clone(), slot_map: Default::default() };
+        let steps = Self::to_steps(graph, self, vec![], false, &mut init_ctx);     
+        
+        let mut result = start.to_string();
+        for step in steps { result = format!("{}\n{}", result, step.to_string()); }
+        result
     }
 
     fn to_steps<L: Language, N: Analysis<L>>(
@@ -91,7 +104,11 @@ impl ProvenEqRaw {
                 let subdst = graph.get_syn_expr(&subdst_id);
                 let dst = ctx.head.replace_subexpr(&pos, subdst);
                 // TODO: Apply the slot map to dst.
-                vec![Step { dst, rw_pos: pos, jus: jus.as_ref().unwrap().clone(), back: symm }]
+                let step = Step { 
+                    dst: dst.clone(), rw_pos: pos, jus: jus.as_ref().unwrap().clone(), back: symm 
+                };
+                ctx.head = dst;
+                vec![step]
             },            
         }
     }
