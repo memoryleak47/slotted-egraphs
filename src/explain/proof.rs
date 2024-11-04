@@ -77,7 +77,6 @@ impl Hash for ProvenEqRaw {
     }
 }
 
-
 impl ExplicitProof {
     pub fn check(&self, eq: &Equation, reg: &ProofRegistry) -> ProvenEq {
         let eq = eq.clone();
