@@ -4,7 +4,7 @@ pub fn sdql_rules() -> Vec<Rewrite<Sdql>> {
     let pat = "(sum $x $y ?R (sing ?e1 ?e2))";
     let outpat = "(sing ?e1 (sum $x $y ?R ?e2))";
 
-    vec![Rewrite::new_if("rule1", pat, outpat, |subst| {
+    vec![Rewrite::new_if("rule1", pat, outpat, |subst, _| {
         !subst["e1"].slots().contains(&Slot::named("x"))
         && !subst["e1"].slots().contains(&Slot::named("y"))
     })]

@@ -34,7 +34,7 @@ fn eta() -> Rewrite<Arith> {
     let pat = "(lam $1 (app ?b (var $1)))";
     let outpat = "?b";
 
-    Rewrite::new_if("eta", pat, outpat, |subst| {
+    Rewrite::new_if("eta", pat, outpat, |subst, _| {
         !subst["b"].slots().contains(&Slot::numeric(1))
     })
 }
@@ -48,7 +48,7 @@ fn eta_expansion() -> Rewrite<Arith> {
 fn my_let_unused() -> Rewrite<Arith> {
     let pat = "(let $1 ?t ?b)";
     let outpat = "?b";
-    Rewrite::new_if("my-let-unused", pat, outpat, |subst| {
+    Rewrite::new_if("my-let-unused", pat, outpat, |subst, _| {
         !subst["b"].slots().contains(&Slot::numeric(1))
     })
 }
@@ -62,7 +62,7 @@ fn let_var_same() -> Rewrite<Arith> {
 fn let_app() -> Rewrite<Arith> {
     let pat = "(let $1 ?e (app ?a ?b))";
     let outpat = "(app (let $1 ?e ?a) (let $1 ?e ?b))";
-    Rewrite::new_if("let-app", pat, outpat, |subst| {
+    Rewrite::new_if("let-app", pat, outpat, |subst, _| {
         subst["a"].slots().contains(&Slot::numeric(1)) || subst["b"].slots().contains(&Slot::numeric(1))
     })
 }
@@ -70,7 +70,7 @@ fn let_app() -> Rewrite<Arith> {
 fn let_lam_diff() -> Rewrite<Arith> {
     let pat = "(let $1 ?e (lam $2 ?b))";
     let outpat = "(lam $2 (let $1 ?e ?b))";
-    Rewrite::new_if("let-lam-diff", pat, outpat, |subst| {
+    Rewrite::new_if("let-lam-diff", pat, outpat, |subst, _| {
         subst["b"].slots().contains(&Slot::numeric(1))
     })
 }

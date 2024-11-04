@@ -54,7 +54,7 @@ fn eta() -> Rewrite<Array> {
     let pat = "(lam $1 (app ?f (var $1)))";
     let outpat = "?f";
 
-    Rewrite::new_if("eta", pat, outpat, |subst| {
+    Rewrite::new_if("eta", pat, outpat, |subst, _| {
         !subst["f"].slots().contains(&Slot::numeric(1))
     })
 }
@@ -62,7 +62,7 @@ fn eta() -> Rewrite<Array> {
 fn my_let_unused() -> Rewrite<Array> {
     let pat = "(let $1 ?t ?b)";
     let outpat = "?b";
-    Rewrite::new_if("my-let-unused", pat, outpat, |subst| {
+    Rewrite::new_if("my-let-unused", pat, outpat, |subst, _| {
         !subst["b"].slots().contains(&Slot::numeric(1))
     })
 }
@@ -82,7 +82,7 @@ fn let_var_diff() -> Rewrite<Array> {
 fn let_app() -> Rewrite<Array> {
     let pat = "(let $1 ?e (app ?a ?b))";
     let outpat = "(app (let $1 ?e ?a) (let $1 ?e ?b))";
-    Rewrite::new_if("let-app", pat, outpat, |subst| {
+    Rewrite::new_if("let-app", pat, outpat, |subst, _| {
         subst["a"].slots().contains(&Slot::numeric(1)) || subst["b"].slots().contains(&Slot::numeric(1))
     })
 }
@@ -90,7 +90,7 @@ fn let_app() -> Rewrite<Array> {
 fn let_lam_diff() -> Rewrite<Array> {
     let pat = "(let $1 ?e (lam $2 ?body))";
     let outpat = "(lam $2 (let $1 ?e ?body))";
-    Rewrite::new_if("let-lam-diff", pat, outpat, |subst| {
+    Rewrite::new_if("let-lam-diff", pat, outpat, |subst, _| {
         subst["body"].slots().contains(&Slot::numeric(1))
     })
 }
@@ -116,7 +116,7 @@ fn map_fission() -> Rewrite<Array> {
         "(lam ${mfi} (app (app (app m ?nn) ?f) (app (app (app m ?nn) (lam ${x} ?gx)) (var ${mfi}))))"
     );
 
-    Rewrite::new_if("map-fission", pat, outpat, move |subst| {
+    Rewrite::new_if("map-fission", pat, outpat, move |subst, _| {
         !subst["f"].slots().contains(&Slot::numeric(x))
     })
 }

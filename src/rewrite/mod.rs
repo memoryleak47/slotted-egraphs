@@ -60,11 +60,11 @@ pub fn apply_rewrites<L: Language, N: Analysis<L>>(eg: &mut EGraph<L, N>, rewrit
 impl<L: Language + 'static, N: Analysis<L> + 'static> Rewrite<L, N> {
     /// Create a rewrite rule by specifing a left- and right-hand side of your equation.
     pub fn new(rule: &str, a: &str, b: &str) -> Self {
-        Self::new_if(rule, a, b, |_| true)
+        Self::new_if(rule, a, b, |_, _| true)
     }
 
     /// Create a conditional rewrite rule.
-    pub fn new_if(rule: &str, a: &str, b: &str, cond: impl Fn(&Subst) -> bool + 'static) -> Self {
+    pub fn new_if(rule: &str, a: &str, b: &str, cond: impl Fn(&Subst, &EGraph<L, N>) -> bool + 'static) -> Self {
         let a = Pattern::parse(a).unwrap();
         let b = Pattern::parse(b).unwrap();
         let rule = rule.to_string();
@@ -80,14 +80,14 @@ impl<L: Language + 'static, N: Analysis<L> + 'static> Rewrite<L, N> {
     #[cfg_attr(feature = "trace", instrument(level = "trace", skip_all))]
     fn apply_substs_cond(
         substs: Vec<Subst>,
-        cond: &(impl Fn(&Subst) -> bool + 'static),
+        cond: &(impl Fn(&Subst, &EGraph<L, N>) -> bool + 'static),
         a: &Pattern<L>,
         b: &Pattern<L>,
         rule: &str,
         eg: &mut EGraph<L, N>
     ) {
         for subst in substs {
-            if cond(&subst) {
+            if cond(&subst, eg) {
                 eg.union_instantiations(a, b, &subst, Some(rule.to_string()));
             }
         }
