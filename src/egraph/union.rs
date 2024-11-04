@@ -108,13 +108,29 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
 
             true
         } else {
-            // sort, s.t. size(l) >= size(r).
+            let slot_size = |i| {
+                self.classes[&i].syn_enode.slots().len()
+            };
+
             let size = |i| {
                 let c = &self.classes[&i];
                 c.nodes.len() + c.usages.len()
             };
 
-            if size(l.id) < size(r.id) {
+            // we intend to deprecate `l` in favor of `r`.
+            // return true if this is the correct decision.
+            let right_order = |l, r| {
+                // we prefer e-classes with e-nodes with few slots (i.e. prefer constants over e-node with redundancies).
+                // It generates easier proofs.
+                let (ssl, ssr) = (slot_size(l), slot_size(r));
+                if ssl > ssr { return true; }
+                if ssl < ssr { return false; }
+
+                // prefer bigger e-classes, because then we need to update less.
+                size(l) <= size(r)
+            };
+
+            if right_order(l.id, r.id) {
                 self.move_to(&l, &r, proof)
             } else {
                 let proof = ghost!(self.prove_symmetry(proof));
