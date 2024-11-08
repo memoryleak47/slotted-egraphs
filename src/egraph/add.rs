@@ -15,32 +15,41 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     }
 
     pub fn add_syn(&mut self, enode: L) -> AppliedId {
-        let enode = self.synify_enode(enode);
+        #[cfg(not(feature = "explanations"))]
+        {
+            self.add(enode)
+        }
 
-        self.add(enode.clone());
+        #[cfg(feature = "explanations")]
+        {
+            let enode = self.synify_enode(enode);
 
-        if let Some(x) = self.lookup_syn(&enode) {
-            if CHECKS {
-                assert_eq!(enode.slots(), x.slots());
+            self.add(enode.clone());
+
+            if let Some(x) = self.lookup_syn(&enode) {
+                if CHECKS {
+                    assert_eq!(enode.slots(), x.slots());
+                }
+                return x;
             }
-            return x;
+
+            let old_slots = enode.slots();
+            let fresh_to_old = Bijection::bijection_from_fresh_to(&old_slots);
+            let old_to_fresh = fresh_to_old.inverse();
+            let new_enode = enode.apply_slotmap(&old_to_fresh);
+            let c = self.alloc_eclass(&old_to_fresh.values(), new_enode.clone());
+
+            let pc = self.pc_find(&self.refl_pc(c));
+
+            self.handle_congruence(pc);
+
+            let c_a = self.mk_syn_applied_id(c, fresh_to_old.clone());
+            if CHECKS {
+                assert_eq!(enode.slots(), c_a.slots());
+            }
+
+            c_a
         }
-
-        let old_slots = enode.slots();
-        let fresh_to_old = Bijection::bijection_from_fresh_to(&old_slots);
-        let old_to_fresh = fresh_to_old.inverse();
-        let new_enode = enode.apply_slotmap(&old_to_fresh);
-        let c = self.alloc_eclass(&old_to_fresh.values(), new_enode.clone());
-
-        let pc = self.pc_find(&self.refl_pc(c));
-
-        self.handle_congruence(pc);
-
-        let c_a = self.mk_syn_applied_id(c, fresh_to_old.clone());
-        if CHECKS {
-            assert_eq!(enode.slots(), c_a.slots());
-        }
-        c_a
     }
 
     fn lookup_syn(&self, enode: &L) -> Option<AppliedId> {
