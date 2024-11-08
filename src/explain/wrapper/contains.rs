@@ -40,6 +40,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         }
     }
 
+    #[cfg_attr(feature = "trace", instrument(level = "trace", skip_all))]
     pub(crate) fn refl_pc(&self, i: Id) -> ProvenContains<L> {
         let identity = self.mk_syn_identity_applied_id(i);
         let n = self.get_syn_node(&identity);
@@ -55,6 +56,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     }
 
     // "finds" both the node & the id to be "up-to-date".
+    #[cfg_attr(feature = "trace", instrument(level = "trace", skip_all))]
     pub(crate) fn pc_find(&self, pc: &ProvenContains<L>) -> ProvenContains<L> {
         ProvenContains {
             node: self.proven_proven_pre_shape(&pc.node),

@@ -250,6 +250,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         }
     }
 
+    #[cfg_attr(feature = "trace", instrument(level = "trace", skip_all))]
     pub(in crate::egraph) fn handle_congruence(&mut self, pc1: ProvenContains<L>) {
         let (sh, _) = self.shape(&pc1.node.elem);
         let pc2 = self.pc_from_shape(&sh);

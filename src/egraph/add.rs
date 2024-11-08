@@ -14,6 +14,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         self.add_syn(n)
     }
 
+    #[cfg_attr(feature = "trace", instrument(level = "trace", skip_all))]
     pub fn add_syn(&mut self, enode: L) -> AppliedId {
         let enode = self.synify_enode(enode);
 
@@ -69,6 +70,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     }
 
 
+    #[cfg_attr(feature = "trace", instrument(level = "trace", skip_all))]
     pub fn add(&mut self, enode: L) -> AppliedId {
         self.add_internal(self.shape(&enode))
     }
