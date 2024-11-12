@@ -1,6 +1,6 @@
 [package]
 name = "slotted-egraphs"
-version = "0.0.24"
+version = "0.0.26"
 edition = "2021"
 description = "E-Graphs with name binding"
 license = "Apache-2.0 OR MIT"
