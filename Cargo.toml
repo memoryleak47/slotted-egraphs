@@ -15,6 +15,7 @@ trace = ["tracing/max_level_trace", "tracing/release_max_level_trace", "tracing"
 features = ["explanations"]
 
 [dependencies]
+slotted-egraphs-derive = { path = "slotted-egraphs-derive" }
 fnv = "1.0.7"
 tracing = { version = "0.1", features = ["attributes"], optional = true }
 

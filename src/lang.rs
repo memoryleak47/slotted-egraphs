@@ -1,5 +1,19 @@
 use crate::*;
 
+pub struct Bind<T> {
+    pub slot: Slot,
+    pub elem: T,
+}
+
+define_language! {
+    enum ExampleLanguage {
+        Lambda(Bind<AppliedId>) = "lambda",
+        App(AppliedId, AppliedId) = "app",
+        Var(Slot) = "var",
+        #[substitution_op] Let(AppliedId, Bind<AppliedId>) = "let",
+    }
+}
+
 #[derive(Debug, Clone)]
 /// A child node of some term ("child" in the sense of an AST).
 ///
