@@ -1,7 +1,11 @@
 [package]
 name = "slotted-egraphs-derive"
+description = "proc macros to implement slotted Languages"
 version = "0.0.1"
 edition = "2021"
+license = "Apache-2.0 OR MIT"
+repository = "https://github.com/memoryleak47/slotted-egraphs/"
+
 
 [dependencies]
 syn = { version = "2.0", features = ["full"] }
