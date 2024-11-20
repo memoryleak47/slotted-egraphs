@@ -21,6 +21,7 @@ pub fn define_language(input: TokenStream1) -> TokenStream1 {
     let public_slot_occurences_mut_arms: Vec<TokenStream2> = ie.variants.iter().map(|x| produce_public_slot_occurences_mut(&name, x)).collect();
     let applied_id_occurences_mut_arms: Vec<TokenStream2> = ie.variants.iter().map(|x| produce_applied_id_occurences_mut(&name, x)).collect();
     let to_op_arms: Vec<TokenStream2> = ie.variants.iter().zip(&str_names).map(|(x, n)| produce_to_op(&name, &n, x)).collect();
+    let from_op_arms: Vec<TokenStream2> = ie.variants.iter().zip(&str_names).map(|(x, n)| produce_from_op(&name, &n, x)).collect();
 
     quote! {
         #[derive(PartialEq, Eq, Hash, Clone, Debug)]
@@ -49,8 +50,9 @@ pub fn define_language(input: TokenStream1) -> TokenStream1 {
                 }
             }
 
-            fn from_op(op: &str, children: Vec<Child>) -> Option<Self> {
+            fn from_op(op: &str, mut children: Vec<Child>) -> Option<Self> {
                 match op {
+                    #(#from_op_arms),*
                     _ => None,
                 }
             }
@@ -119,6 +121,28 @@ fn produce_to_op(name: &Ident, e: &Option<Expr>, v: &Variant) -> TokenStream2 {
                 out.extend(ch);
             )*
             (String::from(#e), out)
+        }
+    }
+}
+
+fn produce_from_op(name: &Ident, e: &Option<Expr>, v: &Variant) -> TokenStream2 {
+    let e = e.as_ref().unwrap();
+    let variant_name = &v.ident;
+    let n = v.fields.len();
+    let fields: Vec<Ident> = (0..n).map(|x| Ident::new(&format!("a{x}"), proc_macro2::Span::call_site())).collect();
+
+    let types: Vec<Type> = v.fields.iter().map(|x| x.ty.clone()).collect();
+
+    quote! {
+        #e => {
+            #(
+                let n = <#types>::num_children_hint().unwrap();
+                let mut new = children.split_off(n);
+                std::mem::swap(&mut new, &mut children);
+
+                let #fields = <#types>::from_op("", new)?;
+            )*
+            Some(#name::#variant_name(#(#fields),*))
         }
     }
 }
