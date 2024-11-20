@@ -21,7 +21,8 @@ pub fn define_language(input: TokenStream1) -> TokenStream1 {
     let public_slot_occurences_mut_arms: Vec<TokenStream2> = ie.variants.iter().map(|x| produce_public_slot_occurences_mut(&name, x)).collect();
     let applied_id_occurences_mut_arms: Vec<TokenStream2> = ie.variants.iter().map(|x| produce_applied_id_occurences_mut(&name, x)).collect();
     let to_op_arms: Vec<TokenStream2> = ie.variants.iter().zip(&str_names).map(|(x, n)| produce_to_op(&name, &n, x)).collect();
-    let from_op_arms: Vec<TokenStream2> = ie.variants.iter().zip(&str_names).map(|(x, n)| produce_from_op(&name, &n, x)).collect();
+    let from_op_arms1: Vec<TokenStream2> = ie.variants.iter().zip(&str_names).filter_map(|(x, n)| produce_from_op1(&name, &n, x)).collect();
+    let from_op_arms2: Vec<TokenStream2> = ie.variants.iter().zip(&str_names).filter_map(|(x, n)| produce_from_op2(&name, &n, x)).collect();
 
     quote! {
         #[derive(PartialEq, Eq, Hash, Clone, Debug)]
@@ -52,7 +53,8 @@ pub fn define_language(input: TokenStream1) -> TokenStream1 {
 
             fn from_op(op: &str, mut children: Vec<Child>) -> Option<Self> {
                 match op {
-                    #(#from_op_arms),*
+                    #(#from_op_arms1),*
+                    #(#from_op_arms2),*
                     _ => None,
                 }
             }
@@ -108,8 +110,17 @@ fn produce_applied_id_occurences_mut(name: &Ident, v: &Variant) -> TokenStream2 
 }
 
 fn produce_to_op(name: &Ident, e: &Option<Expr>, v: &Variant) -> TokenStream2 {
-    let e = e.as_ref().unwrap();
     let variant_name = &v.ident;
+
+    if e.is_none() {
+        return quote! {
+            #name::#variant_name(a0) => {
+                a0.to_op()
+            }
+        };
+    }
+
+    let e = e.as_ref().unwrap();
     let n = v.fields.len();
     let fields: Vec<Ident> = (0..n).map(|x| Ident::new(&format!("a{x}"), proc_macro2::Span::call_site())).collect();
     quote! {
@@ -125,15 +136,16 @@ fn produce_to_op(name: &Ident, e: &Option<Expr>, v: &Variant) -> TokenStream2 {
     }
 }
 
-fn produce_from_op(name: &Ident, e: &Option<Expr>, v: &Variant) -> TokenStream2 {
-    let e = e.as_ref().unwrap();
+fn produce_from_op1(name: &Ident, e: &Option<Expr>, v: &Variant) -> Option<TokenStream2> {
     let variant_name = &v.ident;
+
+    let e = e.as_ref()?;
     let n = v.fields.len();
     let fields: Vec<Ident> = (0..n).map(|x| Ident::new(&format!("a{x}"), proc_macro2::Span::call_site())).collect();
 
     let types: Vec<Type> = v.fields.iter().map(|x| x.ty.clone()).collect();
 
-    quote! {
+    Some(quote! {
         #e => {
             #(
                 let n = <#types>::num_children_hint().unwrap();
@@ -144,5 +156,18 @@ fn produce_from_op(name: &Ident, e: &Option<Expr>, v: &Variant) -> TokenStream2 
             )*
             Some(#name::#variant_name(#(#fields),*))
         }
-    }
+    })
+}
+
+fn produce_from_op2(name: &Ident, e: &Option<Expr>, v: &Variant) -> Option<TokenStream2> {
+    if e.is_some() { return None; }
+    let variant_name = &v.ident;
+
+    let ty = v.fields.iter().map(|x| x.ty.clone()).next().unwrap();
+    Some(quote! {
+        s if <#ty>::from_op(s, children.clone()).is_some() => {
+            let thing = <#ty>::from_op(s, children).unwrap();
+            Some(#name::#variant_name(thing))
+        }
+    })
 }

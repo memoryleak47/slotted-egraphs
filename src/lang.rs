@@ -26,6 +26,24 @@ impl Language for Slot {
     fn num_children_hint() -> Option<usize> { Some(1) }
 }
 
+macro_rules! impl_slotless_lang {
+    ($id:ident) => {
+        impl Language for $id {
+            fn all_slot_occurences_mut(&mut self) -> Vec<&mut Slot> { vec![] }
+            fn public_slot_occurences_mut(&mut self) -> Vec<&mut Slot> { vec![] }
+            fn applied_id_occurences_mut(&mut self) -> Vec<&mut AppliedId> { vec![] }
+            fn to_op(&self) -> (String, Vec<Child>) { (self.to_string(), vec![]) }
+            fn from_op(op: &str, children: Vec<Child>) -> Option<Self> {
+                if children.len() != 0 { return None; }
+                op.parse().ok()
+            }
+            fn num_children_hint() -> Option<usize> { Some(1) }
+        }
+    }
+}
+
+impl_slotless_lang!(u32);
+
 
 impl<L: Language> Language for Bind<L> {
     fn all_slot_occurences_mut(&mut self) -> Vec<&mut Slot> {
@@ -74,6 +92,7 @@ define_language! {
     enum ExampleLanguage {
         Lambda(Bind<AppliedId>) = "lambda",
         App(AppliedId, AppliedId) = "app",
+        Thing(u32),
         Var(Slot) = "var",
         // #[substitution_op] Let(AppliedId, Bind<AppliedId>) = "let",
     }
