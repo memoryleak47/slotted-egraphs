@@ -26,6 +26,8 @@ impl Language for Slot {
     fn num_children_hint() -> Option<usize> { Some(1) }
 }
 
+/// Implements [Language] for payload types that are independent of Slots. For example u32, String etc.
+#[macro_export]
 macro_rules! impl_slotless_lang {
     ($id:ident) => {
         impl Language for $id {
@@ -43,7 +45,6 @@ macro_rules! impl_slotless_lang {
 }
 
 impl_slotless_lang!(u32);
-
 
 impl<L: Language> Language for Bind<L> {
     fn all_slot_occurences_mut(&mut self) -> Vec<&mut Slot> {
