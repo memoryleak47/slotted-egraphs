@@ -91,11 +91,11 @@ fn enode_subst(enode: Lambda, _b: &AppliedId, x: Slot, t: &AppliedId, eg: &mut E
             eg.add(Lambda::App(l, r))
         },
 
-        Lambda::Lam(x2, b2) => {
+        Lambda::Lam(Bind{slot:x2, elem:b2}) => {
             assert!(x2 != x);
 
             let b2 = subst_impl(b2.clone(), x, t.clone(), eg, union_cmds, map);
-            eg.add(Lambda::Lam(x2, b2))
+            eg.add(Lambda::Lam(Bind{slot:x2, elem:b2}))
         },
 
         Lambda::Let(..) => panic!("This should never encounter a let!"),

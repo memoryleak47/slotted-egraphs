@@ -22,7 +22,7 @@ pub fn rewrite_small_step(eg: &mut EGraph<Lambda>) {
         // L1 = Lambda::Lam(x, b).slots() = slots(l.id)
 
         let Lambda::App(l, t) = cand.app.clone() else { panic!() };
-        let Lambda::Lam(x, b) = cand.lam.clone() else { panic!() };
+        let Lambda::Lam(Bind{slot: x, elem: b}) = cand.lam.clone() else { panic!() };
         assert_eq!(x, Slot::numeric(0));
 
         // b.m :: slots(b.id) -> L1
@@ -57,7 +57,7 @@ fn step(x: Slot, t: AppliedId, b: &Lambda, eg: &mut EGraph<Lambda>) -> AppliedId
         Lambda::Var(_) => t,
         Lambda::App(l, r) => {
             let mut pack = |lr: &AppliedId| {
-                let a1 = eg.add(Lambda::Lam(x, lr.clone()));
+                let a1 = eg.add(Lambda::Lam(Bind{slot:x, elem:lr.clone()}));
                 let a2 = eg.add(Lambda::App(a1, t.clone()));
                 a2
             };
@@ -65,10 +65,10 @@ fn step(x: Slot, t: AppliedId, b: &Lambda, eg: &mut EGraph<Lambda>) -> AppliedId
             let r = pack(r);
             eg.add(Lambda::App(l, r))
         },
-        Lambda::Lam(y, bb) => {
-            let a1 = eg.add(Lambda::Lam(x, bb.clone()));
+        Lambda::Lam(Bind{slot:y, elem:bb}) => {
+            let a1 = eg.add(Lambda::Lam(Bind{slot:x, elem:bb.clone()}));
             let a2 = eg.add(Lambda::App(a1, t.clone()));
-            let a3 = eg.add(Lambda::Lam(*y, a2));
+            let a3 = eg.add(Lambda::Lam(Bind{slot:*y, elem:a2}));
             a3
         },
         Lambda::Let(..) => panic!(),

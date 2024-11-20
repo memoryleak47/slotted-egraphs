@@ -22,7 +22,7 @@ pub fn lam_run_n(re: &RecExpr<Lambda>, n: u32) -> RecExpr<Lambda> {
 
 pub fn lam_step(re: &RecExpr<Lambda>) -> Option<RecExpr<Lambda>> {
     match &re.node {
-        Lambda::Lam(x, _) => {
+        Lambda::Lam(Bind{slot:x, ..}) => {
             let [b] = &*re.children else { panic!() };
             let b = lam_step(b)?;
 
@@ -35,7 +35,7 @@ pub fn lam_step(re: &RecExpr<Lambda>) -> Option<RecExpr<Lambda>> {
             let [l, r] = &*re.children else { panic!() };
 
             // beta-reduce
-            if let Lambda::Lam(x, _) = &l.node {
+            if let Lambda::Lam(Bind{slot:x, ..}) = &l.node {
                 let [b] = &*l.children else { panic!() };
                 return Some(lam_subst(b, *x, r));
             }
@@ -65,7 +65,7 @@ pub fn lam_step(re: &RecExpr<Lambda>) -> Option<RecExpr<Lambda>> {
 
 fn lam_subst(re: &RecExpr<Lambda>, x: Slot, t: &RecExpr<Lambda>) -> RecExpr<Lambda> {
     match &re.node {
-        Lambda::Lam(y, _) => {
+        Lambda::Lam(Bind{slot:y, ..}) => {
             let [b] = &*re.children else { panic!() };
             if x == *y {
                 re.clone()
@@ -115,7 +115,7 @@ fn lam_subst(re: &RecExpr<Lambda>, x: Slot, t: &RecExpr<Lambda>) -> RecExpr<Lamb
 
 fn lam_free_variables(re: &RecExpr<Lambda>) -> HashSet<Slot> {
     match &re.node {
-        Lambda::Lam(x, _) => {
+        Lambda::Lam(Bind{slot:x, ..}) => {
             let [b] = &*re.children else { panic!() };
             &lam_free_variables(b) - &singleton_set(*x)
         }
