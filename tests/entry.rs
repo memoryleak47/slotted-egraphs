@@ -1,8 +1,6 @@
 pub use std::hash::Hash;
 pub use slotted_egraphs::*;
 
-pub use symbol_table::GlobalSymbol as Symbol;
-
 pub type HashMap<K, V> = fnv::FnvHashMap<K, V>;
 pub type HashSet<T> = fnv::FnvHashSet<T>;
 

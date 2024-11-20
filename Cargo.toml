@@ -18,9 +18,9 @@ features = ["explanations"]
 slotted-egraphs-derive = "=0.0.1"
 fnv = "1.0.7"
 tracing = { version = "0.1", features = ["attributes"], optional = true }
+symbol_table = { version = "0.3", features = ["global"] }
 
 [dev-dependencies]
-symbol_table = { version = "0.3", features = ["global"]}
 rand = "0.8.5"
 
 [profile.release]

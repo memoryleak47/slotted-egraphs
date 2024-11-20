@@ -25,7 +25,7 @@ pub fn rewrite_arith(eg: &mut EGraph<Arith>) {
 
 fn beta() -> Rewrite<Arith> {
     let pat = "(app (lam $1 ?b) ?t)";
-    let outpat = "(let $1 ?t ?b)";
+    let outpat = "(let $1 ?b ?t)";
 
     Rewrite::new("beta", pat, outpat)
 }
@@ -46,7 +46,7 @@ fn eta_expansion() -> Rewrite<Arith> {
 }
 
 fn my_let_unused() -> Rewrite<Arith> {
-    let pat = "(let $1 ?t ?b)";
+    let pat = "(let $1 ?b ?t)";
     let outpat = "?b";
     Rewrite::new_if("my-let-unused", pat, outpat, |subst, _| {
         !subst["b"].slots().contains(&Slot::numeric(1))
@@ -54,22 +54,22 @@ fn my_let_unused() -> Rewrite<Arith> {
 }
 
 fn let_var_same() -> Rewrite<Arith> {
-    let pat = "(let $1 ?e (var $1))";
+    let pat = "(let $1 (var $1) ?e)";
     let outpat = "?e";
     Rewrite::new("let-var-same", pat, outpat)
 }
 
 fn let_app() -> Rewrite<Arith> {
-    let pat = "(let $1 ?e (app ?a ?b))";
-    let outpat = "(app (let $1 ?e ?a) (let $1 ?e ?b))";
+    let pat = "(let $1 (app ?a ?b) ?e)";
+    let outpat = "(app (let $1 ?a ?e) (let $1 ?b ?e))";
     Rewrite::new_if("let-app", pat, outpat, |subst, _| {
         subst["a"].slots().contains(&Slot::numeric(1)) || subst["b"].slots().contains(&Slot::numeric(1))
     })
 }
 
 fn let_lam_diff() -> Rewrite<Arith> {
-    let pat = "(let $1 ?e (lam $2 ?b))";
-    let outpat = "(lam $2 (let $1 ?e ?b))";
+    let pat = "(let $1 (lam $2 ?b) ?e)";
+    let outpat = "(lam $2 (let $1 ?b ?e))";
     Rewrite::new_if("let-lam-diff", pat, outpat, |subst, _| {
         subst["b"].slots().contains(&Slot::numeric(1))
     })

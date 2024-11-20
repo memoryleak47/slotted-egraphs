@@ -20,6 +20,8 @@ use std::ops::Deref;
 pub(crate) type HashMap<K, V> = fnv::FnvHashMap<K, V>;
 pub(crate) type HashSet<T> = fnv::FnvHashSet<T>;
 
+pub use symbol_table::GlobalSymbol as Symbol;
+
 // Whether to enable invariant-checks.
 #[cfg(feature = "checks")]
 const CHECKS: bool = true;

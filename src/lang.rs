@@ -45,6 +45,7 @@ macro_rules! impl_slotless_lang {
 }
 
 impl_slotless_lang!(u32);
+impl_slotless_lang!(Symbol);
 
 impl<L: Language> Language for Bind<L> {
     fn all_slot_occurences_mut(&mut self) -> Vec<&mut Slot> {
