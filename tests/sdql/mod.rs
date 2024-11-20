@@ -11,6 +11,6 @@ define_language! {
         Lam(Bind<AppliedId>) = "lambda",
         Var(Slot) = "var",
         Sing(AppliedId, AppliedId) = "sing",
-        Sum(Slot, Slot, AppliedId, AppliedId) = "sum",
+        Sum(AppliedId, Bind<Bind<AppliedId>>) = "sum",
     }
 }

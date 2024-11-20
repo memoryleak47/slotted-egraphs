@@ -1,8 +1,8 @@
 use crate::*;
 
 pub fn sdql_rules() -> Vec<Rewrite<Sdql>> {
-    let pat = "(sum $x $y ?R (sing ?e1 ?e2))";
-    let outpat = "(sing ?e1 (sum $x $y ?R ?e2))";
+    let pat = "(sum ?R $x $y (sing ?e1 ?e2))";
+    let outpat = "(sing ?e1 (sum ?R $x $y ?e2))";
 
     vec![Rewrite::new_if("rule1", pat, outpat, |subst, _| {
         !subst["e1"].slots().contains(&Slot::named("x"))
@@ -16,7 +16,7 @@ pub fn sdql_rules() -> Vec<Rewrite<Sdql>> {
 
 #[test]
 fn t1() {
-    let input = &format!("(lambda $R (lambda $a (sum $i $j (var $R) (sing (var $a) (var $j)))))");
+    let input = &format!("(lambda $R (lambda $a (sum (var $R) $i $j (sing (var $a) (var $j)))))");
 
     let re: RecExpr<Sdql> = RecExpr::parse(input).unwrap();
     let rewrites = sdql_rules();
