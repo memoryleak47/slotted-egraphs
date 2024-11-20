@@ -48,7 +48,7 @@ pub fn rise_rules(subst_m: RiseSubstMethod) -> Vec<Rewrite<Rise>> {
 
 fn beta() -> Rewrite<Rise> {
     let pat = "(app (lam $1 ?body) ?e)";
-    let outpat = "(let $1 ?e ?body)";
+    let outpat = "(let $1 ?body ?e)";
 
     Rewrite::new("beta", pat, outpat)
 }
@@ -70,7 +70,7 @@ fn eta_expansion() -> Rewrite<Rise> {
 }
 
 fn my_let_unused() -> Rewrite<Rise> {
-    let pat = "(let $1 ?t ?b)";
+    let pat = "(let $1 ?b ?t)";
     let outpat = "?b";
     Rewrite::new_if("my-let-unused", pat, outpat, |subst, _| {
         !subst["b"].slots().contains(&Slot::numeric(1))
@@ -78,48 +78,48 @@ fn my_let_unused() -> Rewrite<Rise> {
 }
 
 fn let_var_same() -> Rewrite<Rise> {
-    let pat = "(let $1 ?e (var $1))";
+    let pat = "(let $1 (var $1) ?e)";
     let outpat = "?e";
     Rewrite::new("let-var-same", pat, outpat)
 }
 
 fn let_var_diff() -> Rewrite<Rise> {
-    let pat = "(let $1 ?e (var $2))";
+    let pat = "(let $1 (var $2) ?e)";
     let outpat = "(var $2)";
     Rewrite::new("let-var-diff", pat, outpat)
 }
 
 fn let_app() -> Rewrite<Rise> {
-    let pat = "(let $1 ?e (app ?a ?b))";
-    let outpat = "(app (let $1 ?e ?a) (let $1 ?e ?b))";
+    let pat = "(let $1 (app ?a ?b) ?e)";
+    let outpat = "(app (let $1 ?a ?e) (let $1 ?b ?e))";
     Rewrite::new_if("let-app", pat, outpat, |subst, _| {
         subst["a"].slots().contains(&Slot::numeric(1)) || subst["b"].slots().contains(&Slot::numeric(1))
     })
 }
 
 fn let_app_unopt() -> Rewrite<Rise> {
-    let pat = "(let $1 ?e (app ?a ?b))";
-    let outpat = "(app (let $1 ?e ?a) (let $1 ?e ?b))";
+    let pat = "(let $1 (app ?a ?b) ?e)";
+    let outpat = "(app (let $1 ?a ?e) (let $1 ?b ?e))";
     Rewrite::new("let-app-unopt", pat, outpat)
 }
 
 fn let_lam_diff() -> Rewrite<Rise> {
-    let pat = "(let $1 ?e (lam $2 ?body))";
-    let outpat = "(lam $2 (let $1 ?e ?body))";
+    let pat = "(let $1 (lam $2 ?body) ?e)";
+    let outpat = "(lam $2 (let $1 ?body ?e))";
     Rewrite::new_if("let-lam-diff", pat, outpat, |subst, _| {
         subst["body"].slots().contains(&Slot::numeric(1))
     })
 }
 
 fn let_lam_diff_unopt() -> Rewrite<Rise> {
-    let pat = "(let $1 ?e (lam $2 ?body))";
-    let outpat = "(lam $2 (let $1 ?e ?body))";
+    let pat = "(let $1 (lam $2 ?body) ?e)";
+    let outpat = "(lam $2 (let $1 ?body ?e))";
     Rewrite::new("let-lam-diff-unopt", pat, outpat)
 }
 
 fn let_const() -> Rewrite<Rise> {
     // is the const-detection at the same time as the baseline? probably not relevant.
-    let pat = Pattern::parse("(let $1 ?t ?c)").unwrap();
+    let pat = Pattern::parse("(let $1 ?c ?t)").unwrap();
 
     let rt: RewriteT<Rise, (), ()> = RewriteT {
         searcher: Box::new(|_| ()),
@@ -284,7 +284,7 @@ fn beta_extr_direct() -> Rewrite<Rise> {
 fn re_subst(s: Slot, b: RecExpr<Rise>, t: &RecExpr<Rise>) -> RecExpr<Rise> {
     let new_node = match b.node {
         Rise::Var(s2) if s == s2 => return t.clone(),
-        Rise::Lam(s2, _) if s == s2 => panic!("This shouldn't be possible!"),
+        Rise::Lam(Bind { slot, .. }) if s == slot => panic!("This shouldn't be possible!"),
         Rise::Let(..) => panic!("This shouldn't be here!"),
         old => old,
     };
