@@ -45,7 +45,7 @@ fn rew(name: &str, s1: &str, s2: &str) -> Rewrite<Array> {
 
 fn beta() -> Rewrite<Array> {
     let pat = "(app (lam $1 ?body) ?e)";
-    let outpat = "(let $1 ?e ?body)";
+    let outpat = "(let $1 ?body ?e)";
 
     Rewrite::new("beta", pat, outpat)
 }
@@ -60,7 +60,7 @@ fn eta() -> Rewrite<Array> {
 }
 
 fn my_let_unused() -> Rewrite<Array> {
-    let pat = "(let $1 ?t ?b)";
+    let pat = "(let $1 ?b ?t)";
     let outpat = "?b";
     Rewrite::new_if("my-let-unused", pat, outpat, |subst, _| {
         !subst["b"].slots().contains(&Slot::numeric(1))
@@ -68,27 +68,27 @@ fn my_let_unused() -> Rewrite<Array> {
 }
 
 fn let_var_same() -> Rewrite<Array> {
-    let pat = "(let $1 ?e (var $1))";
+    let pat = "(let $1 (var $1) ?e)";
     let outpat = "?e";
     Rewrite::new("let-var-same", pat, outpat)
 }
 
 fn let_var_diff() -> Rewrite<Array> {
-    let pat = "(let $1 ?e (var $2))";
+    let pat = "(let $1 (var $2) ?e)";
     let outpat = "(var $2)";
     Rewrite::new("let-var-diff", pat, outpat)
 }
 
 fn let_app() -> Rewrite<Array> {
-    let pat = "(let $1 ?e (app ?a ?b))";
-    let outpat = "(app (let $1 ?e ?a) (let $1 ?e ?b))";
+    let pat = "(let $1 (app ?a ?b) ?e)";
+    let outpat = "(app (let $1 ?a ?e) (let $1 ?b ?e))";
     Rewrite::new_if("let-app", pat, outpat, |subst, _| {
         subst["a"].slots().contains(&Slot::numeric(1)) || subst["b"].slots().contains(&Slot::numeric(1))
     })
 }
 
 fn let_lam_diff() -> Rewrite<Array> {
-    let pat = "(let $1 ?e (lam $2 ?body))";
+    let pat = "(let $1 (lam $2 ?body) ?e)";
     let outpat = "(lam $2 (let $1 ?e ?body))";
     Rewrite::new_if("let-lam-diff", pat, outpat, |subst, _| {
         subst["body"].slots().contains(&Slot::numeric(1))
