@@ -1,5 +1,69 @@
 use crate::*;
 
+impl Language for AppliedId {
+    fn all_slot_occurences_mut(&mut self) -> Vec<&mut Slot> { self.m.values_mut().collect() }
+    fn public_slot_occurences_mut(&mut self) -> Vec<&mut Slot> { self.m.values_mut().collect() }
+    fn applied_id_occurences_mut(&mut self) -> Vec<&mut AppliedId> { vec![self] }
+    fn to_op(&self) -> (String, Vec<Child>) { (String::new(), vec![Child::AppliedId(self.clone())]) }
+    fn from_op(op: &str, children: Vec<Child>) -> Option<Self> {
+        assert!(op == "");
+        let [Child::AppliedId(x)] = &children[..] else { return None };
+        Some(x.clone())
+    }
+    fn num_children_hint() -> Option<usize> { Some(1) }
+}
+
+impl Language for Slot {
+    fn all_slot_occurences_mut(&mut self) -> Vec<&mut Slot> { vec![self] }
+    fn public_slot_occurences_mut(&mut self) -> Vec<&mut Slot> { vec![self] }
+    fn applied_id_occurences_mut(&mut self) -> Vec<&mut AppliedId> { vec![] }
+    fn to_op(&self) -> (String, Vec<Child>) { (String::new(), vec![Child::Slot(self.clone())]) }
+    fn from_op(op: &str, children: Vec<Child>) -> Option<Self> {
+        assert!(op == "");
+        let [Child::Slot(x)] = &children[..] else { return None };
+        Some(x.clone())
+    }
+    fn num_children_hint() -> Option<usize> { Some(1) }
+}
+
+
+impl<L: Language> Language for Bind<L> {
+    fn all_slot_occurences_mut(&mut self) -> Vec<&mut Slot> {
+        let mut v = vec![&mut self.slot];
+        v.extend(self.elem.all_slot_occurences_mut());
+        v
+    }
+
+    fn public_slot_occurences_mut(&mut self) -> Vec<&mut Slot> {
+        let mut v = self.elem.public_slot_occurences_mut();
+        v.retain(|x| **x != self.slot);
+        v
+    }
+
+    fn applied_id_occurences_mut(&mut self) -> Vec<&mut AppliedId> { self.elem.applied_id_occurences_mut() }
+
+    fn to_op(&self) -> (String, Vec<Child>) {
+        let mut v = vec![Child::Slot(self.slot)];
+        let (x, y) = self.elem.to_op();
+        assert!(x == "");
+        v.extend(y);
+
+        (String::new(), v)
+    }
+
+    fn from_op(op: &str, mut children: Vec<Child>) -> Option<Self> {
+        assert!(op == "");
+        let Child::Slot(slot) = children.remove(0) else { return None };
+        let elem = L::from_op("", children)?;
+
+        Some(Bind {
+            slot,
+            elem,
+        })
+    }
+    fn num_children_hint() -> Option<usize> { L::num_children_hint().map(|x| x+1) }
+}
+
 #[derive(Hash, PartialEq, Eq, Debug, Clone)]
 pub struct Bind<T> {
     pub slot: Slot,
@@ -50,6 +114,9 @@ pub trait Language: Debug + Clone + Hash + Eq {
     ///
     /// This function will be used to parse your E-Node.
     fn from_op(op: &str, children: Vec<Child>) -> Option<Self>;
+
+    #[doc(hidden)]
+    fn num_children_hint() -> Option<usize> { todo!() }
 
     #[track_caller]
     #[doc(hidden)]
