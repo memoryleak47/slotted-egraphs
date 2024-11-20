@@ -7,17 +7,11 @@ pub type HashSet<T> = fnv::FnvHashSet<T>;
 mod arith;
 pub use arith::*;
 
-mod array;
-pub use array::*;
-
 mod lambda;
 pub use lambda::*;
 
 mod rise;
 pub use rise::*;
-
-mod sym;
-pub use sym::*;
 
 mod var;
 pub use var::*;
