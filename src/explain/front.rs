@@ -147,12 +147,12 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         let null_r = nullify_app_ids(&r_node);
         assert_eq!(null_l, null_r);
 
-        let n = l_node.applied_id_occurences().len();
+        let n = l_node.applied_id_occurrences().len();
         for i in 0..n {
             let lhs = &self.semify_equation(&child_proofs[i]);
             let rhs = &Equation {
-                l: l_node.applied_id_occurences()[i].clone(),
-                r: r_node.applied_id_occurences()[i].clone(),
+                l: l_node.applied_id_occurrences()[i].clone(),
+                r: r_node.applied_id_occurrences()[i].clone(),
             };
             assert_match_equation(lhs, rhs);
         }
@@ -168,8 +168,8 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
 
         let mut final_child_proofs = Vec::new();
         for i in 0..n {
-            let li = l_node.applied_id_occurences()[i].clone();
-            let ri = r_node.applied_id_occurences()[i].clone();
+            let li = l_node.applied_id_occurrences()[i].clone();
+            let ri = r_node.applied_id_occurrences()[i].clone();
 
             let goal = Equation { l: li, r: ri };
             let old_prf = child_proofs[i].clone();
@@ -195,15 +195,15 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         let r_node = alpha_normalize(&rr);
 
         let mut map = SlotMap::new();
-        for (l, r) in nullify_app_ids(&l_node).all_slot_occurences().iter().zip(nullify_app_ids(&r_node).all_slot_occurences().iter()) {
+        for (l, r) in nullify_app_ids(&l_node).all_slot_occurrences().iter().zip(nullify_app_ids(&r_node).all_slot_occurrences().iter()) {
             try_insert(*l, *r, &mut map);
         }
 
-        let n = l_node.applied_id_occurences().len();
+        let n = l_node.applied_id_occurrences().len();
         for i in 0..n {
             let eq = Equation {
-                l: l_node.applied_id_occurences()[i].clone(),
-                r: r_node.applied_id_occurences()[i].clone(),
+                l: l_node.applied_id_occurrences()[i].clone(),
+                r: r_node.applied_id_occurrences()[i].clone(),
             };
             // eq.l.m :: syn_slots(eq.l.id) -> syn_slots(l_id)
             // eq.r.m :: syn_slots(eq.r.id) -> syn_slots(r_id)

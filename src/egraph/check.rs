@@ -150,7 +150,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
                 let perm = computed_bij.inverse().compose_partial(&bij);
                 assert!(c.group.contains(&perm));
 
-                for x in real.applied_id_occurences() {
+                for x in real.applied_id_occurrences() {
                     check_internal_applied_id::<L, N>(self, &x);
                 }
             }

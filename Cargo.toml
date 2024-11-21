@@ -15,7 +15,7 @@ trace = ["tracing/max_level_trace", "tracing/release_max_level_trace", "tracing"
 features = ["explanations"]
 
 [dependencies]
-slotted-egraphs-derive = "=0.0.1"
+slotted-egraphs-derive = "=0.0.2"
 fnv = "1.0.7"
 tracing = { version = "0.1", features = ["attributes"], optional = true }
 symbol_table = { version = "0.3", features = ["global"] }

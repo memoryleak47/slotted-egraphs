@@ -29,7 +29,7 @@ impl<L: Language> Step<L> {
                     Child::AppliedId(_) => {
                         let child_node = self.dst.children[child_node_idx].clone();
                         if child_node_idx == (*next as usize) {
-                            let substep = Step { 
+                            let substep = Step {
                                 dst: child_node, 
                                 rw_pos: subpos.to_vec(), 
                                 jus: self.jus.clone(), 
@@ -105,7 +105,7 @@ impl ProvenEqRaw {
                 let mut subdst = eq.side(/*src:*/ false, symm, graph);
                 subdst.apply_slot_map(&ctx.slot_map);
                 let dst = ctx.head.replace_subexpr(&pos, subdst);
-                let step = Step { 
+                let step = Step {
                     dst: dst.clone(), rw_pos: pos, jus: jus.as_ref().unwrap().clone(), back: symm 
                 };
                 ctx.head = dst;
@@ -146,11 +146,11 @@ impl<L: Language> FlatteningContext<L> {
         let mut child_idx = 0;
         for idx in 0..head_children.len() {
             match (&head_children[idx], &src_children[idx]) {
-                (Child::AppliedId(_), Child::AppliedId(_)) => { 
+                (Child::AppliedId(_), Child::AppliedId(_)) => {
                     Self::update_slot_map_core(map, &head.children[child_idx], &src.children[child_idx]);
                     child_idx += 1;
                 },
-                (Child::Slot(h), Child::Slot(s)) => { 
+                (Child::Slot(h), Child::Slot(s)) => {
                     if h != s { map.insert(*s, *h); }
                 },
                 _ => panic!("'FlatteningContext.update_slot_map_core' found distinct children.")
@@ -181,7 +181,7 @@ impl<L: Language> RecExpr<L> {
     }
 
     fn apply_slot_map(&mut self, m: &HashMap<Slot, Slot>) {
-        for slot in self.node.all_slot_occurences_mut().iter_mut() { 
+        for slot in self.node.all_slot_occurrences_mut().iter_mut() {
             **slot = Self::map_slot(**slot, m); 
         }
         for idx in 0..self.children.len() {

@@ -164,7 +164,7 @@ impl TransitivityProof {
 pub(crate) fn alpha_normalize<L: Language>(n: &L) -> L {
     let (sh, bij) = n.weak_shape();
     if CHECKS {
-        let all_slots: HashSet<_> = sh.all_slot_occurences().into_iter().collect();
+        let all_slots: HashSet<_> = sh.all_slot_occurrences().into_iter().collect();
         assert!(&bij.values().is_disjoint(&all_slots));
     }
     sh.apply_slotmap(&bij)
@@ -181,8 +181,8 @@ impl CongruenceProof {
         let null_r = nullify_app_ids(&r);
         assert_eq!(null_l, null_r);
 
-        let l_v = l.applied_id_occurences();
-        let r_v = r.applied_id_occurences();
+        let l_v = l.applied_id_occurrences();
+        let r_v = r.applied_id_occurrences();
 
         assert_eq!(l_v.len(), child_proofs.len());
         assert_eq!(r_v.len(), child_proofs.len());

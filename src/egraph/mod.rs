@@ -136,7 +136,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         let mut out = HashSet::default();
         for x in self.enodes(i.id) {
             // This is necessary, as i.slots() might collide with the private/redundant slots of our e-nodes.
-            let set: HashSet<_> = x.all_slot_occurences()
+            let set: HashSet<_> = x.all_slot_occurrences()
                                    .into_iter()
                                    .collect::<HashSet<_>>()
                                    .difference(&self.classes[&i.id].slots)
@@ -270,23 +270,23 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         let e = self.proven_proven_find_enode(e);
         self.proven_proven_get_group_compatible_variants(&e)
             .into_iter()
-            .min_by_key(|pn| pn.weak_shape().0.elem.all_slot_occurences())
+            .min_by_key(|pn| pn.weak_shape().0.elem.all_slot_occurrences())
             .unwrap()
     }
 
     pub(crate) fn proven_proven_get_group_compatible_variants(&self, enode: &ProvenNode<L>) -> HashSet<ProvenNode<L>> {
         // should only be called with an up-to-date e-node.
         if CHECKS {
-            for x in enode.elem.applied_id_occurences() {
+            for x in enode.elem.applied_id_occurrences() {
                 assert!(self.is_alive(x.id));
             }
         }
 
-        let n = enode.elem.applied_id_occurences().len();
+        let n = enode.elem.applied_id_occurrences().len();
 
         let mut out = HashSet::default();
 
-        let groups: Vec<Vec<ProvenPerm>> = enode.elem.applied_id_occurences().iter().map(
+        let groups: Vec<Vec<ProvenPerm>> = enode.elem.applied_id_occurrences().iter().map(
                     |x| self.classes[&x.id].group.all_perms().into_iter().collect()
             ).collect();
 
@@ -362,7 +362,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     /// This function will use [EGraph::get_syn_node] repeatedly to build up this term.
     pub fn get_syn_expr(&self, i: &AppliedId) -> RecExpr<L> {
         let enode = self.get_syn_node(i);
-        let cs = enode.applied_id_occurences()
+        let cs = enode.applied_id_occurrences()
                       .iter()
                       .map(|x| self.get_syn_expr(x))
                       .collect();

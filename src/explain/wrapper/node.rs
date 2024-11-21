@@ -28,8 +28,8 @@ impl<L: Language> ProvenNode<L> {
     // checks that `proofs` brings us from `base` to `elem`.
     #[cfg(feature = "explanations")]
     pub(crate) fn check_base(&self, base: &L) {
-        let l = base.applied_id_occurences();
-        let r = self.elem.applied_id_occurences();
+        let l = base.applied_id_occurrences();
+        let r = self.elem.applied_id_occurrences();
         let n = self.proofs.len();
         assert_eq!(n, l.len());
         assert_eq!(n, r.len());
@@ -58,7 +58,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         #[cfg(feature = "explanations")]
         {
             let a = &pn.proofs;
-            let b = &pn.elem.applied_id_occurences();
+            let b = &pn.elem.applied_id_occurrences();
             assert_eq!(a.len(), b.len());
             for (x, y) in a.iter().zip(b.iter()) {
                 assert_eq!(x.r.id, y.id);
@@ -74,7 +74,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
 
     pub(crate) fn refl_pn(&self, start: &L) -> ProvenNode<L> {
         #[cfg(feature = "explanations")]
-        let rfl = start.applied_id_occurences()
+        let rfl = start.applied_id_occurrences()
                        .into_iter()
                        .map(|x| self.refl_proof(x.id))
                        .collect();
@@ -95,9 +95,9 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
 
     pub(crate) fn chain_pn_map(&self, start: &ProvenNode<L>, f: impl Fn(usize, ProvenAppliedId) -> ProvenAppliedId) -> ProvenNode<L> {
         let mut pn = start.clone();
-        let n = pn.elem.applied_id_occurences().len();
+        let n = pn.elem.applied_id_occurrences().len();
 
-        let mut app_ids_mut: Vec<&mut AppliedId> = pn.elem.applied_id_occurences_mut();
+        let mut app_ids_mut: Vec<&mut AppliedId> = pn.elem.applied_id_occurrences_mut();
 
         #[cfg(feature = "explanations")]
         let mut proofs_mut: &mut [ProvenEq] = &mut pn.proofs;

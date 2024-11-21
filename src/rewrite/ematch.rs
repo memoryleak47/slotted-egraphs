@@ -58,12 +58,12 @@ fn ematch_impl<L: Language, N: Analysis<L>>(pattern: &Pattern<L>, st: State, i: 
 
                     let mut st = st.clone();
 
-                    for (x, y) in clear_n2.all_slot_occurences().into_iter().zip(n.all_slot_occurences().into_iter()) {
+                    for (x, y) in clear_n2.all_slot_occurrences().into_iter().zip(n.all_slot_occurrences().into_iter()) {
                         if !try_insert_compatible_slotmap_bij(x, y, &mut st.partial_slotmap) { continue 'nodeloop; }
                     }
 
                     let mut acc = vec![st];
-                    for (sub_id, sub_pat) in n2.applied_id_occurences().into_iter().zip(children.iter()) {
+                    for (sub_id, sub_pat) in n2.applied_id_occurrences().into_iter().zip(children.iter()) {
                         let mut next = Vec::new();
                         for a in acc {
                             next.extend(ematch_impl(sub_pat, a, sub_id.clone(), eg));
@@ -82,7 +82,7 @@ fn ematch_impl<L: Language, N: Analysis<L>>(pattern: &Pattern<L>, st: State, i: 
 
 pub(crate) fn nullify_app_ids<L: Language>(l: &L) -> L {
     let mut l = l.clone();
-    for x in l.applied_id_occurences_mut() {
+    for x in l.applied_id_occurrences_mut() {
         *x = AppliedId::null();
     }
     l

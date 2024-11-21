@@ -34,7 +34,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
 
         #[cfg(feature = "explanations")]
         {
-            let a: Vec<Id> = self.get_syn_node(&self.mk_syn_identity_applied_id(pc.pai.proof.l.id)).applied_id_occurences().iter().map(|x| x.id).collect();
+            let a: Vec<Id> = self.get_syn_node(&self.mk_syn_identity_applied_id(pc.pai.proof.l.id)).applied_id_occurrences().iter().map(|x| x.id).collect();
             let b: Vec<Id> = pc.node.proofs.iter().map(|eq| eq.l.id).collect();
             assert_eq!(a, b);
         }

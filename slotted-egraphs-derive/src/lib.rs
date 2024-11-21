@@ -17,9 +17,9 @@ pub fn define_language(input: TokenStream1) -> TokenStream1 {
                                       }).collect();
 
     let ident_names: Vec<Ident> = ie.variants.iter().map(|x| x.ident.clone()).collect();
-    let all_slot_occurences_mut_arms: Vec<TokenStream2> = ie.variants.iter().map(|x| produce_all_slot_occurences_mut(&name, x)).collect();
-    let public_slot_occurences_mut_arms: Vec<TokenStream2> = ie.variants.iter().map(|x| produce_public_slot_occurences_mut(&name, x)).collect();
-    let applied_id_occurences_mut_arms: Vec<TokenStream2> = ie.variants.iter().map(|x| produce_applied_id_occurences_mut(&name, x)).collect();
+    let all_slot_occurrences_mut_arms: Vec<TokenStream2> = ie.variants.iter().map(|x| produce_all_slot_occurrences_mut(&name, x)).collect();
+    let public_slot_occurrences_mut_arms: Vec<TokenStream2> = ie.variants.iter().map(|x| produce_public_slot_occurrences_mut(&name, x)).collect();
+    let applied_id_occurrences_mut_arms: Vec<TokenStream2> = ie.variants.iter().map(|x| produce_applied_id_occurrences_mut(&name, x)).collect();
     let to_op_arms: Vec<TokenStream2> = ie.variants.iter().zip(&str_names).map(|(x, n)| produce_to_op(&name, &n, x)).collect();
     let from_op_arms1: Vec<TokenStream2> = ie.variants.iter().zip(&str_names).filter_map(|(x, n)| produce_from_op1(&name, &n, x)).collect();
     let from_op_arms2: Vec<TokenStream2> = ie.variants.iter().zip(&str_names).filter_map(|(x, n)| produce_from_op2(&name, &n, x)).collect();
@@ -29,19 +29,19 @@ pub fn define_language(input: TokenStream1) -> TokenStream1 {
         #ie
 
         impl Language for #name {
-            fn all_slot_occurences_mut(&mut self) -> Vec<&mut Slot> {
+            fn all_slot_occurrences_mut(&mut self) -> Vec<&mut Slot> {
                 match self {
-                    #(#all_slot_occurences_mut_arms),*
+                    #(#all_slot_occurrences_mut_arms),*
                 }
             }
-            fn public_slot_occurences_mut(&mut self) -> Vec<&mut Slot> {
+            fn public_slot_occurrences_mut(&mut self) -> Vec<&mut Slot> {
                 match self {
-                    #(#public_slot_occurences_mut_arms),*
+                    #(#public_slot_occurrences_mut_arms),*
                 }
             }
-            fn applied_id_occurences_mut(&mut self) -> Vec<&mut AppliedId> {
+            fn applied_id_occurrences_mut(&mut self) -> Vec<&mut AppliedId> {
                 match self {
-                    #(#applied_id_occurences_mut_arms),*
+                    #(#applied_id_occurrences_mut_arms),*
                 }
             }
 
@@ -64,7 +64,7 @@ pub fn define_language(input: TokenStream1) -> TokenStream1 {
     }.to_token_stream().into()
 }
 
-fn produce_all_slot_occurences_mut(name: &Ident, v: &Variant) -> TokenStream2 {
+fn produce_all_slot_occurrences_mut(name: &Ident, v: &Variant) -> TokenStream2 {
     let variant_name = &v.ident;
     let n = v.fields.len();
     let fields: Vec<Ident> = (0..n).map(|x| Ident::new(&format!("a{x}"), proc_macro2::Span::call_site())).collect();
@@ -72,14 +72,14 @@ fn produce_all_slot_occurences_mut(name: &Ident, v: &Variant) -> TokenStream2 {
         #name::#variant_name(#(#fields),*) => {
             let mut out: Vec<&mut Slot> = Vec::new();
             #(
-                out.extend(#fields .all_slot_occurences_mut());
+                out.extend(#fields .all_slot_occurrences_mut());
             )*
             out
         }
     }
 }
 
-fn produce_public_slot_occurences_mut(name: &Ident, v: &Variant) -> TokenStream2 {
+fn produce_public_slot_occurrences_mut(name: &Ident, v: &Variant) -> TokenStream2 {
     let variant_name = &v.ident;
     let n = v.fields.len();
     let fields: Vec<Ident> = (0..n).map(|x| Ident::new(&format!("a{x}"), proc_macro2::Span::call_site())).collect();
@@ -87,14 +87,14 @@ fn produce_public_slot_occurences_mut(name: &Ident, v: &Variant) -> TokenStream2
         #name::#variant_name(#(#fields),*) => {
             let mut out: Vec<&mut Slot> = Vec::new();
             #(
-                out.extend(#fields .public_slot_occurences_mut());
+                out.extend(#fields .public_slot_occurrences_mut());
             )*
             out
         }
     }
 }
 
-fn produce_applied_id_occurences_mut(name: &Ident, v: &Variant) -> TokenStream2 {
+fn produce_applied_id_occurrences_mut(name: &Ident, v: &Variant) -> TokenStream2 {
     let variant_name = &v.ident;
     let n = v.fields.len();
     let fields: Vec<Ident> = (0..n).map(|x| Ident::new(&format!("a{x}"), proc_macro2::Span::call_site())).collect();
@@ -102,7 +102,7 @@ fn produce_applied_id_occurences_mut(name: &Ident, v: &Variant) -> TokenStream2 
         #name::#variant_name(#(#fields),*) => {
             let mut out: Vec<&mut AppliedId> = Vec::new();
             #(
-                out.extend(#fields .applied_id_occurences_mut());
+                out.extend(#fields .applied_id_occurrences_mut());
             )*
             out
         }

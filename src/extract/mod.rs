@@ -33,7 +33,7 @@ impl<L: Language, CF: CostFunction<L>> Extractor<L, CF> {
 
         for id in eg.ids() {
             for x in eg.enodes(id) {
-                if x.applied_id_occurences().is_empty() {
+                if x.applied_id_occurrences().is_empty() {
                     let x = eg.class_nf(&x);
                     let c = cost_fn.cost(&x, |_| panic!());
                     queue.push(WithOrdRev(x, c));
@@ -49,7 +49,7 @@ impl<L: Language, CF: CostFunction<L>> Extractor<L, CF> {
             map.insert(i.id, WithOrdRev(enode, c));
 
             for x in eg.usages(i.id).clone() {
-                if x.applied_id_occurences().iter().all(|i| map.contains_key(&i.id)) {
+                if x.applied_id_occurrences().iter().all(|i| map.contains_key(&i.id)) {
                     if eg.lookup(&x).map(|i| map.contains_key(&i.id)).unwrap_or(false) {
                         continue;
                     }
@@ -71,7 +71,7 @@ impl<L: Language, CF: CostFunction<L>> Extractor<L, CF> {
 
         // do I need to refresh some slots here?
         let l = self.map[&i.id].0.apply_slotmap(&i.m);
-        for child in l.applied_id_occurences() {
+        for child in l.applied_id_occurrences() {
             let n = self.extract(&child, eg);
             children.push(n);
         }

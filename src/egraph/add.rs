@@ -4,7 +4,7 @@ use crate::*;
 impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     pub fn add_syn_expr(&mut self, re: RecExpr<L>) -> AppliedId {
         let mut n = re.node;
-        let mut refs: Vec<&mut AppliedId> = n.applied_id_occurences_mut();
+        let mut refs: Vec<&mut AppliedId> = n.applied_id_occurrences_mut();
         if CHECKS {
             assert_eq!(re.children.len(), refs.len());
         }
@@ -67,7 +67,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
 impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     pub fn add_expr(&mut self, re: RecExpr<L>) -> AppliedId {
         let mut n = re.node;
-        let mut refs: Vec<&mut AppliedId> = n.applied_id_occurences_mut();
+        let mut refs: Vec<&mut AppliedId> = n.applied_id_occurrences_mut();
         if CHECKS {
             assert_eq!(re.children.len(), refs.len());
         }

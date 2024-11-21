@@ -10,7 +10,7 @@ impl CostFunction<Arith> for AstSizeNoLet {
             MyCost::Infinite
         } else {
             let mut s = MyCost::Finite(1);
-            for x in enode.applied_id_occurences() {
+            for x in enode.applied_id_occurrences() {
                 s = s.add(&costs(x.id));
             }
             s

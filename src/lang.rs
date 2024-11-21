@@ -1,9 +1,9 @@
 use crate::*;
 
 impl Language for AppliedId {
-    fn all_slot_occurences_mut(&mut self) -> Vec<&mut Slot> { self.m.values_mut().collect() }
-    fn public_slot_occurences_mut(&mut self) -> Vec<&mut Slot> { self.m.values_mut().collect() }
-    fn applied_id_occurences_mut(&mut self) -> Vec<&mut AppliedId> { vec![self] }
+    fn all_slot_occurrences_mut(&mut self) -> Vec<&mut Slot> { self.m.values_mut().collect() }
+    fn public_slot_occurrences_mut(&mut self) -> Vec<&mut Slot> { self.m.values_mut().collect() }
+    fn applied_id_occurrences_mut(&mut self) -> Vec<&mut AppliedId> { vec![self] }
     fn to_op(&self) -> (String, Vec<Child>) { (String::new(), vec![Child::AppliedId(self.clone())]) }
     fn from_op(op: &str, children: Vec<Child>) -> Option<Self> {
         assert!(op == "");
@@ -14,9 +14,9 @@ impl Language for AppliedId {
 }
 
 impl Language for Slot {
-    fn all_slot_occurences_mut(&mut self) -> Vec<&mut Slot> { vec![self] }
-    fn public_slot_occurences_mut(&mut self) -> Vec<&mut Slot> { vec![self] }
-    fn applied_id_occurences_mut(&mut self) -> Vec<&mut AppliedId> { vec![] }
+    fn all_slot_occurrences_mut(&mut self) -> Vec<&mut Slot> { vec![self] }
+    fn public_slot_occurrences_mut(&mut self) -> Vec<&mut Slot> { vec![self] }
+    fn applied_id_occurrences_mut(&mut self) -> Vec<&mut AppliedId> { vec![] }
     fn to_op(&self) -> (String, Vec<Child>) { (String::new(), vec![Child::Slot(self.clone())]) }
     fn from_op(op: &str, children: Vec<Child>) -> Option<Self> {
         assert!(op == "");
@@ -31,9 +31,9 @@ impl Language for Slot {
 macro_rules! impl_slotless_lang {
     ($id:ident) => {
         impl Language for $id {
-            fn all_slot_occurences_mut(&mut self) -> Vec<&mut Slot> { vec![] }
-            fn public_slot_occurences_mut(&mut self) -> Vec<&mut Slot> { vec![] }
-            fn applied_id_occurences_mut(&mut self) -> Vec<&mut AppliedId> { vec![] }
+            fn all_slot_occurrences_mut(&mut self) -> Vec<&mut Slot> { vec![] }
+            fn public_slot_occurrences_mut(&mut self) -> Vec<&mut Slot> { vec![] }
+            fn applied_id_occurrences_mut(&mut self) -> Vec<&mut AppliedId> { vec![] }
             fn to_op(&self) -> (String, Vec<Child>) { (self.to_string(), vec![]) }
             fn from_op(op: &str, children: Vec<Child>) -> Option<Self> {
                 if children.len() != 0 { return None; }
@@ -48,19 +48,19 @@ impl_slotless_lang!(u32);
 impl_slotless_lang!(Symbol);
 
 impl<L: Language> Language for Bind<L> {
-    fn all_slot_occurences_mut(&mut self) -> Vec<&mut Slot> {
+    fn all_slot_occurrences_mut(&mut self) -> Vec<&mut Slot> {
         let mut v = vec![&mut self.slot];
-        v.extend(self.elem.all_slot_occurences_mut());
+        v.extend(self.elem.all_slot_occurrences_mut());
         v
     }
 
-    fn public_slot_occurences_mut(&mut self) -> Vec<&mut Slot> {
-        let mut v = self.elem.public_slot_occurences_mut();
+    fn public_slot_occurrences_mut(&mut self) -> Vec<&mut Slot> {
+        let mut v = self.elem.public_slot_occurrences_mut();
         v.retain(|x| **x != self.slot);
         v
     }
 
-    fn applied_id_occurences_mut(&mut self) -> Vec<&mut AppliedId> { self.elem.applied_id_occurences_mut() }
+    fn applied_id_occurrences_mut(&mut self) -> Vec<&mut AppliedId> { self.elem.applied_id_occurrences_mut() }
 
     fn to_op(&self) -> (String, Vec<Child>) {
         let mut v = vec![Child::Slot(self.slot)];
@@ -112,18 +112,18 @@ pub enum Child {
 
 /// A trait to define your Language (i.e. your E-Node type).
 pub trait Language: Debug + Clone + Hash + Eq {
-    /// List the mutable references of all child [Slot]s in your E-Node, in order of occurence.
-    fn all_slot_occurences_mut(&mut self) -> Vec<&mut Slot>;
+    /// List the mutable references of all child [Slot]s in your E-Node, in order of occurrence.
+    fn all_slot_occurrences_mut(&mut self) -> Vec<&mut Slot>;
 
-    /// List the mutable references to all *public* child [Slot]s in your E-Node, in order of occurence.
+    /// List the mutable references to all *public* child [Slot]s in your E-Node, in order of occurrence.
     ///
     /// Public Slots are those, which are visible from the outside of that e-node.
     /// * A typical example would be a `(var $x)` e-node, which has a *public* slot `$x`.
     /// * A typical counter-example would be the `(lam $x body)` e-node, which has a *private* slot `$x`.
-    fn public_slot_occurences_mut(&mut self) -> Vec<&mut Slot>;
+    fn public_slot_occurrences_mut(&mut self) -> Vec<&mut Slot>;
 
-    /// List the mutable references to all child [AppliedId]s in your E-Node, in the order of occurence.
-    fn applied_id_occurences_mut(&mut self) -> Vec<&mut AppliedId>;
+    /// List the mutable references to all child [AppliedId]s in your E-Node, in the order of occurrence.
+    fn applied_id_occurrences_mut(&mut self) -> Vec<&mut AppliedId>;
 
     // for parsing and pretty-printing.
     /// Decomposes an E-Node into it's "operator" string and a list of children.
@@ -143,15 +143,15 @@ pub trait Language: Debug + Clone + Hash + Eq {
     #[doc(hidden)]
     fn check(&self) {
         let mut c = self.clone();
-        let all: HashSet<*mut Slot> = c.all_slot_occurences_mut().into_iter().map(|x| x as *mut Slot).collect();
-        let public: HashSet<*mut Slot> = c.public_slot_occurences_mut().into_iter().map(|x| x as *mut Slot).collect();
-        let private: HashSet<*mut Slot> = c.private_slot_occurences_mut().into_iter().map(|x| x as *mut Slot).collect();
+        let all: HashSet<*mut Slot> = c.all_slot_occurrences_mut().into_iter().map(|x| x as *mut Slot).collect();
+        let public: HashSet<*mut Slot> = c.public_slot_occurrences_mut().into_iter().map(|x| x as *mut Slot).collect();
+        let private: HashSet<*mut Slot> = c.private_slot_occurrences_mut().into_iter().map(|x| x as *mut Slot).collect();
 
         assert!(public.is_disjoint(&private));
 
         // This also catches errors, where different Slot-addresses have the same slot names. This also counts as a collision!
         let f = |x: Vec<Slot>| x.into_iter().collect::<HashSet<_>>();
-        assert!(f(c.public_slot_occurences()).is_disjoint(&f(c.private_slot_occurences())));
+        assert!(f(c.public_slot_occurrences()).is_disjoint(&f(c.private_slot_occurrences())));
 
         let all2: HashSet<*mut Slot> = public.union(&private).copied().collect();
         assert_eq!(all2, all);
@@ -161,42 +161,42 @@ pub trait Language: Debug + Clone + Hash + Eq {
     // generated methods:
 
     #[doc(hidden)]
-    fn private_slot_occurences_mut(&mut self) -> Vec<&mut Slot> {
-        let public = self.public_slot_occurences();
-        let mut out = self.all_slot_occurences_mut();
+    fn private_slot_occurrences_mut(&mut self) -> Vec<&mut Slot> {
+        let public = self.public_slot_occurrences();
+        let mut out = self.all_slot_occurrences_mut();
         out.retain(|x| !public.contains(x));
         out
     }
 
     #[doc(hidden)]
-    fn all_slot_occurences(&self) -> Vec<Slot> {
-        self.clone().all_slot_occurences_mut().into_iter().map(|x| x.clone()).collect()
+    fn all_slot_occurrences(&self) -> Vec<Slot> {
+        self.clone().all_slot_occurrences_mut().into_iter().map(|x| x.clone()).collect()
     }
 
     #[doc(hidden)]
-    fn public_slot_occurences(&self) -> Vec<Slot> {
-        self.clone().public_slot_occurences_mut().into_iter().map(|x| x.clone()).collect()
+    fn public_slot_occurrences(&self) -> Vec<Slot> {
+        self.clone().public_slot_occurrences_mut().into_iter().map(|x| x.clone()).collect()
     }
 
     #[doc(hidden)]
-    fn applied_id_occurences(&self) -> Vec<AppliedId> {
-        self.clone().applied_id_occurences_mut().into_iter().map(|x| x.clone()).collect()
+    fn applied_id_occurrences(&self) -> Vec<AppliedId> {
+        self.clone().applied_id_occurrences_mut().into_iter().map(|x| x.clone()).collect()
     }
 
     #[doc(hidden)]
-    fn private_slot_occurences(&self) -> Vec<Slot> {
-        self.clone().private_slot_occurences_mut().into_iter().map(|x| x.clone()).collect()
+    fn private_slot_occurrences(&self) -> Vec<Slot> {
+        self.clone().private_slot_occurrences_mut().into_iter().map(|x| x.clone()).collect()
     }
 
     #[doc(hidden)]
     fn private_slots(&self) -> HashSet<Slot> {
-        self.private_slot_occurences().into_iter().collect()
+        self.private_slot_occurrences().into_iter().collect()
     }
 
     #[doc(hidden)]
     fn map_applied_ids(&self, mut f: impl FnMut(AppliedId) -> AppliedId) -> Self {
         let mut c = self.clone();
-        for x in c.applied_id_occurences_mut() {
+        for x in c.applied_id_occurrences_mut() {
             *x = f(x.clone());
         }
         c
@@ -209,7 +209,7 @@ pub trait Language: Debug + Clone + Hash + Eq {
         let prv = self.private_slots();
 
         let mut c = self.clone();
-        for x in c.public_slot_occurences_mut() {
+        for x in c.public_slot_occurrences_mut() {
             let y = m[*x];
 
             // If y collides with a private slot, we have a problem.
@@ -237,7 +237,7 @@ pub trait Language: Debug + Clone + Hash + Eq {
         let prv = self.private_slots();
 
         let mut c = self.clone();
-        for x in c.public_slot_occurences_mut() {
+        for x in c.public_slot_occurrences_mut() {
             let y = m.get(*x).unwrap_or_else(Slot::fresh);
 
             // If y collides with a private slot, we have a problem.
@@ -252,19 +252,19 @@ pub trait Language: Debug + Clone + Hash + Eq {
 
 
     #[doc(hidden)]
-    fn slot_occurences(&self) -> Vec<Slot> {
-        self.public_slot_occurences()
+    fn slot_occurrences(&self) -> Vec<Slot> {
+        self.public_slot_occurrences()
     }
 
     #[doc(hidden)]
-    fn slot_order(&self) -> Vec<Slot> { firsts(self.slot_occurences()) }
+    fn slot_order(&self) -> Vec<Slot> { firsts(self.slot_occurrences()) }
 
     #[doc(hidden)]
-    fn slots(&self) -> HashSet<Slot> { as_set(self.slot_occurences()) }
+    fn slots(&self) -> HashSet<Slot> { as_set(self.slot_occurrences()) }
 
     #[doc(hidden)]
     fn ids(&self) -> Vec<Id> {
-        self.applied_id_occurences().into_iter().map(|x| x.id).collect()
+        self.applied_id_occurrences().into_iter().map(|x| x.id).collect()
     }
 
     // let n.weak_shape() = (sh, bij); then
@@ -277,7 +277,7 @@ pub trait Language: Debug + Clone + Hash + Eq {
         let mut m = SlotMap::new();
         let mut i = 0;
 
-        for x in c.all_slot_occurences_mut() {
+        for x in c.all_slot_occurrences_mut() {
             let x_val = *x;
             if !m.contains_key(x_val) {
                 let new_slot = Slot::numeric(i);
@@ -300,9 +300,9 @@ pub trait Language: Debug + Clone + Hash + Eq {
     #[doc(hidden)]
     fn refresh_private(&self) -> Self {
         let mut c = self.clone();
-        let prv: HashSet<Slot> = c.private_slot_occurences().into_iter().collect();
+        let prv: HashSet<Slot> = c.private_slot_occurrences().into_iter().collect();
         let fresh = SlotMap::bijection_from_fresh_to(&prv).inverse();
-        for x in c.private_slot_occurences_mut() {
+        for x in c.private_slot_occurrences_mut() {
             *x = fresh[*x];
         }
         c
@@ -312,7 +312,7 @@ pub trait Language: Debug + Clone + Hash + Eq {
     fn refresh_slots(&self, set: HashSet<Slot>) -> Self {
         let mut c = self.clone();
         let fresh = SlotMap::bijection_from_fresh_to(&set).inverse();
-        for x in c.all_slot_occurences_mut() {
+        for x in c.all_slot_occurrences_mut() {
             if set.contains(x) {
                 *x = fresh[*x];
             }
@@ -325,9 +325,9 @@ pub trait Language: Debug + Clone + Hash + Eq {
     #[doc(hidden)]
     fn refresh_internals(&self, public: HashSet<Slot>) -> Self {
         let mut c = self.clone();
-        let internals = &c.all_slot_occurences().into_iter().collect::<HashSet<_>>() - &public;
+        let internals = &c.all_slot_occurrences().into_iter().collect::<HashSet<_>>() - &public;
         let fresh = SlotMap::bijection_from_fresh_to(&internals).inverse();
-        for x in c.all_slot_occurences_mut() {
+        for x in c.all_slot_occurrences_mut() {
             if internals.contains(x) {
                 *x = fresh[*x];
             }
