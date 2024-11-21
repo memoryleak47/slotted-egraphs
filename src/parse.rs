@@ -41,7 +41,6 @@ fn crop_ident(s: &str) -> Result<(/*ident*/ &str, /*rest*/ &str), ParseError> {
 }
 
 fn tokenize(mut s: &str) -> Result<Vec<Token>, ParseError> {
-    let mut current = String::new();
     let mut tokens = Vec::new();
 
     loop {
@@ -132,7 +131,7 @@ fn parse_pattern_nosubst<L: Language>(mut tok: &[Token]) -> Result<(Pattern<L>, 
     if let Token::LParen = tok[0] {
         tok = &tok[1..];
 
-        let Token::Ident(op) = &tok[0] else { panic!("1"); return Err(ParseError::ParseState(to_vec(tok))) };
+        let Token::Ident(op) = &tok[0] else { return Err(ParseError::ParseState(to_vec(tok))) };
         tok = &tok[1..];
 
         let mut children = Vec::new();
@@ -159,7 +158,7 @@ fn parse_pattern_nosubst<L: Language>(mut tok: &[Token]) -> Result<(Pattern<L>, 
         let re = Pattern::ENode(node, children);
         Ok((re, tok))
     } else {
-        let Token::Ident(op) = &tok[0] else { panic!("2"); return Err(ParseError::ParseState(to_vec(tok))) };
+        let Token::Ident(op) = &tok[0] else { return Err(ParseError::ParseState(to_vec(tok))) };
         tok = &tok[1..];
 
         let node = L::from_op(op, vec![]).ok_or_else(|| ParseError::FromOpFailed(op.to_string(), vec![]))?;
