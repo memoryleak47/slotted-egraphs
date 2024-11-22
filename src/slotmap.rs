@@ -65,6 +65,10 @@ impl SlotMap {
         self.map.iter_mut().map(|(_, y)| y)
     }
 
+    pub fn values_immut(&self) -> impl Iterator<Item=&Slot> + '_ {
+        self.map.iter().map(|(_, y)| y)
+    }
+
     pub fn keys(&self) -> HashSet<Slot> { self.iter().map(|(x, _)| x).collect() }
     pub fn values(&self) -> HashSet<Slot> { self.iter().map(|(_, y)| y).collect() }
     pub fn keys_vec(&self) -> Vec<Slot> { self.iter().map(|(x, _)| x).collect() }

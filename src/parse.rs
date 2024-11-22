@@ -5,15 +5,15 @@ pub enum ParseError {
     TokenState(String),
     ParseState(Vec<Token>),
     RemainingRest(Vec<Token>),
-    FromOpFailed(String, Vec<Child>),
+    FromSyntaxFailed(Vec<SyntaxElem>),
     ExpectedColonEquals(Vec<Token>),
     ExpectedRBracket(Vec<Token>)
 }
 
 #[derive(Debug, Clone)]
 enum Token {
-    Slot(Slot), // s42
-    Ident(String), // map
+    Slot(Slot), // $42
+    Ident(String), // map, 15
     PVar(String), // ?x
     ColonEquals, // :=
     LParen, // (
@@ -134,79 +134,84 @@ fn parse_pattern_nosubst<L: Language>(mut tok: &[Token]) -> Result<(Pattern<L>, 
         let Token::Ident(op) = &tok[0] else { return Err(ParseError::ParseState(to_vec(tok))) };
         tok = &tok[1..];
 
-        let mut children = Vec::new();
+        let mut syntax_elems = vec![NestedSyntaxElem::String(op.to_string())];
         loop {
             if let Token::RParen = tok[0] { break };
 
-            let (child, tok2) = parse_child(tok)?;
+            let (se, tok2) = parse_nested_syntax_elem(tok)?;
             tok = tok2;
-            children.push(child);
+            syntax_elems.push(se);
         }
         tok = &tok[1..];
 
-        let children_mock: Vec<_> = children.iter().map(|x|
+        let syntax_elems_mock: Vec<_> = syntax_elems.iter().map(|x|
             match x {
-                ChildImpl::Slot(s) => Child::Slot(*s),
-                ChildImpl::Pattern(_) => Child::AppliedId(AppliedId::null()),
+                NestedSyntaxElem::String(s) => SyntaxElem::String(s.clone()),
+                NestedSyntaxElem::Slot(s) => SyntaxElem::Slot(*s),
+                NestedSyntaxElem::Pattern(_) => SyntaxElem::AppliedId(AppliedId::null()),
             }
         ).collect();
-        let node = L::from_op(op, children_mock.clone()).ok_or_else(|| ParseError::FromOpFailed(op.to_string(), children_mock))?;
-        let children = children.into_iter().filter_map(|x| match x {
-            ChildImpl::Pattern(pat) => Some(pat),
-            ChildImpl::Slot(_) => None,
+        let node = L::from_syntax(&syntax_elems_mock).ok_or_else(|| ParseError::FromSyntaxFailed(syntax_elems_mock))?;
+        let syntax_elems = syntax_elems.into_iter().filter_map(|x| match x {
+            NestedSyntaxElem::Pattern(pat) => Some(pat),
+            NestedSyntaxElem::String(_) => None,
+            NestedSyntaxElem::Slot(_) => None,
         }).collect();
-        let re = Pattern::ENode(node, children);
+        let re = Pattern::ENode(node, syntax_elems);
         Ok((re, tok))
     } else {
         let Token::Ident(op) = &tok[0] else { return Err(ParseError::ParseState(to_vec(tok))) };
         tok = &tok[1..];
 
-        let node = L::from_op(op, vec![]).ok_or_else(|| ParseError::FromOpFailed(op.to_string(), vec![]))?;
+        let elems = [SyntaxElem::String(op.to_string())];
+        let node = L::from_syntax(&elems).ok_or_else(|| ParseError::FromSyntaxFailed(to_vec(&elems)))?;
         let pat = Pattern::ENode(node, Vec::new());
         Ok((pat, tok))
     }
 }
 
-enum ChildImpl<L: Language> {
+// Like SyntaxElem, but contains Pattern instead of AppliedId.
+enum NestedSyntaxElem<L: Language> {
     Pattern(Pattern<L>),
     Slot(Slot),
+    String(String),
 }
 
-fn parse_child<L: Language>(tok: &[Token]) -> Result<(ChildImpl<L>, &[Token]), ParseError> {
-    if let Token::Slot(slot) = tok[0] {
-        return Ok((ChildImpl::Slot(slot), &tok[1..]));
+fn parse_nested_syntax_elem<L: Language>(tok: &[Token]) -> Result<(NestedSyntaxElem<L>, &[Token]), ParseError> {
+    if let Token::Slot(slot) = &tok[0] {
+        return Ok((NestedSyntaxElem::Slot(*slot), &tok[1..]));
     }
 
-    parse_pattern::<L>(tok).map(|(x, rest)| (ChildImpl::Pattern(x), rest))
+    parse_pattern::<L>(tok).map(|(x, rest)| (NestedSyntaxElem::Pattern(x), rest))
 }
 
 // print:
 impl<L: Language> std::fmt::Display for Pattern<L> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Pattern::ENode(node, children) => {
-                let (x, rest) = node.to_op();
+            Pattern::ENode(node, syntax_elems) => {
+                let l = node.to_syntax();
+                let n = l.len();
 
-                if rest.is_empty() {
-                    return write!(f, "{}", x);
-                }
-
-                write!(f, "({} ", x)?;
-                let mut child_idx = 0;
-                let n = rest.len();
-                for (i, r) in rest.into_iter().enumerate() {
+                if n != 1 { write!(f, "(")?; }
+                let mut se_idx = 0;
+                for (i, r) in l.into_iter().enumerate() {
                     match r {
-                        Child::AppliedId(_) => {
-                            write!(f, "{}", &children[child_idx])?;
-                            child_idx += 1;
+                        SyntaxElem::AppliedId(_) => {
+                            write!(f, "{}", &syntax_elems[se_idx])?;
+                            se_idx += 1;
                         },
-                        Child::Slot(slot) => {
+                        SyntaxElem::Slot(slot) => {
                             write!(f, "{}", slot.to_string())?;
+                        },
+                        SyntaxElem::String(s) => {
+                            write!(f, "{}", s)?;
                         },
                     }
                     if i != n-1 { write!(f, " ")?; }
                 }
-                write!(f, ")")
+                if n != 1 { write!(f, ")")?; }
+                Ok(())
             }
             Pattern::PVar(p) => write!(f, "?{p}"),
             Pattern::Subst(b, x, t) => write!(f, "{b}[{x} := {t}]"),

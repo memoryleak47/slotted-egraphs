@@ -20,9 +20,9 @@ pub fn define_language(input: TokenStream1) -> TokenStream1 {
     let all_slot_occurrences_mut_arms: Vec<TokenStream2> = ie.variants.iter().map(|x| produce_all_slot_occurrences_mut(&name, x)).collect();
     let public_slot_occurrences_mut_arms: Vec<TokenStream2> = ie.variants.iter().map(|x| produce_public_slot_occurrences_mut(&name, x)).collect();
     let applied_id_occurrences_mut_arms: Vec<TokenStream2> = ie.variants.iter().map(|x| produce_applied_id_occurrences_mut(&name, x)).collect();
-    let to_op_arms: Vec<TokenStream2> = ie.variants.iter().zip(&str_names).map(|(x, n)| produce_to_op(&name, &n, x)).collect();
-    let from_op_arms1: Vec<TokenStream2> = ie.variants.iter().zip(&str_names).filter_map(|(x, n)| produce_from_op1(&name, &n, x)).collect();
-    let from_op_arms2: Vec<TokenStream2> = ie.variants.iter().zip(&str_names).filter_map(|(x, n)| produce_from_op2(&name, &n, x)).collect();
+    let to_syntax_arms: Vec<TokenStream2> = ie.variants.iter().zip(&str_names).map(|(x, n)| produce_to_syntax(&name, &n, x)).collect();
+    let from_syntax_arms1: Vec<TokenStream2> = ie.variants.iter().zip(&str_names).filter_map(|(x, n)| produce_from_syntax1(&name, &n, x)).collect();
+    let from_syntax_arms2: Vec<TokenStream2> = ie.variants.iter().zip(&str_names).filter_map(|(x, n)| produce_from_syntax2(&name, &n, x)).collect();
 
     quote! {
         #[derive(PartialEq, Eq, Hash, Clone, Debug)]
@@ -45,21 +45,23 @@ pub fn define_language(input: TokenStream1) -> TokenStream1 {
                 }
             }
 
-            fn to_op(&self) -> (String, Vec<Child>) {
+            fn to_syntax(&self) -> Vec<SyntaxElem> {
                 match self {
-                    #(#to_op_arms),*
+                    #(#to_syntax_arms),*
                 }
             }
 
-            fn from_op(op: &str, mut children: Vec<Child>) -> Option<Self> {
-                match op {
-                    #(#from_op_arms1),*
-                    #(#from_op_arms2),*
-                    _ => None,
+            fn from_syntax(elems: &[SyntaxElem]) -> Option<Self> {
+                let SyntaxElem::String(op) = elems.get(0)? else { return None };
+                match &**op {
+                    #(#from_syntax_arms1),*
+                    _ => {
+                        #(#from_syntax_arms2)*
+
+                        None
+                    },
                 }
             }
-
-            fn num_children_hint() -> Option<usize> { None }
         }
     }.to_token_stream().into()
 }
@@ -72,7 +74,7 @@ fn produce_all_slot_occurrences_mut(name: &Ident, v: &Variant) -> TokenStream2 {
         #name::#variant_name(#(#fields),*) => {
             let mut out: Vec<&mut Slot> = Vec::new();
             #(
-                out.extend(#fields .all_slot_occurrences_mut());
+                out.extend(#fields .all_slot_occurrences_iter_mut());
             )*
             out
         }
@@ -87,7 +89,7 @@ fn produce_public_slot_occurrences_mut(name: &Ident, v: &Variant) -> TokenStream
         #name::#variant_name(#(#fields),*) => {
             let mut out: Vec<&mut Slot> = Vec::new();
             #(
-                out.extend(#fields .public_slot_occurrences_mut());
+                out.extend(#fields .public_slot_occurrences_iter_mut());
             )*
             out
         }
@@ -102,20 +104,20 @@ fn produce_applied_id_occurrences_mut(name: &Ident, v: &Variant) -> TokenStream2
         #name::#variant_name(#(#fields),*) => {
             let mut out: Vec<&mut AppliedId> = Vec::new();
             #(
-                out.extend(#fields .applied_id_occurrences_mut());
+                out.extend(#fields .applied_id_occurrences_iter_mut());
             )*
             out
         }
     }
 }
 
-fn produce_to_op(name: &Ident, e: &Option<Expr>, v: &Variant) -> TokenStream2 {
+fn produce_to_syntax(name: &Ident, e: &Option<Expr>, v: &Variant) -> TokenStream2 {
     let variant_name = &v.ident;
 
     if e.is_none() {
         return quote! {
             #name::#variant_name(a0) => {
-                a0.to_op()
+                a0.to_syntax()
             }
         };
     }
@@ -125,18 +127,16 @@ fn produce_to_op(name: &Ident, e: &Option<Expr>, v: &Variant) -> TokenStream2 {
     let fields: Vec<Ident> = (0..n).map(|x| Ident::new(&format!("a{x}"), proc_macro2::Span::call_site())).collect();
     quote! {
         #name::#variant_name(#(#fields),*) => {
-            let mut out: Vec<Child> = Vec::new();
+            let mut out: Vec<SyntaxElem> = vec![SyntaxElem::String(String::from(#e))];
             #(
-                let (l, ch) = #fields.to_op();
-                assert!(l == "");
-                out.extend(ch);
+                out.extend(#fields.to_syntax());
             )*
-            (String::from(#e), out)
+            out
         }
     }
 }
 
-fn produce_from_op1(name: &Ident, e: &Option<Expr>, v: &Variant) -> Option<TokenStream2> {
+fn produce_from_syntax1(name: &Ident, e: &Option<Expr>, v: &Variant) -> Option<TokenStream2> {
     let variant_name = &v.ident;
 
     let e = e.as_ref()?;
@@ -147,27 +147,30 @@ fn produce_from_op1(name: &Ident, e: &Option<Expr>, v: &Variant) -> Option<Token
 
     Some(quote! {
         #e => {
+            let mut children = &elems[1..];
+            let mut rest = children;
             #(
-                let n = <#types>::num_children_hint().unwrap();
-                let mut new = children.split_off(n);
-                std::mem::swap(&mut new, &mut children);
+                let #fields = (0..=children.len()).filter_map(|n| {
+                    let a = &children[..n];
+                    rest = &children[n..];
 
-                let #fields = <#types>::from_op("", new)?;
+                    <#types>::from_syntax(a)
+                }).next()?;
+                children = rest;
             )*
             Some(#name::#variant_name(#(#fields),*))
         }
     })
 }
 
-fn produce_from_op2(name: &Ident, e: &Option<Expr>, v: &Variant) -> Option<TokenStream2> {
+fn produce_from_syntax2(name: &Ident, e: &Option<Expr>, v: &Variant) -> Option<TokenStream2> {
     if e.is_some() { return None; }
     let variant_name = &v.ident;
 
     let ty = v.fields.iter().map(|x| x.ty.clone()).next().unwrap();
     Some(quote! {
-        s if <#ty>::from_op(s, children.clone()).is_some() => {
-            let thing = <#ty>::from_op(s, children).unwrap();
-            Some(#name::#variant_name(thing))
+        if let Some(a) = <#ty>::from_syntax(elems) {
+            return Some(#name::#variant_name(a));
         }
     })
 }

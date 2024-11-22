@@ -1,45 +1,83 @@
 use crate::*;
 
-impl Language for AppliedId {
-    fn all_slot_occurrences_mut(&mut self) -> Vec<&mut Slot> { self.m.values_mut().collect() }
-    fn public_slot_occurrences_mut(&mut self) -> Vec<&mut Slot> { self.m.values_mut().collect() }
-    fn applied_id_occurrences_mut(&mut self) -> Vec<&mut AppliedId> { vec![self] }
-    fn to_op(&self) -> (String, Vec<Child>) { (String::new(), vec![Child::AppliedId(self.clone())]) }
-    fn from_op(op: &str, children: Vec<Child>) -> Option<Self> {
-        assert!(op == "");
-        let [Child::AppliedId(x)] = &children[..] else { return None };
-        Some(x.clone())
-    }
-    fn num_children_hint() -> Option<usize> { Some(1) }
+#[derive(Debug, Clone)]
+pub enum SyntaxElem {
+    String(String), // used for identitifers and payloads
+    AppliedId(AppliedId),
+    Slot(Slot),
 }
 
-impl Language for Slot {
-    fn all_slot_occurrences_mut(&mut self) -> Vec<&mut Slot> { vec![self] }
-    fn public_slot_occurrences_mut(&mut self) -> Vec<&mut Slot> { vec![self] }
-    fn applied_id_occurrences_mut(&mut self) -> Vec<&mut AppliedId> { vec![] }
-    fn to_op(&self) -> (String, Vec<Child>) { (String::new(), vec![Child::Slot(self.clone())]) }
-    fn from_op(op: &str, children: Vec<Child>) -> Option<Self> {
-        assert!(op == "");
-        let [Child::Slot(x)] = &children[..] else { return None };
-        Some(x.clone())
-    }
-    fn num_children_hint() -> Option<usize> { Some(1) }
+pub trait LanguageChildren: Debug + Clone + Hash + Eq {
+    // TODO: add private_slot_occurrences aswell!
+    fn all_slot_occurrences_iter_mut(&mut self) -> impl Iterator<Item=&mut Slot>;
+    fn public_slot_occurrences_iter_mut(&mut self) -> impl Iterator<Item=&mut Slot>;
+    fn applied_id_occurrences_iter_mut(&mut self) -> impl Iterator<Item=&mut AppliedId>;
+
+    fn all_slot_occurrences_iter(&self) -> impl Iterator<Item=&Slot>;
+    fn public_slot_occurrences_iter(&self) -> impl Iterator<Item=&Slot>;
+    fn applied_id_occurrences_iter(&self) -> impl Iterator<Item=&AppliedId>;
+
+    fn to_syntax(&self) -> Vec<SyntaxElem>;
+    fn from_syntax(_: &[SyntaxElem]) -> Option<Self>;
 }
 
-/// Implements [Language] for payload types that are independent of Slots. For example u32, String etc.
+
+impl LanguageChildren for AppliedId {
+    fn all_slot_occurrences_iter_mut(&mut self) -> impl Iterator<Item=&mut Slot> { self.m.values_mut() }
+    fn public_slot_occurrences_iter_mut(&mut self) -> impl Iterator<Item=&mut Slot> { self.m.values_mut() }
+    fn applied_id_occurrences_iter_mut(&mut self) -> impl Iterator<Item=&mut AppliedId> { std::iter::once(self) }
+
+    fn all_slot_occurrences_iter(&self) -> impl Iterator<Item=&Slot> { self.m.values_immut() }
+    fn public_slot_occurrences_iter(&self) -> impl Iterator<Item=&Slot> { self.m.values_immut() }
+    fn applied_id_occurrences_iter(&self) -> impl Iterator<Item=&AppliedId> { std::iter::once(self) }
+
+    fn to_syntax(&self) -> Vec<SyntaxElem> { vec![SyntaxElem::AppliedId(self.clone())] }
+    fn from_syntax(elems: &[SyntaxElem]) -> Option<Self> {
+        match elems {
+            [SyntaxElem::AppliedId(x)] => Some(x.clone()),
+            _ => None,
+        }
+    }
+}
+
+impl LanguageChildren for Slot {
+    fn all_slot_occurrences_iter_mut(&mut self) -> impl Iterator<Item=&mut Slot> { std::iter::once(self) }
+    fn public_slot_occurrences_iter_mut(&mut self) -> impl Iterator<Item=&mut Slot> { std::iter::once(self) }
+    fn applied_id_occurrences_iter_mut(&mut self) -> impl Iterator<Item=&mut AppliedId> { std::iter::empty()  }
+
+    fn all_slot_occurrences_iter(&self) -> impl Iterator<Item=&Slot> { std::iter::once(self) }
+    fn public_slot_occurrences_iter(&self) -> impl Iterator<Item=&Slot> { std::iter::once(self) }
+    fn applied_id_occurrences_iter(&self) -> impl Iterator<Item=&AppliedId> { std::iter::empty() }
+
+    fn to_syntax(&self) -> Vec<SyntaxElem> { vec![SyntaxElem::Slot(*self)] }
+    fn from_syntax(elems: &[SyntaxElem]) -> Option<Self> {
+        match elems {
+            [SyntaxElem::Slot(x)] => Some(x.clone()),
+            _ => None,
+        }
+    }
+}
+
+/// Implements [LanguageChildren] for payload types that are independent of Slots. For example u32, String etc.
 #[macro_export]
 macro_rules! impl_slotless_lang {
     ($id:ident) => {
-        impl Language for $id {
-            fn all_slot_occurrences_mut(&mut self) -> Vec<&mut Slot> { vec![] }
-            fn public_slot_occurrences_mut(&mut self) -> Vec<&mut Slot> { vec![] }
-            fn applied_id_occurrences_mut(&mut self) -> Vec<&mut AppliedId> { vec![] }
-            fn to_op(&self) -> (String, Vec<Child>) { (self.to_string(), vec![]) }
-            fn from_op(op: &str, children: Vec<Child>) -> Option<Self> {
-                if children.len() != 0 { return None; }
-                op.parse().ok()
+        impl LanguageChildren for $id {
+            fn all_slot_occurrences_iter_mut(&mut self) -> impl Iterator<Item=&mut Slot> { std::iter::empty() }
+            fn public_slot_occurrences_iter_mut(&mut self) -> impl Iterator<Item=&mut Slot> { std::iter::empty() }
+            fn applied_id_occurrences_iter_mut(&mut self) -> impl Iterator<Item=&mut AppliedId> { std::iter::empty() }
+
+            fn all_slot_occurrences_iter(&self) -> impl Iterator<Item=&Slot> { std::iter::empty() }
+            fn public_slot_occurrences_iter(&self) -> impl Iterator<Item=&Slot> { std::iter::empty() }
+            fn applied_id_occurrences_iter(&self) -> impl Iterator<Item=&AppliedId> { std::iter::empty() }
+
+            fn to_syntax(&self) -> Vec<SyntaxElem> { vec![SyntaxElem::String(self.to_string())] }
+            fn from_syntax(elems: &[SyntaxElem]) -> Option<Self> {
+                match elems {
+                    [SyntaxElem::String(x)] => x.parse().ok(),
+                    _ => None,
+                }
             }
-            fn num_children_hint() -> Option<usize> { Some(1) }
         }
     }
 }
@@ -47,67 +85,52 @@ macro_rules! impl_slotless_lang {
 impl_slotless_lang!(u32);
 impl_slotless_lang!(Symbol);
 
-impl<L: Language> Language for Bind<L> {
-    fn all_slot_occurrences_mut(&mut self) -> Vec<&mut Slot> {
-        let mut v = vec![&mut self.slot];
-        v.extend(self.elem.all_slot_occurrences_mut());
-        v
-    }
-
-    fn public_slot_occurrences_mut(&mut self) -> Vec<&mut Slot> {
-        let mut v = self.elem.public_slot_occurrences_mut();
-        v.retain(|x| **x != self.slot);
-        v
-    }
-
-    fn applied_id_occurrences_mut(&mut self) -> Vec<&mut AppliedId> { self.elem.applied_id_occurrences_mut() }
-
-    fn to_op(&self) -> (String, Vec<Child>) {
-        let mut v = vec![Child::Slot(self.slot)];
-        let (x, y) = self.elem.to_op();
-        assert!(x == "");
-        v.extend(y);
-
-        (String::new(), v)
-    }
-
-    fn from_op(op: &str, mut children: Vec<Child>) -> Option<Self> {
-        assert!(op == "");
-        let Child::Slot(slot) = children.remove(0) else { return None };
-        let elem = L::from_op("", children)?;
-
-        Some(Bind {
-            slot,
-            elem,
-        })
-    }
-    fn num_children_hint() -> Option<usize> { L::num_children_hint().map(|x| x+1) }
-}
-
 #[derive(Hash, PartialEq, Eq, Debug, Clone)]
 pub struct Bind<T> {
     pub slot: Slot,
     pub elem: T,
 }
 
-define_language! {
-    enum ExampleLanguage {
-        Lambda(Bind<AppliedId>) = "lambda",
-        App(AppliedId, AppliedId) = "app",
-        Thing(u32),
-        Var(Slot) = "var",
-        // #[substitution_op] Let(AppliedId, Bind<AppliedId>) = "let",
+impl<L: LanguageChildren> LanguageChildren for Bind<L> {
+    // mut:
+    fn all_slot_occurrences_iter_mut(&mut self) -> impl Iterator<Item=&mut Slot> {
+        std::iter::once(&mut self.slot).chain(self.elem.all_slot_occurrences_iter_mut())
     }
-}
 
-#[derive(Debug, Clone)]
-/// A child node of some term ("child" in the sense of an AST).
-///
-/// This type is used for parsing and displaying of your e-node.
-/// You only need to implement [Language::to_op] and [Language::from_op] to express, whether your E-Node expects [Slot]s or [AppliedId]s at particular positions.
-pub enum Child {
-    AppliedId(AppliedId),
-    Slot(Slot),
+    fn public_slot_occurrences_iter_mut(&mut self) -> impl Iterator<Item=&mut Slot> {
+        self.elem.public_slot_occurrences_iter_mut().filter(|x| **x != self.slot)
+    }
+
+    fn applied_id_occurrences_iter_mut(&mut self) -> impl Iterator<Item=&mut AppliedId> { self.elem.applied_id_occurrences_iter_mut() }
+
+    // immut:
+    fn all_slot_occurrences_iter(&self) -> impl Iterator<Item=&Slot> {
+        std::iter::once(&self.slot).chain(self.elem.all_slot_occurrences_iter())
+    }
+
+    fn public_slot_occurrences_iter(&self) -> impl Iterator<Item=&Slot> {
+        self.elem.public_slot_occurrences_iter().filter(|x| **x != self.slot)
+    }
+
+    fn applied_id_occurrences_iter(&self) -> impl Iterator<Item=&AppliedId> { self.elem.applied_id_occurrences_iter() }
+
+    // syntax:
+    fn to_syntax(&self) -> Vec<SyntaxElem> {
+        let mut v = vec![SyntaxElem::Slot(self.slot)];
+        v.extend(self.elem.to_syntax());
+
+        v
+    }
+
+    fn from_syntax(elems: &[SyntaxElem]) -> Option<Self> {
+        let SyntaxElem::Slot(slot) = elems.get(0)? else { return None };
+        let elem = L::from_syntax(&elems[1..])?;
+
+        Some(Bind {
+            slot: *slot,
+            elem,
+        })
+    }
 }
 
 /// A trait to define your Language (i.e. your E-Node type).
@@ -125,19 +148,11 @@ pub trait Language: Debug + Clone + Hash + Eq {
     /// List the mutable references to all child [AppliedId]s in your E-Node, in the order of occurrence.
     fn applied_id_occurrences_mut(&mut self) -> Vec<&mut AppliedId>;
 
-    // for parsing and pretty-printing.
-    /// Decomposes an E-Node into it's "operator" string and a list of children.
-    ///
     /// This function will be used to display your E-Node.
-    fn to_op(&self) -> (String, Vec<Child>);
+    fn to_syntax(&self) -> Vec<SyntaxElem>;
 
-    /// Computes your E-Node from an "operator" string and a list of children.
-    ///
     /// This function will be used to parse your E-Node.
-    fn from_op(op: &str, children: Vec<Child>) -> Option<Self>;
-
-    #[doc(hidden)]
-    fn num_children_hint() -> Option<usize> { todo!() }
+    fn from_syntax(_: &[SyntaxElem]) -> Option<Self>;
 
     #[track_caller]
     #[doc(hidden)]
