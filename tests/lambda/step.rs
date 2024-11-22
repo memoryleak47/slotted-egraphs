@@ -22,7 +22,7 @@ pub fn lam_run_n(re: &RecExpr<Lambda>, n: u32) -> RecExpr<Lambda> {
 
 pub fn lam_step(re: &RecExpr<Lambda>) -> Option<RecExpr<Lambda>> {
     match &re.node {
-        Lambda::Lam(Bind{slot:x, ..}) => {
+        Lambda::Lam(_) => {
             let [b] = &*re.children else { panic!() };
             let b = lam_step(b)?;
 
