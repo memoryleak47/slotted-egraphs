@@ -1,6 +1,6 @@
 use proc_macro::TokenStream as TokenStream1;
 use proc_macro2::TokenStream as TokenStream2;
-use quote::{format_ident, quote, ToTokens};
+use quote::{quote, ToTokens};
 use syn::*;
 
 // We allow the user to use tuples, Slot, Bind<_>, AppliedId and "user-defined types" in their enum variants.
@@ -16,7 +16,6 @@ pub fn define_language(input: TokenStream1) -> TokenStream1 {
                                           x.discriminant.take().map(|(_, e)| e)
                                       }).collect();
 
-    let ident_names: Vec<Ident> = ie.variants.iter().map(|x| x.ident.clone()).collect();
     let all_slot_occurrences_mut_arms: Vec<TokenStream2> = ie.variants.iter().map(|x| produce_all_slot_occurrences_mut(&name, x)).collect();
     let public_slot_occurrences_mut_arms: Vec<TokenStream2> = ie.variants.iter().map(|x| produce_public_slot_occurrences_mut(&name, x)).collect();
     let applied_id_occurrences_mut_arms: Vec<TokenStream2> = ie.variants.iter().map(|x| produce_applied_id_occurrences_mut(&name, x)).collect();
