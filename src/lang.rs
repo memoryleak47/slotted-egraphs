@@ -150,6 +150,11 @@ pub trait Language: Debug + Clone + Hash + Eq {
     /// List the mutable references to all child [AppliedId]s in your E-Node, in the order of occurrence.
     fn applied_id_occurrences_mut(&mut self) -> Vec<&mut AppliedId>;
 
+
+    fn all_slot_occurrences(&self) -> Vec<Slot>;
+    fn public_slot_occurrences(&self) -> Vec<Slot>;
+    fn applied_id_occurrences(&self) -> Vec<&AppliedId>;
+
     /// This function will be used to display your E-Node.
     fn to_syntax(&self) -> Vec<SyntaxElem>;
 
@@ -186,23 +191,11 @@ pub trait Language: Debug + Clone + Hash + Eq {
     }
 
     #[doc(hidden)]
-    fn all_slot_occurrences(&self) -> Vec<Slot> {
-        self.clone().all_slot_occurrences_mut().into_iter().map(|x| x.clone()).collect()
-    }
-
-    #[doc(hidden)]
-    fn public_slot_occurrences(&self) -> Vec<Slot> {
-        self.clone().public_slot_occurrences_mut().into_iter().map(|x| x.clone()).collect()
-    }
-
-    #[doc(hidden)]
-    fn applied_id_occurrences(&self) -> Vec<AppliedId> {
-        self.clone().applied_id_occurrences_mut().into_iter().map(|x| x.clone()).collect()
-    }
-
-    #[doc(hidden)]
     fn private_slot_occurrences(&self) -> Vec<Slot> {
-        self.clone().private_slot_occurrences_mut().into_iter().map(|x| x.clone()).collect()
+        let public = self.public_slot_occurrences();
+        let mut out = self.all_slot_occurrences();
+        out.retain(|x| !public.contains(x));
+        out
     }
 
     #[doc(hidden)]
