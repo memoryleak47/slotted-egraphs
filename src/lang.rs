@@ -60,8 +60,9 @@ impl LanguageChildren for Slot {
 
 /// Implements [LanguageChildren] for payload types that are independent of Slots. For example u32, String etc.
 #[macro_export]
-macro_rules! impl_slotless_lang {
-    ($id:ident) => {
+macro_rules! bare_language_child {
+    ($($id:ident),*) => {
+        $(
         impl LanguageChildren for $id {
             fn all_slot_occurrences_iter_mut(&mut self) -> impl Iterator<Item=&mut Slot> { std::iter::empty() }
             fn public_slot_occurrences_iter_mut(&mut self) -> impl Iterator<Item=&mut Slot> { std::iter::empty() }
@@ -79,11 +80,17 @@ macro_rules! impl_slotless_lang {
                 }
             }
         }
+        )*
     }
 }
 
-impl_slotless_lang!(u32);
-impl_slotless_lang!(Symbol);
+bare_language_child!(
+    u128, u64, u32, u16, u8,
+    i128, i64, i32, i16, i8,
+    usize, isize,
+    bool, char,
+    Symbol
+);
 
 #[derive(Hash, PartialEq, Eq, Debug, Clone)]
 pub struct Bind<T> {
