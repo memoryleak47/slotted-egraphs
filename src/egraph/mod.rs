@@ -275,6 +275,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
             .unwrap()
     }
 
+    #[cfg_attr(feature = "trace", instrument(level = "trace", skip_all))]
     pub(crate) fn proven_proven_get_group_compatible_variants(&self, enode: &ProvenNode<L>) -> HashSet<ProvenNode<L>> {
         // should only be called with an up-to-date e-node.
         if CHECKS {
@@ -283,9 +284,15 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
             }
         }
 
-        let n = enode.elem.applied_id_occurrences().len();
-
         let mut out = HashSet::default();
+
+        // early-return, if groups are all trivial.
+        if enode.elem.ids().iter().all(|i| self.classes[i].group.is_trivial()) {
+            out.insert(enode.clone());
+            return out;
+        }
+
+        let n = enode.elem.applied_id_occurrences().len();
 
         let groups: Vec<Vec<ProvenPerm>> = enode.elem.applied_id_occurrences().iter().map(
                     |x| self.classes[&x.id].group.all_perms().into_iter().collect()
@@ -392,6 +399,7 @@ impl PendingType {
 
 // {1,2} x {3} x {4,5} -> (1,3,4), (1,3,5), (2,3,4), (2,3,5)
 // TODO re-enable use<...> when it's stabilized.
+#[cfg_attr(feature = "trace", instrument(level = "trace", skip_all))]
 fn cartesian<'a, T>(input: &'a [Vec<T>]) -> impl Iterator<Item=Vec<&'a T>> /*+ use<'a, T>*/ + '_ {
     let n = input.len();
     let mut indices = vec![0; n];

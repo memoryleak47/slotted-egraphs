@@ -36,6 +36,10 @@ impl<P: Permutation> Group<P> {
         Group { identity, next }
     }
 
+    pub fn is_trivial(&self) -> bool {
+        self.next.is_none()
+    }
+
     pub fn identity(identity: &P) -> Self {
         Self::new(identity, HashSet::default())
     }
@@ -61,6 +65,7 @@ impl<P: Permutation> Group<P> {
     }
 
     // Should be very rarely called.
+    #[cfg_attr(feature = "trace", instrument(level = "trace", skip_all))]
     pub fn all_perms(&self) -> HashSet<P> {
         match &self.next {
             None => [self.identity.clone()].into_iter().collect(),

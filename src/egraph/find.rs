@@ -75,6 +75,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         self.proven_proven_find_enode(&pn)
     }
 
+    #[cfg_attr(feature = "trace", instrument(level = "trace", skip_all))]
     pub(crate) fn proven_proven_find_enode(&self, enode: &ProvenNode<L>) -> ProvenNode<L> {
         self.chain_pn_map(enode, |_, pai| self.proven_proven_find_applied_id(&pai))
     }
