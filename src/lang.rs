@@ -19,8 +19,24 @@ pub trait LanguageChildren: Debug + Clone + Hash + Eq {
 
     fn to_syntax(&self) -> Vec<SyntaxElem>;
     fn from_syntax(_: &[SyntaxElem]) -> Option<Self>;
+
+    fn weak_shape_impl(&mut self, m: &mut (SlotMap, u32)) { todo!() }
 }
 
+fn on_see_slot(s: &mut Slot, m: &mut (SlotMap, u32)) {
+    if let Some(s2) = m.0.get(*s) {
+        *s = s2;
+    } else {
+        add_slot(s, m);
+    }
+}
+
+fn add_slot(s: &mut Slot, m: &mut (SlotMap, u32)) {
+    let s2 = Slot::numeric(m.1);
+    m.1 += 1;
+    m.0.insert(*s, s2);
+    *s = s2;
+}
 
 impl LanguageChildren for AppliedId {
     fn all_slot_occurrences_iter_mut(&mut self) -> impl Iterator<Item=&mut Slot> { self.m.values_mut() }
@@ -36,6 +52,12 @@ impl LanguageChildren for AppliedId {
         match elems {
             [SyntaxElem::AppliedId(x)] => Some(x.clone()),
             _ => None,
+        }
+    }
+
+    fn weak_shape_impl(&mut self, m: &mut (SlotMap, u32)) {
+        for x in self.m.values_mut() {
+            on_see_slot(x, m);
         }
     }
 }
@@ -55,6 +77,10 @@ impl LanguageChildren for Slot {
             [SyntaxElem::Slot(x)] => Some(x.clone()),
             _ => None,
         }
+    }
+
+    fn weak_shape_impl(&mut self, m: &mut (SlotMap, u32)) {
+        on_see_slot(self, m);
     }
 }
 
@@ -79,6 +105,8 @@ macro_rules! bare_language_child {
                     _ => None,
                 }
             }
+
+            fn weak_shape_impl(&mut self, m: &mut (SlotMap, u32)) {}
         }
         )*
     }
@@ -138,6 +166,13 @@ impl<L: LanguageChildren> LanguageChildren for Bind<L> {
             elem,
         })
     }
+
+    fn weak_shape_impl(&mut self, m: &mut (SlotMap, u32)) {
+        let s = self.slot;
+        add_slot(&mut self.slot, m);
+        self.elem.weak_shape_impl(m);
+        m.0.remove(s);
+    }
 }
 
 // TODO: add LanguageChildren definition for tuples.
@@ -169,6 +204,7 @@ pub trait Language: Debug + Clone + Hash + Eq {
     fn from_syntax(_: &[SyntaxElem]) -> Option<Self>;
 
     fn slots(&self) -> HashSet<Slot>;
+    fn weak_shape_inplace(&mut self) -> Bijection;
 
     #[track_caller]
     #[doc(hidden)]
@@ -296,27 +332,8 @@ pub trait Language: Debug + Clone + Hash + Eq {
     #[cfg_attr(feature = "trace", instrument(level = "trace", skip_all))]
     fn weak_shape(&self) -> (Self, Bijection) {
         let mut c = self.clone();
-        let mut m = SlotMap::new();
-        let mut i = 0;
-
-        for x in c.all_slot_occurrences_mut() {
-            let x_val = *x;
-            if !m.contains_key(x_val) {
-                let new_slot = Slot::numeric(i);
-                i += 1;
-
-                m.insert(x_val, new_slot);
-            }
-
-            *x = m[x_val];
-        }
-
-        let m = m.inverse();
-
-        let public = c.slots();
-        let m: SlotMap = m.iter().filter(|(x, _)| public.contains(x)).collect();
-
-        (c, m)
+        let bij = c.weak_shape_inplace();
+        (c, bij)
     }
 
     #[doc(hidden)]

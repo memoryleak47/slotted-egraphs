@@ -29,6 +29,7 @@ pub fn define_language(input: TokenStream1) -> TokenStream1 {
     let from_syntax_arms2: Vec<TokenStream2> = ie.variants.iter().zip(&str_names).filter_map(|(x, n)| produce_from_syntax2(&name, &n, x)).collect();
 
     let slots_arms: Vec<TokenStream2> = ie.variants.iter().map(|x| produce_slots(&name, x)).collect();
+    let weak_shape_inplace_arms: Vec<TokenStream2> = ie.variants.iter().map(|x| produce_weak_shape_inplace(&name, x)).collect();
 
     quote! {
         #[derive(PartialEq, Eq, Hash, Clone, Debug)]
@@ -104,6 +105,16 @@ pub fn define_language(input: TokenStream1) -> TokenStream1 {
                 match self {
                     #(#slots_arms),*
                 }
+            }
+
+            #[cfg_attr(feature = "trace", tracing::instrument(name = "Lang::weak_shape_inplace", level = "trace", skip_all))]
+            fn weak_shape_inplace(&mut self) -> slotted_egraphs::SlotMap {
+                let m = &mut (slotted_egraphs::SlotMap::new(), 0);
+                match self {
+                    #(#weak_shape_inplace_arms),*
+                }
+
+                m.0.inverse()
             }
         }
     }.to_token_stream().into()
@@ -278,6 +289,19 @@ fn produce_slots(name: &Ident, v: &Variant) -> TokenStream2 {
                 let out = out.chain(#fields .public_slot_occurrences_iter().copied());
             )*
             out.collect()
+        }
+    }
+}
+
+fn produce_weak_shape_inplace(name: &Ident, v: &Variant) -> TokenStream2 {
+    let variant_name = &v.ident;
+    let n = v.fields.len();
+    let fields: Vec<Ident> = (0..n).map(|x| Ident::new(&format!("a{x}"), proc_macro2::Span::call_site())).collect();
+    quote! {
+        #name::#variant_name(#(#fields),*) => {
+            #(
+                #fields .weak_shape_impl(m);
+            )*
         }
     }
 }
