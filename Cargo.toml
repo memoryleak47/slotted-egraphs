@@ -1,6 +1,6 @@
 [package]
 name = "slotted-egraphs"
-version = "0.0.32"
+version = "0.0.33"
 edition = "2021"
 description = "E-Graphs with name binding"
 license = "Apache-2.0 OR MIT"
@@ -15,7 +15,7 @@ trace = ["tracing/max_level_trace", "tracing/release_max_level_trace", "tracing"
 features = ["explanations"]
 
 [dependencies]
-slotted-egraphs-derive = "=0.0.32"
+slotted-egraphs-derive = "=0.0.33"
 fnv = "1.0.7"
 tracing = { version = "0.1", features = ["attributes"], optional = true }
 symbol_table = { version = "0.3", features = ["global"] }
