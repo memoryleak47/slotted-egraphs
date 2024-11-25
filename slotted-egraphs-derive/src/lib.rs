@@ -99,6 +99,7 @@ pub fn define_language(input: TokenStream1) -> TokenStream1 {
                 }
             }
 
+            #[cfg_attr(feature = "trace", tracing::instrument(level = "trace", skip_all))]
             fn slots(&self) -> slotted_egraphs::HashSet<Slot> {
                 match self {
                     #(#slots_arms),*
