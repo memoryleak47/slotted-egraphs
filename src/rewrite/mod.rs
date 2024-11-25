@@ -49,10 +49,14 @@ fn any_to_t<T: Any>(t: Box<dyn Any>) -> T {
 pub fn apply_rewrites<L: Language, N: Analysis<L>>(eg: &mut EGraph<L, N>, rewrites: &[Rewrite<L, N>]) -> bool {
     let prog = eg.progress();
 
+    let search_span = tracing::trace_span!("search").entered();
     let ts: Vec<Box<dyn Any>> = rewrites.iter().map(|rw| (*rw.searcher)(eg)).collect();
+    search_span.exit();
+    let apply_span = tracing::trace_span!("apply").entered();
     for (rw, t) in rewrites.iter().zip(ts.into_iter()) {
         (*rw.applier)(t, eg);
     }
+    apply_span.exit();
 
     prog != eg.progress()
 }

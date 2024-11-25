@@ -14,6 +14,10 @@ pub enum Pattern<L: Language> {
 // We write this as pattern[subst] for short.
 #[cfg_attr(feature = "trace", instrument(level = "trace", skip_all))]
 pub fn pattern_subst<L: Language, N: Analysis<L>>(eg: &mut EGraph<L, N>, pattern: &Pattern<L>, subst: &Subst) -> AppliedId {
+    pattern_subst_rec(eg, pattern, subst)
+}
+
+fn pattern_subst_rec<L: Language, N: Analysis<L>>(eg: &mut EGraph<L, N>, pattern: &Pattern<L>, subst: &Subst) -> AppliedId {
     match &pattern {
         Pattern::ENode(n, children) => {
             let mut n = n.clone();
@@ -22,7 +26,7 @@ pub fn pattern_subst<L: Language, N: Analysis<L>>(eg: &mut EGraph<L, N>, pattern
                 assert_eq!(children.len(), refs.len());
             }
             for i in 0..refs.len() {
-                *(refs[i]) = pattern_subst(eg, &children[i], subst);
+                *(refs[i]) = pattern_subst_rec(eg, &children[i], subst);
             }
             eg.add_syn(n)
         },
@@ -32,9 +36,9 @@ pub fn pattern_subst<L: Language, N: Analysis<L>>(eg: &mut EGraph<L, N>, pattern
                  .clone()
         },
         Pattern::Subst(b, x, t) => {
-            let b = pattern_subst(eg, &*b, subst);
-            let x = pattern_subst(eg, &*x, subst);
-            let t = pattern_subst(eg, &*t, subst);
+            let b = pattern_subst_rec(eg, &*b, subst);
+            let x = pattern_subst_rec(eg, &*x, subst);
+            let t = pattern_subst_rec(eg, &*t, subst);
 
             // temporary swap-out so that we can access both the e-graph and the subst-method fully.
             let mut method = eg.subst_method.take().unwrap();
