@@ -17,15 +17,22 @@ struct Step<L: Language> {
 impl<L: Language> Step<L> {
     fn to_string(&self) -> String {
         if let Some((next, subpos)) = self.rw_pos.split_first() {
-            let (op, children) = self.dst.node.to_op();
-            let mut str = format!("{}", op);
+            let mut list = self.dst.node.to_syntax();
 
-            if children.is_empty() { return str; }
+            let SyntaxElem::String(op) = list.remove(0) else { unreachable!() };
+
+            let mut str = op.to_string();
+
+            if list.len() == 0 {
+                return str;
+            }
+
+            let children = list;
 
             let mut child_node_idx = 0;
-            for child in children.into_iter() {
+            for child in children.iter().cloned() {
                 match child {
-                    Child::AppliedId(_) => {
+                    SyntaxElem::AppliedId(_) => {
                         let child_node = self.dst.children[child_node_idx].clone();
                         if child_node_idx == (*next as usize) {
                             let substep = Step {
@@ -40,9 +47,10 @@ impl<L: Language> Step<L> {
                         }
                         child_node_idx += 1;
                     },
-                    Child::Slot(slot) => {
+                    SyntaxElem::Slot(slot) => {
                         str = format!("{} {}", str, slot);
-                    }
+                    },
+                    SyntaxElem::String(_) => unreachable!(),
                 }
             }
             format!("({})", str)
@@ -133,8 +141,8 @@ impl<L: Language> FlatteningContext<L> {
     }
 
     fn update_slot_map_core(map: &mut HashMap<Slot, Slot>, head: &RecExpr<L>, src: &RecExpr<L>) {
-        let (head_op, head_children) = head.node.to_op();
-        let (src_op, src_children)   = src.node.to_op();
+        let [SyntaxElem::String(head_op), head_children@..] = &*head.node.to_syntax() else { unreachable!() };
+        let [SyntaxElem::String(src_op), src_children@..]   = &*src.node.to_syntax() else { unreachable!() };
         
         // `src` and `head` should be syntactically equal up to renaming of slots.
         if head_op != src_op || head_children.len() != src_children.len() {
@@ -145,11 +153,11 @@ impl<L: Language> FlatteningContext<L> {
         let mut child_idx = 0;
         for idx in 0..head_children.len() {
             match (&head_children[idx], &src_children[idx]) {
-                (Child::AppliedId(_), Child::AppliedId(_)) => {
+                (SyntaxElem::AppliedId(_), SyntaxElem::AppliedId(_)) => {
                     Self::update_slot_map_core(map, &head.children[child_idx], &src.children[child_idx]);
                     child_idx += 1;
                 },
-                (Child::Slot(h), Child::Slot(s)) => {
+                (SyntaxElem::Slot(h), SyntaxElem::Slot(s)) => {
                     if h != s { map.insert(*s, *h); }
                 },
                 _ => panic!("'FlatteningContext.update_slot_map_core' found distinct children.")

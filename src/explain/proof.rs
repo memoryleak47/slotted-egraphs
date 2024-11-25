@@ -187,8 +187,8 @@ impl CongruenceProof {
         assert_eq!(l_v.len(), child_proofs.len());
         assert_eq!(r_v.len(), child_proofs.len());
 
-        let l_v = l_v.into_iter();
-        let r_v = r_v.into_iter();
+        let l_v = l_v.into_iter().cloned();
+        let r_v = r_v.into_iter().cloned();
 
         let c_v = child_proofs.into_iter();
         for ((ll, rr), prf) in l_v.zip(r_v).zip(c_v) {
