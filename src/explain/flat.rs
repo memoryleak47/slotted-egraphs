@@ -15,7 +15,6 @@ struct Step<L: Language> {
 }
 
 impl<L: Language> Step<L> {
-
     fn to_string(&self) -> String {
         if let Some((next, subpos)) = self.rw_pos.split_first() {
             let (op, children) = self.dst.node.to_op();

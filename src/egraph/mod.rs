@@ -266,6 +266,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         self.proven_proven_pre_shape(&e).weak_shape()
     }
 
+    #[cfg_attr(feature = "trace", instrument(level = "trace", skip_all))]
     pub(crate) fn proven_proven_pre_shape(&self, e: &ProvenNode<L>) -> ProvenNode<L> {
         let e = self.proven_proven_find_enode(e);
         self.proven_proven_get_group_compatible_variants(&e)

@@ -14,6 +14,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         self.add_syn(n)
     }
 
+    #[cfg_attr(feature = "trace", instrument(level = "trace", skip_all))]
     pub fn add_syn(&mut self, enode: L) -> AppliedId {
         #[cfg(not(feature = "explanations"))]
         {
@@ -77,13 +78,19 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         self.add(n)
     }
 
-
+    #[cfg_attr(feature = "trace", instrument(level = "trace", skip_all))]
     pub fn add(&mut self, enode: L) -> AppliedId {
-        self.add_internal(self.shape(&enode))
+        self.add_internal(self.shape_called_from_add(enode))
+    }
+
+    #[cfg_attr(feature = "trace", instrument(level = "trace", skip_all))]
+    fn shape_called_from_add(&self, enode: L) -> (L, Bijection) {
+        self.shape(&enode)
     }
 
     // self.add(x) = y implies that x.slots() is a superset of y.slots().
     // x.slots() - y.slots() are redundant slots.
+    #[cfg_attr(feature = "trace", instrument(level = "trace", skip_all))]
     pub(in crate::egraph) fn add_internal(&mut self, t: (L, SlotMap)) -> AppliedId {
         if let Some(x) = self.lookup_internal(&t) {
             return x;
@@ -134,6 +141,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
 
 impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     // returns a syn applied id.
+    #[cfg_attr(feature = "trace", instrument(level = "trace", skip_all))]
     fn mk_singleton_class(&mut self, syn_enode: L) -> AppliedId {
         let old_slots = syn_enode.slots();
 
@@ -151,9 +159,14 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         let t = syn_enode_fresh.weak_shape();
         self.raw_add_to_class(i, t.clone(), i);
         self.pending.insert(t.0, PendingType::Full);
-        self.rebuild();
+        self.rebuild_called_from_add();
 
         self.mk_syn_applied_id(i, fresh_to_old)
+    }
+
+    #[cfg_attr(feature = "trace", instrument(level = "trace", skip_all))]
+    fn rebuild_called_from_add(&mut self) {
+        self.rebuild();
     }
 
     // adds (sh, bij) to the eclass `id`.
@@ -197,6 +210,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         self.alloc_eclass(slots, panic!())
     }
 
+    #[cfg_attr(feature = "trace", instrument(level = "trace", skip_all))]
     pub(in crate::egraph) fn alloc_eclass(&mut self, slots: &HashSet<Slot>, syn_enode: L) -> Id {
         let c_id = Id(self.unionfind_len()); // Pick the next unused Id.
 

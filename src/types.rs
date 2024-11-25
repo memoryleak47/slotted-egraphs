@@ -49,6 +49,7 @@ impl AppliedId {
         self.apply_slotmap_partial(m)
     }
 
+    #[cfg_attr(feature = "trace", instrument(level = "trace", skip_all))]
     pub fn apply_slotmap_partial(&self, m: &SlotMap) -> AppliedId {
         AppliedId::new(
             self.id,
@@ -56,6 +57,7 @@ impl AppliedId {
         )
     }
 
+    #[cfg_attr(feature = "trace", instrument(level = "trace", skip_all))]
     pub fn apply_slotmap_fresh(&self, m: &SlotMap) -> AppliedId {
         AppliedId::new(
             self.id,
@@ -63,6 +65,7 @@ impl AppliedId {
         )
     }
 
+    #[cfg_attr(feature = "trace", instrument(level = "trace", skip_all))]
     pub fn slots(&self) -> HashSet<Slot> {
         self.m.values()
     }
