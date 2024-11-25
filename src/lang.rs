@@ -228,7 +228,10 @@ pub trait Language: Debug + Clone + Hash + Eq {
     #[doc(hidden)]
     #[cfg_attr(feature = "trace", instrument(level = "trace", skip_all))]
     fn apply_slotmap_partial(&self, m: &SlotMap) -> Self {
-        let prv = self.private_slots();
+        let mut prv = Default::default();
+        if CHECKS {
+            prv = self.private_slots();
+        }
 
         let mut c = self.clone();
         for x in c.public_slot_occurrences_mut() {
@@ -258,7 +261,10 @@ pub trait Language: Debug + Clone + Hash + Eq {
     #[doc(hidden)]
     #[cfg_attr(feature = "trace", instrument(level = "trace", skip_all))]
     fn apply_slotmap_fresh(&self, m: &SlotMap) -> Self {
-        let prv = self.private_slots();
+        let mut prv = Default::default();
+        if CHECKS {
+            prv = self.private_slots();
+        }
 
         let mut c = self.clone();
         for x in c.public_slot_occurrences_mut() {
