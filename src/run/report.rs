@@ -1,3 +1,4 @@
+#[derive(Debug)]
 pub enum StopReason {
     Saturated,
     IterationLimit,
@@ -5,6 +6,7 @@ pub enum StopReason {
     Other(String),
 }
 
+#[derive(Debug)]
 pub struct Report {
     pub iterations: usize,
     pub stop_reason: StopReason,
