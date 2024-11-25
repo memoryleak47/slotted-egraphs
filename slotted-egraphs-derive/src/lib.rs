@@ -28,6 +28,8 @@ pub fn define_language(input: TokenStream1) -> TokenStream1 {
     let from_syntax_arms1: Vec<TokenStream2> = ie.variants.iter().zip(&str_names).filter_map(|(x, n)| produce_from_syntax1(&name, &n, x)).collect();
     let from_syntax_arms2: Vec<TokenStream2> = ie.variants.iter().zip(&str_names).filter_map(|(x, n)| produce_from_syntax2(&name, &n, x)).collect();
 
+    let slots_arms: Vec<TokenStream2> = ie.variants.iter().map(|x| produce_slots(&name, x)).collect();
+
     quote! {
         #[derive(PartialEq, Eq, Hash, Clone, Debug)]
         #ie
@@ -94,6 +96,12 @@ pub fn define_language(input: TokenStream1) -> TokenStream1 {
 
                         None
                     },
+                }
+            }
+
+            fn slots(&self) -> slotted_egraphs::HashSet<Slot> {
+                match self {
+                    #(#slots_arms),*
                 }
             }
         }
@@ -256,4 +264,19 @@ fn produce_from_syntax2(name: &Ident, e: &Option<Expr>, v: &Variant) -> Option<T
             return Some(#name::#variant_name(a));
         }
     })
+}
+
+fn produce_slots(name: &Ident, v: &Variant) -> TokenStream2 {
+    let variant_name = &v.ident;
+    let n = v.fields.len();
+    let fields: Vec<Ident> = (0..n).map(|x| Ident::new(&format!("a{x}"), proc_macro2::Span::call_site())).collect();
+    quote! {
+        #name::#variant_name(#(#fields),*) => {
+            let out = std::iter::empty();
+            #(
+                let out = out.chain(#fields .public_slot_occurrences_iter().copied());
+            )*
+            out.collect()
+        }
+    }
 }
