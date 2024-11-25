@@ -26,6 +26,7 @@ pub fn ematch_all<L: Language, N: Analysis<L>>(eg: &EGraph<L, N>, pattern: &Patt
 }
 
 // `i` uses egraph slots instead of pattern slots.
+#[cfg_attr(feature = "trace", instrument(level = "trace", skip_all))]
 fn ematch_impl<L: Language, N: Analysis<L>>(pattern: &Pattern<L>, st: State, i: AppliedId, eg: &EGraph<L, N>) -> Vec<State> {
     match &pattern {
         Pattern::PVar(v) => {
@@ -44,39 +45,44 @@ fn ematch_impl<L: Language, N: Analysis<L>>(pattern: &Pattern<L>, st: State, i: 
                 let dd = std::mem::discriminant(&nn);
                 if d != dd { continue };
 
-                'nodeloop: for n2 in eg.get_group_compatible_weak_variants(&nn) {
-                    if CHECKS {
-                        assert_eq!(&nullify_app_ids(n), n);
-                    }
-
-                    let clear_n2 = nullify_app_ids(&n2);
-                    // We can use weak_shape here, as the inputs are nullified
-                    // i.e. they only have id0() without slot args, so there are no permutations possible.
-                    let (n_sh, _) = n.weak_shape();
-                    let (clear_n2_sh, _) = clear_n2.weak_shape();
-                    if n_sh != clear_n2_sh { continue 'nodeloop; }
-
-                    let mut st = st.clone();
-
-                    for (x, y) in clear_n2.all_slot_occurrences().into_iter().zip(n.all_slot_occurrences().into_iter()) {
-                        if !try_insert_compatible_slotmap_bij(x, y, &mut st.partial_slotmap) { continue 'nodeloop; }
-                    }
-
-                    let mut acc = vec![st];
-                    for (sub_id, sub_pat) in n2.applied_id_occurrences().into_iter().zip(children.iter()) {
-                        let mut next = Vec::new();
-                        for a in acc {
-                            next.extend(ematch_impl(sub_pat, a, sub_id.clone(), eg));
-                        }
-                        acc = next;
-                    }
-
-                    out.extend(acc);
-                }
+                ematch_node(&st, eg, &n, children, &mut out, &nn);
             }
             out
         },
         Pattern::Subst(..) => panic!(),
+    }
+}
+
+#[cfg_attr(feature = "trace", instrument(level = "trace", skip_all))]
+fn ematch_node<L: Language, N: Analysis<L>>(st: &State, eg: &EGraph<L, N>, n: &L, children: &[Pattern<L>], out: &mut Vec<State>, nn: &L) {
+    'nodeloop: for n2 in eg.get_group_compatible_weak_variants(&nn) {
+        if CHECKS {
+            assert_eq!(&nullify_app_ids(n), n);
+        }
+
+        let clear_n2 = nullify_app_ids(&n2);
+        // We can use weak_shape here, as the inputs are nullified
+        // i.e. they only have id0() without slot args, so there are no permutations possible.
+        let (n_sh, _) = n.weak_shape();
+        let (clear_n2_sh, _) = clear_n2.weak_shape();
+        if n_sh != clear_n2_sh { continue 'nodeloop; }
+
+        let mut st = st.clone();
+
+        for (x, y) in clear_n2.all_slot_occurrences().into_iter().zip(n.all_slot_occurrences().into_iter()) {
+            if !try_insert_compatible_slotmap_bij(x, y, &mut st.partial_slotmap) { continue 'nodeloop; }
+        }
+
+        let mut acc = vec![st];
+        for (sub_id, sub_pat) in n2.applied_id_occurrences().into_iter().zip(children.iter()) {
+            let mut next = Vec::new();
+            for a in acc {
+                next.extend(ematch_impl(sub_pat, a, sub_id.clone(), eg));
+            }
+            acc = next;
+        }
+
+        out.extend(acc);
     }
 }
 
