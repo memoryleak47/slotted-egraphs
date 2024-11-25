@@ -168,6 +168,8 @@ pub trait Language: Debug + Clone + Hash + Eq {
     /// This function will be used to parse your E-Node.
     fn from_syntax(_: &[SyntaxElem]) -> Option<Self>;
 
+    fn slots(&self) -> HashSet<Slot>;
+
     #[track_caller]
     #[doc(hidden)]
     fn check(&self) {
@@ -226,7 +228,7 @@ pub trait Language: Debug + Clone + Hash + Eq {
     // TODO m.values() might collide with your private slot names.
     // Should we rename our private slots to be safe?
     #[doc(hidden)]
-    #[cfg_attr(feature = "trace", instrument(level = "trace", skip_all))]
+    #[cfg_attr(feature = "trace", instrument(name = "Lang::apply_slotmap_partial", level = "trace", skip_all))]
     fn apply_slotmap_partial(&self, m: &SlotMap) -> Self {
         let mut prv = Default::default();
         if CHECKS {
@@ -250,7 +252,7 @@ pub trait Language: Debug + Clone + Hash + Eq {
 
     #[track_caller]
     #[doc(hidden)]
-    #[cfg_attr(feature = "trace", instrument(level = "trace", skip_all))]
+    #[cfg_attr(feature = "trace", instrument(name = "Lang::apply_slotmap", level = "trace", skip_all))]
     fn apply_slotmap(&self, m: &SlotMap) -> Self {
         if CHECKS {
             assert!(m.keys().is_superset(&self.slots()), "Language::apply_slotmap: The SlotMap doesn't map all free slots!");
@@ -259,7 +261,7 @@ pub trait Language: Debug + Clone + Hash + Eq {
     }
 
     #[doc(hidden)]
-    #[cfg_attr(feature = "trace", instrument(level = "trace", skip_all))]
+    #[cfg_attr(feature = "trace", instrument(name = "Lang::apply_slotmap_fresh", level = "trace", skip_all))]
     fn apply_slotmap_fresh(&self, m: &SlotMap) -> Self {
         let mut prv = Default::default();
         if CHECKS {
@@ -279,21 +281,6 @@ pub trait Language: Debug + Clone + Hash + Eq {
         }
         c
     }
-
-
-    #[doc(hidden)]
-    #[cfg_attr(feature = "trace", instrument(level = "trace", skip_all))]
-    fn slot_occurrences(&self) -> Vec<Slot> {
-        self.public_slot_occurrences()
-    }
-
-    #[doc(hidden)]
-    #[cfg_attr(feature = "trace", instrument(level = "trace", skip_all))]
-    fn slot_order(&self) -> Vec<Slot> { firsts(self.slot_occurrences()) }
-
-    #[doc(hidden)]
-    #[cfg_attr(feature = "trace", instrument(level = "trace", skip_all))]
-    fn slots(&self) -> HashSet<Slot> { as_set(self.slot_occurrences()) }
 
     #[doc(hidden)]
     #[cfg_attr(feature = "trace", instrument(level = "trace", skip_all))]
@@ -372,19 +359,4 @@ pub trait Language: Debug + Clone + Hash + Eq {
         }
         c
     }
-}
-
-// sorts as_set(v) by their first usage in v.
-pub(crate) fn firsts(v: Vec<Slot>) -> Vec<Slot> {
-    let mut out = Vec::new();
-    for x in v {
-        if !out.contains(&x) {
-            out.push(x);
-        }
-    }
-    out
-}
-
-pub(crate) fn as_set(v: Vec<Slot>) -> HashSet<Slot> {
-    v.into_iter().collect()
 }
