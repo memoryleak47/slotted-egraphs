@@ -37,6 +37,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     }
 
     // We expect `from` to be on the lhs of this equation.
+    #[cfg_attr(feature = "trace", instrument(level = "trace", skip_all))]
     pub(crate) fn shrink_slots(&mut self, from: &AppliedId, cap: &HashSet<Slot>, proof: ProvenEq) {
         #[cfg(feature = "explanations")]
         if CHECKS {
@@ -209,6 +210,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     }
 
     // finds self-symmetries caused by the e-node `src_id`.
+    #[cfg_attr(feature = "trace", instrument(level = "trace", skip_all))]
     fn determine_self_symmetries(&mut self, src_id: Id) {
         let pc1 = self.pc_from_src_id(src_id);
 
@@ -250,6 +252,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         }
     }
 
+    #[cfg_attr(feature = "trace", instrument(level = "trace", skip_all))]
     pub(in crate::egraph) fn handle_congruence(&mut self, pc1: ProvenContains<L>) {
         let (sh, _) = self.shape(&pc1.node.elem);
         let pc2 = self.pc_from_shape(&sh);
@@ -259,6 +262,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     }
 
     // upon touching an e-class, you need to update all usages of it.
+    #[cfg_attr(feature = "trace", instrument(level = "trace", skip_all))]
     pub(crate) fn touched_class(&mut self, i: Id, pending_ty: PendingType) {
         for sh in &self.classes[&i].usages {
             let v = self.pending.entry(sh.clone()).or_insert(pending_ty);
