@@ -8,11 +8,4 @@ struct SUFClass {
     g: Group,
 }
 
-struct AppliedId(SlotMap, Id);
-
-struct SlotMap(Vec<(Slot, Slot)>);
-
 struct Group;
-
-struct Slot(usize);
-struct Id(usize);
