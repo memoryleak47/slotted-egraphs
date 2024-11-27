@@ -50,6 +50,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         }
     }
 
+    #[cfg_attr(feature = "trace", instrument(level = "trace", skip_all))]
     pub(crate) fn pc_from_src_id(&self, i: Id) -> ProvenContains<L> {
         self.pc_find(&self.refl_pc(i))
     }

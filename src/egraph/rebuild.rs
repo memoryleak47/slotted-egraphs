@@ -270,6 +270,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         }
     }
 
+    #[cfg_attr(feature = "trace", instrument(level = "trace", skip_all))]
     pub(crate) fn pc_from_shape(&self, sh: &L) -> ProvenContains<L> {
         let i = self.hashcons.get(&sh).expect("pc_from_shape should only be called if the shape exists in the e-graph!");
         let c = self.classes[&i].nodes[&sh].src_id;
