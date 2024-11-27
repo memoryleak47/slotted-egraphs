@@ -171,6 +171,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
 
     // adds (sh, bij) to the eclass `id`.
     // TODO src_id should be optional!
+    #[cfg_attr(feature = "trace", instrument(level = "trace", skip_all))]
     pub(in crate::egraph) fn raw_add_to_class(&mut self, id: Id, (sh, bij): (L, Bijection), src_id: Id) {
         let psn = ProvenSourceNode { elem: bij, src_id };
 
@@ -186,6 +187,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         }
     }
 
+    #[cfg_attr(feature = "trace", instrument(level = "trace", skip_all))]
     pub(in crate::egraph) fn raw_remove_from_class(&mut self, id: Id, sh: L) -> ProvenSourceNode {
         let opt_psn = self.classes.get_mut(&id).unwrap().nodes.remove(&sh);
         let opt_id = self.hashcons.remove(&sh);
