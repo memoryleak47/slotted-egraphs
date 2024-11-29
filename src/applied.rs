@@ -25,17 +25,7 @@ pub struct Applied<T> {
     t: T,
 }
 
-impl<T: Applicable> Applicable for Applied<T> {
-    fn access_slots_mut(&mut self) -> impl Iterator<Item=&mut Slot> {
-        self.m.values_mut()
-    }
-
-    fn access_slots(&self) -> impl Iterator<Item=Slot> {
-        self.m.values_immut().copied()
-    }
-}
-
-impl Applicable for AppliedId {
+impl<T> Applicable for Applied<T> {
     fn access_slots_mut(&mut self) -> impl Iterator<Item=&mut Slot> {
         self.m.values_mut()
     }
