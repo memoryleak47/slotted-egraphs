@@ -47,7 +47,7 @@ pub trait Applicable {
 }
 
 // m * t
-#[derive(Clone)]
+#[derive(Clone, PartialEq, Eq)]
 pub struct Applied<T>(pub SlotMap, pub T);
 
 impl<T> Applicable for Applied<T> {
@@ -76,6 +76,15 @@ impl<T: Applicable> Applied<T> {
     fn apply(self) -> T {
         let Applied(m, mut t) = self;
         t.apply_slotmap_inplace(&m);
+        t
+    }
+}
+
+impl<'a, T: Applicable> Mul<T> for &'a SlotMap {
+    type Output = T;
+
+    fn mul(self, mut t: T) -> T {
+        t.apply_slotmap_inplace(self);
         t
     }
 }

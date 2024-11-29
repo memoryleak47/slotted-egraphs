@@ -54,6 +54,17 @@ impl<C> SlottedUF<C> {
         class.leader = identity * Id(i);
     }
 
+    // TODO add path compression later.
+    fn find(&mut self, Applied(mut m1, mut x1): AppliedId) -> AppliedId {
+        let SlottedUF(v) = self;
+        loop {
+            let Applied(m2, x2) = &m1 * v[x1.0].leader.clone();
+            if x1 == x2 && m1 == m2 { return Applied(m1, x1); }
+            m1 = m2;
+            x1 = x2;
+        }
+    }
+
 /*
     fn union(&mut self, mut x: AppliedId, mut y: AppliedId) {
         let SlottedUF(v) = self;
@@ -76,15 +87,6 @@ impl<C> SlottedUF<C> {
         }
     }
 
-    // we omit path compression for now.
-    fn find(SlottedUF(v): &Self, mut x: AppliedId) -> AppliedId {
-        let SlottedUF(v) = self;
-        loop {
-            let y = vec[x.id].leader.apply_slotmap(x.m)
-            if x == y { return x; }
-            x = y;
-        }
-    }
 
     fn is_equal(SlottedUF(v): &Self, x: AppliedId, y: AppliedId) -> bool {
         let SlottedUf(v) = self;
