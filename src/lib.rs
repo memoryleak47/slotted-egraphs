@@ -10,6 +10,9 @@ pub use slotmap::*;
 mod applied;
 pub use applied::*;
 
+mod rename;
+pub use rename::*;
+
 mod suf;
 pub use suf::*;
 
