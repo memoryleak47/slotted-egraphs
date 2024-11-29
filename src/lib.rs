@@ -7,8 +7,8 @@ pub use slotmap::*;
 mod suf;
 pub use suf::*;
 
-mod types;
-pub use types::*;
+mod id;
+pub use id::*;
 
 mod lang;
 pub use lang::*;
