@@ -125,6 +125,7 @@ impl<P: Permutation> Group<P> {
         self.add_set([p].into_iter().collect())
     }
 
+    // TODO this could be an extend() function accepting an iterator of perms.
     pub fn add_set(&mut self, mut perms: HashSet<P>) -> bool {
         // There might be ways to make this faster, by iterating through the stab chain and determining at which layer this perm actually has an effect.
         // But it's polytime, so fast enough I guess.

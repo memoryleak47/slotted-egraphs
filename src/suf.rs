@@ -70,27 +70,32 @@ impl<C> SlottedUF<C> {
         self[x.id()].group.contains(&perm)
     }
 
-/*
-    fn union(&mut self, mut a1: AppliedId, mut a2: AppliedId) {
+    fn union(&mut self, mut x: AppliedId, mut y: AppliedId) {
         loop {
-            a1 = self.find(a1);
-            a2 = self.find(a2);
-            shrink(x.id, (x.m.inverse() * y.m * y.id).slots());
-            shrink(y.id, (y.m.inverse() * x.m * x.id).slots());
-            if nothing shrunk { break }
+            x = self.find(x);
+            y = self.find(y);
+            let n1 = self[x.id()].slots.len() + self[y.id()].slots.len();
+            self.shrink(x.id(), x.m().inverse() * y.m().clone() * self[y.id()].slots.clone());
+            self.shrink(y.id(), y.m().inverse() * x.m().clone() * self[x.id()].slots.clone());
+            let n2 = self[x.id()].slots.len() + self[y.id()].slots.len();
+            if n1 == n2 { break; }
         }
 
-        if x.id == y.id {
-            vec[x.id].group.add(x.m * y.m^-1);
+        if x.id() == y.id() {
+            self[x.id()].group.add(x.m() * y.m().inverse());
         } else {
-            # move y into x
-            m = x.m^-1 * y.m
-            vec[y].leader = m * x.id
-            vec[x].group.extend(vec[y].group.iter_generators().map(|x| m*x*m^-1))
-            vec[y].group = none;
+            // move y into x
+            let m: SlotMap = x.m().inverse() * y.m().clone();
+            self[y.id()].leader = m.clone() * x.id();
+            let generators = self[y.id()].group
+                                         .generators()
+                                         .into_iter()
+                                         .map(|x| m.clone() * x * m.inverse())
+                                         .collect();
+            self[x.id()].group.add_set(generators);
+            // self[y.id()].group is now meaningless.
         }
     }
-*/
 }
 
 impl<C> Index<Id> for SlottedUF<C> {
