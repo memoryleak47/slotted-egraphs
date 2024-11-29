@@ -10,6 +10,10 @@ pub trait Applicable {
     fn access_slots_mut(&mut self) -> impl Iterator<Item=&mut Slot>;
     fn access_slots(&self) -> impl Iterator<Item=Slot>;
 
+    fn slots(&self) -> HashSet<Slot> {
+        self.access_slots().collect()
+    }
+
     fn apply_slotmap(&self, m: &SlotMap) -> Self where Self: Clone {
         let mut c = self.clone();
         for x in c.access_slots_mut() {
