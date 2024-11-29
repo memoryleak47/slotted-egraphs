@@ -48,18 +48,17 @@ pub trait Applicable {
 
 // m * t
 #[derive(Clone)]
-pub struct Applied<T> {
-    pub m: SlotMap,
-    pub t: T,
-}
+pub struct Applied<T>(pub SlotMap, pub T);
 
 impl<T> Applicable for Applied<T> {
     fn access_slots_mut(&mut self) -> impl Iterator<Item=&mut Slot> {
-        self.m.values_mut()
+        let Applied(m, t) = self;
+        m.values_mut()
     }
 
     fn access_slots(&self) -> impl Iterator<Item=Slot> {
-        self.m.values_immut().copied()
+        let Applied(m, t) = self;
+        m.values_immut().copied()
     }
 }
 
@@ -74,9 +73,10 @@ impl Applicable for SlotMap {
 }
 
 impl<T: Applicable> Applied<T> {
-    fn apply(mut self) -> T {
-        self.t.apply_slotmap_inplace(&self.m);
-        self.t
+    fn apply(self) -> T {
+        let Applied(m, mut t) = self;
+        t.apply_slotmap_inplace(&m);
+        t
     }
 }
 
