@@ -2,7 +2,7 @@ use crate::*;
 
 pub struct SlottedUF<C>(Vec<SUFClass<C>>);
 
-struct SUFClass<C> {
+pub struct SUFClass<C> {
     leader: AppliedId,
     slots: HashSet<Slot>,
     group: Group<SlotMap>,
@@ -17,19 +17,18 @@ impl<C> SlottedUF<C> {
 
     pub fn add(&mut self, slots: HashSet<Slot>, c: C) -> AppliedId {
         let SlottedUF(v) = self;
-        let i = v.len();
+        let i = Id(v.len());
         let identity = SlotMap::identity(&slots);
         let group = Group::new(&identity, Default::default());
-        let out = identity * Id(i);
+        let out = identity * i;
         let leader = out.clone();
         v.push(SUFClass { leader, slots, group, c });
 
         out
     }
 
-    fn shrink(&mut self, Id(i): Id, s: HashSet<Slot>) {
-        let SlottedUF(v) = self;
-        let class = &mut v[i];
+    fn shrink(&mut self, i: Id, s: HashSet<Slot>) {
+        let class = &mut self[i];
 
         let red = &class.slots - &s;
 
@@ -51,19 +50,27 @@ impl<C> SlottedUF<C> {
                                     .map(restrict)
                                     .collect();
         class.group = Group::new(&identity, generators);
-        class.leader = identity * Id(i);
+        class.leader = identity * i;
     }
 
     // TODO add path compression later.
     fn find(&mut self, Applied(mut m1, mut x1): AppliedId) -> AppliedId {
-        let SlottedUF(v) = self;
         loop {
-            let Applied(m2, x2) = &m1 * v[x1.0].leader.clone();
+            let Applied(m2, x2) = &m1 * self[x1].leader.clone();
             if x1 == x2 && m1 == m2 { return Applied(m1, x1); }
-            m1 = m2;
-            x1 = x2;
+            Applied(m1, x1) = Applied(m2, x2);
         }
     }
+
+/*
+    fn is_equal(&mut self, x: &AppliedId, y: &AppliedId) -> bool {
+        let SlottedUF(v) = self;
+        let x = self.find(x);
+        let y = self.find(y);
+        if x.id != y.id { return false; }
+        v[x.id.0].group.contains(x.m * y.m^-1)
+    }
+*/
 
 /*
     fn union(&mut self, mut x: AppliedId, mut y: AppliedId) {
@@ -88,12 +95,21 @@ impl<C> SlottedUF<C> {
     }
 
 
-    fn is_equal(SlottedUF(v): &Self, x: AppliedId, y: AppliedId) -> bool {
-        let SlottedUf(v) = self;
-        let x = self.find(x);
-        let y = self.find(y);
-        if x.id != y.id { return false; }
-        vec[x.id].group.contains(x.m * y.m^-1)
-    }
 */
+}
+
+impl<C> Index<Id> for SlottedUF<C> {
+    type Output = SUFClass<C>;
+
+    fn index(&self, Id(i): Id) -> &SUFClass<C> {
+        let SlottedUF(v) = self;
+        &v[i]
+    }
+}
+
+impl<C> IndexMut<Id> for SlottedUF<C> {
+    fn index_mut(&mut self, Id(i): Id) -> &mut SUFClass<C> {
+        let SlottedUF(v) = self;
+        &mut v[i]
+    }
 }
