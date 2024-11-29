@@ -63,6 +63,16 @@ impl<T> Applicable for Applied<T> {
     }
 }
 
+impl Applicable for SlotMap {
+    fn access_slots_mut(&mut self) -> impl Iterator<Item=&mut Slot> {
+        self.values_mut()
+    }
+
+    fn access_slots(&self) -> impl Iterator<Item=Slot> {
+        self.values_immut().copied()
+    }
+}
+
 impl<T: Applicable> Applied<T> {
     fn apply(mut self) -> T {
         self.t.apply_slotmap_mut(&self.m);
