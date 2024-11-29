@@ -1,7 +1,7 @@
 use crate::*;
 
-trait Component<L> {
-    fn construct(l: &L) -> Self;
+trait Component<L: Language> {
+    fn construct(l: &Node<L>) -> Self;
 }
 
 struct SEClass<L: Language, C: Component<L>> {
