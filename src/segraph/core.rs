@@ -21,7 +21,7 @@ struct SEClass<L: Language, C: Component<L>> {
 // while the bijection in the nodes    goes from Shape to Id.
 pub struct SEGraph<L: Language, C: Component<L>> {
     suf: SUF<SEClass<L, C>>,
-    hashcons: HashMap<Shape<L>, AppliedId>,
+    hashcons: ApplyMap<Shape<L>, Id>,
     usages: HashMap<Id, HashSet<Shape<L>>>,
 }
 
@@ -29,7 +29,7 @@ impl<L: Language, C: Component<L>> SEGraph<L, C> {
     pub fn new() -> Self {
         SEGraph {
             suf: SUF::new(),
-            hashcons: Default::default(),
+            hashcons: ApplyMap::new(),
             usages: Default::default(),
         }
     }
@@ -37,22 +37,21 @@ impl<L: Language, C: Component<L>> SEGraph<L, C> {
     // These functions do not do shape computation! It needs to be done prior.
 
     // if the shape already exists, reject it, and return the collision.
-    pub(in crate::segraph) fn add_shape(&mut self, sh: Shape<L>, x: AppliedId) -> Option<(Shape<L>, AppliedId, AppliedId)> where Shape<L>: Hash + Eq + Clone {
-        match self.hashcons.entry(sh) {
-            Entry::Occupied(e) => {
-                Some((e.key().clone(), e.get().clone(), x))
-            },
-            Entry::Vacant(e) => {
+    pub(in crate::segraph) fn add_shape(&mut self, sh: Shape<L>, x: AppliedId) -> Option<AppliedId> where Shape<L>: Hash + Eq + Clone {
+        match self.hashcons.insert_raw(sh, x) {
+            Some(e) => Some(e),
+
+            None => {
                 // TODO update usages and nodes.
-                e.insert(x);
+
                 None
-            },
+            }
         }
     }
 
     // returns the AppliedId that contained `sh`, if it existed.
     pub(in crate::segraph) fn remove_shape(&mut self, sh: &Shape<L>) -> Option<AppliedId> where Shape<L>: Hash + Eq {
-        let app_id = self.hashcons.remove(sh);
+        // self.hashcons.remove(sh);
         todo!()
     }
 }
