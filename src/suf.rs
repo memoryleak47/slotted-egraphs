@@ -4,8 +4,8 @@ pub struct SlottedUF<C>(Vec<SUFClass<C>>);
 
 struct SUFClass<C> {
     leader: AppliedId,
-    s: HashSet<Slot>,
-    g: Group<SlotMap>,
+    slots: HashSet<Slot>,
+    group: Group<SlotMap>,
 
     c: C,
 }
@@ -15,29 +15,48 @@ impl<C> SlottedUF<C> {
         SlottedUF(Vec::new())
     }
 
-    pub fn add(SlottedUF(v): &mut Self, s: HashSet<Slot>, c: C) -> AppliedId {
+    pub fn add(&mut self, slots: HashSet<Slot>, c: C) -> AppliedId {
+        let SlottedUF(v) = self;
         let i = v.len();
-        let identity = SlotMap::identity(&s);
-        let g = Group::new(&identity, Default::default());
-        let out = Applied(identity, Id(i));
+        let identity = SlotMap::identity(&slots);
+        let group = Group::new(&identity, Default::default());
+        let out = identity * Id(i);
         let leader = out.clone();
-        v.push(SUFClass { leader, s, g, c });
+        v.push(SUFClass { leader, slots, group, c });
 
         out
     }
 
-/*
-    fn shrink(&mut self, i: Id, s: Set<Slot>) {
-        let red = vec[i].slots \ s;
-        let red = Cup {vec[i].group.orbit(x) for x in red};
-        let s = vec[i].slots \ red;
+    fn shrink(&mut self, Id(i): Id, s: HashSet<Slot>) {
+        let SlottedUF(v) = self;
+        let class = &mut v[i];
 
-        vec[i].leader = identity(s) * i;
-        vec[i].slots = s;
-        vec[i].group = vec[i].group.iter_generators().map(|x| x.restrict(s)).collect();
+        let red = &class.slots - &s;
+
+        for x in red {
+            if !class.slots.contains(&x) { continue; }
+            for y in class.group.orbit(x) {
+                class.slots.remove(&y);
+            }
+        }
+
+        let identity = SlotMap::identity(&class.slots);
+        let restrict = |x: SlotMap| {
+            x.iter()
+             .filter(|(x, _)| class.slots.contains(&x))
+             .collect()
+        };
+        let generators = class.group.generators()
+                                    .into_iter()
+                                    .map(restrict)
+                                    .collect();
+        class.group = Group::new(&identity, generators);
+        class.leader = identity * Id(i);
     }
 
-    fn union(SlottedUF(v): &mut Self, mut x: AppliedId, mut y: AppliedId) {
+/*
+    fn union(&mut self, mut x: AppliedId, mut y: AppliedId) {
+        let SlottedUF(v) = self;
         loop {
             x = find(x);
             y = find(y);
@@ -59,6 +78,7 @@ impl<C> SlottedUF<C> {
 
     // we omit path compression for now.
     fn find(SlottedUF(v): &Self, mut x: AppliedId) -> AppliedId {
+        let SlottedUF(v) = self;
         loop {
             let y = vec[x.id].leader.apply_slotmap(x.m)
             if x == y { return x; }
@@ -67,6 +87,7 @@ impl<C> SlottedUF<C> {
     }
 
     fn is_equal(SlottedUF(v): &Self, x: AppliedId, y: AppliedId) -> bool {
+        let SlottedUf(v) = self;
         let x = self.find(x);
         let y = self.find(y);
         if x.id != y.id { return false; }
