@@ -5,7 +5,7 @@ trait Component<L: Language> {
 }
 
 struct SEClass<L: Language, C: Component<L>> {
-    nodes: HashMap<Shape<L>, SlotMap>,
+    nodes: ApplyMap<Shape<L>, SlotMap>,
     c: C,
 }
 
