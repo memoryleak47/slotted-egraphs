@@ -1,7 +1,7 @@
 use crate::*;
 
-mod perm;
-pub use perm::*;
+mod permutation;
+pub use permutation::*;
 
 #[cfg(test)]
 mod tst;
@@ -68,6 +68,7 @@ impl<P: Permutation> Group<P> {
     }
 
     // Should be very rarely called.
+    #[cfg_attr(feature = "trace", instrument(level = "trace", skip_all))]
     pub fn all_perms(&self) -> HashSet<P> {
         match &self.next {
             None => [self.identity.clone()].into_iter().collect(),
@@ -81,6 +82,10 @@ impl<P: Permutation> Group<P> {
                     for r in &right {
                         out.insert(r.compose(l));
                     }
+                }
+
+                if CHECKS {
+                    assert_eq!(out.len(), self.count());
                 }
 
                 out
@@ -108,6 +113,9 @@ impl<P: Permutation> Group<P> {
                 // step == p * part^-1
                 // -> step * part == p
                 let out = step.compose(part);
+                if CHECKS {
+                    assert_eq!(&out.to_slotmap(), p);
+                }
                 Some(out)
             },
         }

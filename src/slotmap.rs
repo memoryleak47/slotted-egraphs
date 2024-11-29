@@ -12,6 +12,7 @@ pub(crate) type Bijection = SlotMap;
 /// A mapping between the parameter-slots of an e-class, and some "invocation" slots that you want to put into them.
 ///
 /// This type is relevant for [AppliedId]s.
+#[derive(Debug)]
 pub struct SlotMap {
     // if (l, r) in map, then there is no (l, r') in map. Each key is uniquely contained.
     // Also: map is sorted by their keys.
