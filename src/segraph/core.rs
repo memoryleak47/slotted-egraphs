@@ -28,12 +28,12 @@ impl<L: Language, C: Component<L>> SEGraph<L, C> {
     }
 
     // if the shape already exists, reject it, and return the collision.
-    pub fn add(&mut self, l: Node<L>, a: AppliedId) -> Option<(Node<L>, AppliedId, AppliedId)> {
+    pub(in crate::segraph) fn core_add(&mut self, l: Node<L>, a: AppliedId) -> Option<(Node<L>, AppliedId, AppliedId)> {
         todo!()
     }
 
     // returns the AppliedId that contained `l`, if it existed.
-    pub fn remove(&mut self, l: Node<L>) -> Option<AppliedId> {
+    pub(in crate::segraph) fn core_remove(&mut self, l: Node<L>) -> Option<AppliedId> {
         todo!()
     }
 }
