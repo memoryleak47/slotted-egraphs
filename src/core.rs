@@ -9,6 +9,9 @@ struct CoreEClass<L: Language, C: CoreComponent<L>> {
     c: C,
 }
 
+// The CoreEGraph enforces that `hashcons`, `usages` and `nodes` agree with each other.
+// Thus it also enforces that every shape exists uniquely, due to the hashcons.
+// TODO so the CoreEGraph understands shapes and equivalence up to renaming?
 pub struct CoreEGraph<L: Language, C: CoreComponent<L>> {
     suf: SlottedUF<CoreEClass<L, C>>,
     hashcons: HashMap<Node<L>, AppliedId>,
@@ -24,7 +27,13 @@ impl<L: Language, C: CoreComponent<L>> CoreEGraph<L, C> {
         }
     }
 
-    pub fn add(&mut self, l: Node<L>) -> AppliedId where Node<L>: Hash + Eq {
-        self.hashcons[&l].clone()
+    // if the shape already exists, reject it, and return the collision.
+    pub fn add(&mut self, l: Node<L>, a: AppliedId) -> Option<(Node<L>, AppliedId, AppliedId)> {
+        todo!()
+    }
+
+    // returns the AppliedId that contained `l`, if it existed.
+    pub fn remove(&mut self, l: Node<L>) -> Option<AppliedId> {
+        todo!()
     }
 }
