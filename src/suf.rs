@@ -63,6 +63,8 @@ impl<C> SlottedUF<C> {
     }
 
     fn is_equal(&mut self, x: &AppliedId, y: &AppliedId) -> bool {
+        let x = self.find(x.clone());
+        let y = self.find(y.clone());
         if x.id() != y.id() { return false; }
         let perm = x.m() * y.m().inverse();
         self[x.id()].group.contains(&perm)
