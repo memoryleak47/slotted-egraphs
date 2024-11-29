@@ -1,20 +1,11 @@
 use crate::*;
 
-trait Annotation {
-    fn apply_slotmap(m: &SlotMap) -> Self;
-    fn compose(&self, other: &Self) -> Self;
-    fn inverse(&self) -> Self;
-    fn refl(x: AppliedId) -> Self; // there's a ProofSystem::refl(AppliedId) -> ProvenEq function that doesn't require &self, because we don't store those proofs in the registry.
-}
+pub struct SlottedUF<C>(Vec<SUFClass<C>>);
 
-pub struct SlottedUF<A: Annotation>(Vec<SUFClass<A>>);
-
-struct SUFClass<A: Annotation> {
+struct SUFClass<C> {
     leader: AppliedId,
-    annotation_to_leader: A,
+    s: HashSet<Slot>,
+    g: Group<SlotMap>,
 
-    s: Set<Slot>,
-    g: Group<A>,
+    c: C,
 }
-
-struct Group<A: Annotation>(A);
