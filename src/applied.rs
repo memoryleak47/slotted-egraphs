@@ -47,7 +47,7 @@ pub trait Applicable {
 }
 
 // m * t
-#[derive(Clone, PartialEq, Eq)]
+#[derive(Clone, Hash, PartialEq, Eq, PartialOrd, Ord)]
 pub struct Applied<T>(pub SlotMap, pub T);
 
 impl<T> Applicable for Applied<T> {

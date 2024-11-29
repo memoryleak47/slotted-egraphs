@@ -4,15 +4,15 @@ trait CoreComponent<L> {
     fn construct(l: &L) -> Self;
 }
 
-struct CoreEClass<L, C: CoreComponent<L>> {
-    nodes: HashMap<L, SlotMap>,
+struct CoreEClass<L: Language, C: CoreComponent<L>> {
+    nodes: HashMap<Node<L>, SlotMap>,
     c: C,
 }
 
 pub struct CoreEGraph<L: Language, C: CoreComponent<L>> {
     suf: SlottedUF<CoreEClass<L, C>>,
-    hashcons: HashMap<L, AppliedId>,
-    usages: HashMap<Id, HashSet<L>>,
+    hashcons: HashMap<Node<L>, AppliedId>,
+    usages: HashMap<Id, HashSet<Node<L>>>,
 }
 
 impl<L: Language, C: CoreComponent<L>> CoreEGraph<L, C> {
@@ -24,7 +24,7 @@ impl<L: Language, C: CoreComponent<L>> CoreEGraph<L, C> {
         }
     }
 
-    pub fn add(&mut self, l: L) -> AppliedId {
-        todo!()
+    pub fn add(&mut self, l: Node<L>) -> AppliedId where Node<L>: Hash + Eq {
+        self.hashcons[&l].clone()
     }
 }
