@@ -62,15 +62,13 @@ impl<C> SlottedUF<C> {
         }
     }
 
-/*
-    fn is_equal(&mut self, x: &AppliedId, y: &AppliedId) -> bool {
-        let SlottedUF(v) = self;
-        let x = self.find(x);
-        let y = self.find(y);
-        if x.id != y.id { return false; }
-        v[x.id.0].group.contains(x.m * y.m^-1)
+    fn is_equal(&mut self, a1: &AppliedId, a2: &AppliedId) -> bool {
+        let Applied(m1, x1) = self.find(a1.clone());
+        let Applied(m2, x2) = self.find(a2.clone());
+        if x1 != x2 { return false; }
+        let perm = m1 * m2.inverse();
+        self[x1].group.contains(&perm)
     }
-*/
 
 /*
     fn union(&mut self, mut x: AppliedId, mut y: AppliedId) {
