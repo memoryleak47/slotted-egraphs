@@ -19,6 +19,9 @@ pub use lang::*;
 mod group;
 pub use group::*;
 
+mod core;
+pub use core::*;
+
 pub type HashMap<K, V> = fnv::FnvHashMap<K, V>;
 pub type HashSet<T> = fnv::FnvHashSet<T>;
 pub use std::ops::*;
