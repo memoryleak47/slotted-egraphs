@@ -6,12 +6,18 @@ pub struct Id(pub usize);
 pub type AppliedId = Applied<Id>;
 
 // under-applied Slots correspond to redundant slots. (bound slots don't exist anymore)
-pub trait Applicable {
-    fn access_slots_mut(&mut self) -> impl Iterator<Item=&mut Slot>;
-    fn access_slots(&self) -> impl Iterator<Item=Slot>;
-
+pub trait Applicable: Access<Slot> {
     fn slots(&self) -> HashSet<Slot> {
-        self.access_slots().collect()
+        struct SlotsHandler;
+
+        impl<'a> Handler<&'a Slot> for SlotsHandler {
+            type R = HashSet<Slot>;
+            fn call(self, it: impl Iterator<Item=&'a Slot>) -> HashSet<Slot> {
+                it.copied().collect()
+            }
+        }
+
+        self.access(SlotsHandler)
     }
 
     fn apply_slotmap(&self, m: &SlotMap) -> Self where Self: Clone {
@@ -27,48 +33,76 @@ pub trait Applicable {
     }
 
     fn apply_slotmap_inplace(&mut self, m: &SlotMap) {
-        for x in self.access_slots_mut() {
-            *x = m[*x];
+        struct ApplySlotMapHandler<'m> { m: &'m SlotMap }
+
+        impl<'a, 'm> Handler<&'a mut Slot> for ApplySlotMapHandler<'m> {
+            type R = ();
+            fn call(self, it: impl Iterator<Item=&'a mut Slot>) {
+                for x in it {
+                    *x = self.m[*x];
+                }
+            }
         }
+
+        self.access_mut(ApplySlotMapHandler { m })
     }
 
     fn apply_slotmap_fresh_inplace(&mut self, m: &SlotMap) {
-        let mut m = m.clone();
-        for x in self.access_slots_mut() {
-            if let Some(y) = m.get(*x) {
-                *x = y;
-            } else {
-                let y = Slot::fresh();
-                m.insert(*x, y);
-                *x = y;
+        struct ApplySlotMapFreshHandler { m: SlotMap }
+
+        impl<'a, 'm> Handler<&'a mut Slot> for ApplySlotMapFreshHandler {
+            type R = ();
+            fn call(mut self, it: impl Iterator<Item=&'a mut Slot>) {
+                for x in it {
+                    if let Some(y) = self.m.get(*x) {
+                        *x = y;
+                    } else {
+                        let y = Slot::fresh();
+                        self.m.insert(*x, y);
+                        *x = y;
+                    }
+                }
             }
         }
+
+        self.access_mut(ApplySlotMapFreshHandler { m: m.clone() })
     }
 }
+
+impl<T: Access<Slot>> Applicable for T {}
 
 // m * t
 #[derive(Clone, Hash, PartialEq, Eq, PartialOrd, Ord)]
 pub struct Applied<T>(pub SlotMap, pub T);
 
-impl<T> Applicable for Applied<T> {
-    fn access_slots_mut(&mut self) -> impl Iterator<Item=&mut Slot> {
-        let Applied(m, t) = self;
-        m.values_mut()
+impl<T> Access<Slot> for Applied<T> {
+    fn access_mut<'a, H: Handler<&'a mut Slot>>(&'a mut self, h: H) -> H::R {
+        let Applied(m, _) = self;
+        m.access_mut(h)
     }
 
-    fn access_slots(&self) -> impl Iterator<Item=Slot> {
-        let Applied(m, t) = self;
-        m.values_immut().copied()
+    fn access<'a, H: Handler<&'a Slot>>(&'a self, h: H) -> H::R {
+        let Applied(m, _) = self;
+        m.access(h)
+    }
+
+    fn into_access<H: Handler<Slot>>(self, h: H) -> H::R {
+        let Applied(m, _) = self;
+        m.into_access(h)
     }
 }
 
-impl Applicable for SlotMap {
-    fn access_slots_mut(&mut self) -> impl Iterator<Item=&mut Slot> {
-        self.values_mut()
+impl Access<Slot> for SlotMap {
+    fn access_mut<'a, H: Handler<&'a mut Slot>>(&'a mut self, h: H) -> H::R {
+        h.call(self.values_mut())
     }
 
-    fn access_slots(&self) -> impl Iterator<Item=Slot> {
-        self.values_immut().copied()
+    fn access<'a, H: Handler<&'a Slot>>(&'a self, h: H) -> H::R {
+        h.call(self.values_immut())
+    }
+
+    fn into_access<H: Handler<Slot>>(self, h: H) -> H::R {
+        h.call(self.into_iter().map(|(_, y)| y))
     }
 }
 

@@ -8,6 +8,7 @@ pub trait Language {
 
 pub struct Term<L: Language>(L::With<Box<Term<L>>>);
 pub struct Node<L: Language>(L::With<AppliedId>);
+pub type Shape<L> = Node<L>;
 
 impl<L: Language> Clone for Term<L> {
     fn clone(&self) -> Self {
