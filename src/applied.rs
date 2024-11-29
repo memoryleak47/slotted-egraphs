@@ -49,8 +49,8 @@ pub trait Applicable {
 // m * t
 #[derive(Clone)]
 pub struct Applied<T> {
-    m: SlotMap,
-    t: T,
+    pub m: SlotMap,
+    pub t: T,
 }
 
 impl<T> Applicable for Applied<T> {
