@@ -10,6 +10,9 @@ pub use slotmap::*;
 mod applied;
 pub use applied::*;
 
+mod apply_map;
+pub use apply_map::*;
+
 mod rename;
 pub use rename::*;
 
