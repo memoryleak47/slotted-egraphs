@@ -4,6 +4,9 @@ pub use slot::*;
 mod slotmap;
 pub use slotmap::*;
 
+mod applied;
+pub use applied::*;
+
 mod suf;
 pub use suf::*;
 
