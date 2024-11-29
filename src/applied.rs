@@ -105,3 +105,15 @@ impl Mul<Id> for SlotMap {
         Applied(self, id)
     }
 }
+
+impl AppliedId {
+    pub fn m(&self) -> &SlotMap {
+        let Applied(m, _) = self;
+        m
+    }
+
+    pub fn id(&self) -> Id {
+        let Applied(_, id) = self;
+        *id
+    }
+}

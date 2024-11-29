@@ -54,30 +54,27 @@ impl<C> SlottedUF<C> {
     }
 
     // TODO add path compression later.
-    fn find(&mut self, Applied(mut m1, mut x1): AppliedId) -> AppliedId {
+    fn find(&mut self, mut x: AppliedId) -> AppliedId {
         loop {
-            let Applied(m2, x2) = &m1 * self[x1].leader.clone();
-            if x1 == x2 && m1 == m2 { return Applied(m1, x1); }
-            Applied(m1, x1) = Applied(m2, x2);
+            let y = x.m() * self[x.id()].leader.clone();
+            if x == y { return x; }
+            x = y;
         }
     }
 
-    fn is_equal(&mut self, a1: &AppliedId, a2: &AppliedId) -> bool {
-        let Applied(m1, x1) = self.find(a1.clone());
-        let Applied(m2, x2) = self.find(a2.clone());
-        if x1 != x2 { return false; }
-        let perm = m1 * m2.inverse();
-        self[x1].group.contains(&perm)
+    fn is_equal(&mut self, x: &AppliedId, y: &AppliedId) -> bool {
+        if x.id() != y.id() { return false; }
+        let perm = x.m() * y.m().inverse();
+        self[x.id()].group.contains(&perm)
     }
 
 /*
-    fn union(&mut self, mut x: AppliedId, mut y: AppliedId) {
-        let SlottedUF(v) = self;
+    fn union(&mut self, mut a1: AppliedId, mut a2: AppliedId) {
         loop {
-            x = find(x);
-            y = find(y);
-            shrink(x.id, slots(x.m^-1 * y.m * y.id));
-            shrink(y.id, slots(y.m^-1 * x.m * x.id));
+            a1 = self.find(a1);
+            a2 = self.find(a2);
+            shrink(x.id, (x.m.inverse() * y.m * y.id).slots());
+            shrink(y.id, (y.m.inverse() * x.m * x.id).slots());
             if nothing shrunk { break }
         }
 
@@ -91,8 +88,6 @@ impl<C> SlottedUF<C> {
             vec[y].group = none;
         }
     }
-
-
 */
 }
 
