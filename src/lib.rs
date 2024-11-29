@@ -10,9 +10,6 @@ pub use applied::*;
 mod suf;
 pub use suf::*;
 
-mod id;
-pub use id::*;
-
 mod lang;
 pub use lang::*;
 
