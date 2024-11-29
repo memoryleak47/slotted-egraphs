@@ -1,6 +1,6 @@
 use crate::*;
 
-pub struct SlottedUF<C>(Vec<SUFClass<C>>);
+pub struct SUF<C>(Vec<SUFClass<C>>);
 
 pub struct SUFClass<C> {
     leader: AppliedId,
@@ -10,13 +10,13 @@ pub struct SUFClass<C> {
     c: C,
 }
 
-impl<C> SlottedUF<C> {
+impl<C> SUF<C> {
     pub fn new() -> Self {
-        SlottedUF(Vec::new())
+        SUF(Vec::new())
     }
 
     pub fn add(&mut self, slots: HashSet<Slot>, c: C) -> AppliedId {
-        let SlottedUF(v) = self;
+        let SUF(v) = self;
         let i = Id(v.len());
         let identity = SlotMap::identity(&slots);
         let group = Group::new(&identity, Default::default());
@@ -98,18 +98,18 @@ impl<C> SlottedUF<C> {
     }
 }
 
-impl<C> Index<Id> for SlottedUF<C> {
+impl<C> Index<Id> for SUF<C> {
     type Output = SUFClass<C>;
 
     fn index(&self, Id(i): Id) -> &SUFClass<C> {
-        let SlottedUF(v) = self;
+        let SUF(v) = self;
         &v[i]
     }
 }
 
-impl<C> IndexMut<Id> for SlottedUF<C> {
+impl<C> IndexMut<Id> for SUF<C> {
     fn index_mut(&mut self, Id(i): Id) -> &mut SUFClass<C> {
-        let SlottedUF(v) = self;
+        let SUF(v) = self;
         &mut v[i]
     }
 }

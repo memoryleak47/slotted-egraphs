@@ -19,8 +19,8 @@ pub use lang::*;
 mod group;
 pub use group::*;
 
-mod core;
-pub use core::*;
+mod egraph;
+pub use egraph::*;
 
 pub type HashMap<K, V> = fnv::FnvHashMap<K, V>;
 pub type HashSet<T> = fnv::FnvHashSet<T>;
