@@ -73,7 +73,7 @@ impl<T: Applicable> Applied<T> {
 impl<T: Applicable> Mul<T> for SlotMap {
     type Output = T;
 
-    fn mul(mut self, mut t: T) -> T {
+    fn mul(self, mut t: T) -> T {
         t.apply_slotmap_mut(&self);
         t
     }
