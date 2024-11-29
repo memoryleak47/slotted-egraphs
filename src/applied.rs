@@ -21,6 +21,21 @@ pub trait Applicable {
         }
         c
     }
+
+    fn apply_slotmap_fresh(&self, m: &SlotMap) -> Self where Self: Clone {
+        let mut m = m.clone();
+        let mut c = self.clone();
+        for x in c.access_slots_mut() {
+            if let Some(y) = m.get(*x) {
+                *x = y;
+            } else {
+                let y = Slot::fresh();
+                m.insert(*x, y);
+                *x = y;
+            }
+        }
+        c
+    }
 }
 
 // m * t
