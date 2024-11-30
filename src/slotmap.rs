@@ -1,13 +1,6 @@
 use crate::*;
 use std::ops::Index;
 
-// Permutations are a special kind of Bijections.
-// Their key & value sets agree!
-pub(crate) type Perm = Bijection;
-
-// Bijections are bijective SlotMaps.
-pub(crate) type Bijection = SlotMap;
-
 #[derive(Clone, Hash, PartialEq, Eq, PartialOrd, Ord, Default)]
 /// A mapping between the parameter-slots of an e-class, and some "invocation" slots that you want to put into them.
 ///

@@ -7,6 +7,9 @@ pub use slot::*;
 mod slotmap;
 pub use slotmap::*;
 
+mod slotmap_like;
+pub use slotmap_like::*;
+
 mod applied;
 pub use applied::*;
 
