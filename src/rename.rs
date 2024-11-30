@@ -45,19 +45,19 @@ impl Mul<Id> for SlotMap {
     }
 }
 
-// The "rename" action * on HashSet<Slot>.
-impl<'a> Mul<HashSet<Slot>> for &'a SlotMap {
+// The "rename" action * on &HashSet<Slot>.
+impl<'a, 's> Mul<&'s HashSet<Slot>> for &'a SlotMap {
     type Output = HashSet<Slot>;
 
-    fn mul(self, s: HashSet<Slot>) -> HashSet<Slot> {
+    fn mul(self, s: &'s HashSet<Slot>) -> HashSet<Slot> {
         s.iter().map(|x| self[*x]).collect()
     }
 }
 
-impl<L: SlotMapLike, R: SlotMapLike> Mul<HashSet<Slot>> for Compose<L, R> {
+impl<'s, L: SlotMapLike, R: SlotMapLike> Mul<&'s HashSet<Slot>> for Compose<L, R> {
     type Output = HashSet<Slot>;
 
-    fn mul(self, s: HashSet<Slot>) -> HashSet<Slot> {
+    fn mul(self, s: &'s HashSet<Slot>) -> HashSet<Slot> {
         s.iter().map(|x| self.map(*x).unwrap()).collect()
     }
 }

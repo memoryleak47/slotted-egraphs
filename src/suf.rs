@@ -75,8 +75,8 @@ impl<C> SUF<C> {
             x = self.find(x);
             y = self.find(y);
             let n1 = self[x.id()].slots.len() + self[y.id()].slots.len();
-            self.shrink(x.id(), &x.m().inverse() * y.m() * self[y.id()].slots.clone());
-            self.shrink(y.id(), &y.m().inverse() * x.m() * self[x.id()].slots.clone());
+            self.shrink(x.id(), &x.m().inverse() * y.m() * &self[y.id()].slots);
+            self.shrink(y.id(), &y.m().inverse() * x.m() * &self[x.id()].slots);
             let n2 = self[x.id()].slots.len() + self[y.id()].slots.len();
             if n1 == n2 { break; }
         }
