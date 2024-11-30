@@ -73,21 +73,22 @@ impl<T: Access<Slot>> Applicable for T {}
 
 // m * t
 #[derive(Clone, Hash, PartialEq, Eq, PartialOrd, Ord)]
-pub struct Applied<T>(pub SlotMap, pub T);
+pub struct AppliedBy<M, T>(pub M, pub T);
+pub type Applied<T> = AppliedBy<SlotMap, T>;
 
 impl<T> Access<Slot> for Applied<T> {
     fn access_mut<'a, H: Handler<&'a mut Slot>>(&'a mut self, h: H) -> H::R {
-        let Applied(m, _) = self;
+        let AppliedBy(m, _) = self;
         m.access_mut(h)
     }
 
     fn access<'a, H: Handler<&'a Slot>>(&'a self, h: H) -> H::R {
-        let Applied(m, _) = self;
+        let AppliedBy(m, _) = self;
         m.access(h)
     }
 
     fn into_access<H: Handler<Slot>>(self, h: H) -> H::R {
-        let Applied(m, _) = self;
+        let AppliedBy(m, _) = self;
         m.into_access(h)
     }
 }
@@ -108,7 +109,7 @@ impl Access<Slot> for SlotMap {
 
 impl<T: Applicable> Applied<T> {
     fn apply(self) -> T {
-        let Applied(m, mut t) = self;
+        let AppliedBy(m, mut t) = self;
         t.apply_slotmap_inplace(&m);
         t
     }
@@ -116,12 +117,12 @@ impl<T: Applicable> Applied<T> {
 
 impl AppliedId {
     pub fn m(&self) -> &SlotMap {
-        let Applied(m, _) = self;
+        let AppliedBy(m, _) = self;
         m
     }
 
     pub fn id(&self) -> Id {
-        let Applied(_, id) = self;
+        let AppliedBy(_, id) = self;
         *id
     }
 }

@@ -8,7 +8,7 @@ pub trait Language {
     fn weak_shape(n: &Node<Self>) -> Applied<Shape<Self>> where Node<Self>: Clone, Self: Sized, Self::With<AppliedId>: Access<Slot> {
         let mut n = n.clone();
         let m = Self::weak_shape_inplace(&mut n);
-        Applied(m, n)
+        AppliedBy(m, n)
     }
 
     fn weak_shape_inplace(n: &mut Node<Self>) -> SlotMap where Self: Sized, Self::With<AppliedId>: Access<Slot> {

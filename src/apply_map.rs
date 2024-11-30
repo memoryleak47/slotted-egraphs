@@ -7,15 +7,16 @@ impl<K, V> ApplyMap<K, V> {
         ApplyMap(HashMap::default())
     }
 
-    pub fn insert(&mut self, Applied(mk, k): Applied<K>, Applied(mv, v): Applied<V>) -> Option<Applied<V>> where K: Hash + Eq, V: Clone {
-        let v = Applied(&mk.inverse() * mv, v);
+    pub fn insert(&mut self, AppliedBy(mk, k): AppliedBy<impl SlotMapLike, K>, AppliedBy(mv, v): AppliedBy<impl SlotMapLike, V>) -> Option<Applied<V>> where K: Hash + Eq, V: Clone {
         match self.0.entry(k) {
             Entry::Vacant(e) => {
+                let v = AppliedBy(&mk.inverse() * mv.into(), v);
                 e.insert(v);
                 None
             }
             Entry::Occupied(e) => {
-                Some(&mk * e.get().clone())
+                // TODO this .into() should be avoidable.
+                Some(&mk.into() * e.get().clone())
             },
         }
     }
@@ -32,11 +33,11 @@ impl<K, V> ApplyMap<K, V> {
         }
     }
 
-    pub fn get(&self, Applied(m, k): Applied<K>) -> Option<Applied<V>> where K: Hash + Eq, V: Clone {
+    pub fn get(&self, AppliedBy(m, k): Applied<K>) -> Option<Applied<V>> where K: Hash + Eq, V: Clone {
         self.0.get(&k).map(|v| &m * v.clone())
     }
 
-    pub fn remove(&mut self, Applied(mk, k): Applied<K>) where K: Hash + Eq {
+    pub fn remove(&mut self, AppliedBy(mk, k): Applied<K>) where K: Hash + Eq {
         self.0.remove(&k);
     }
 }

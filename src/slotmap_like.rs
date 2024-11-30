@@ -1,9 +1,12 @@
 use crate::*;
 
+// TODO: would be perfect if "SlotMapLike * Applicable" is generally defined.
+
 pub trait SlotMapLike {
     fn map(&self, x: Slot) -> Option<Slot>;
     fn iter(&self) -> impl Iterator<Item=(Slot, Slot)>;
     fn into(self) -> SlotMap where Self: Sized { self.iter().collect() }
+    fn inverse(&self) -> SlotMap { self.iter().map(|(x, y)| (y, x)).collect() }
 }
 
 impl SlotMapLike for SlotMap {

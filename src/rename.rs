@@ -41,7 +41,7 @@ impl Mul<Id> for SlotMap {
     type Output = AppliedId;
 
     fn mul(self, id: Id) -> AppliedId {
-        Applied(self, id)
+        AppliedBy(self, id)
     }
 }
 
