@@ -6,6 +6,7 @@ trait Component<L: Language> {
 
 struct SEClass<L: Language, C: Component<L>> {
     nodes: ApplyMap<Shape<L>, SlotMap>,
+    usages: HashSet<Shape<L>>,
     c: C,
 }
 
@@ -22,7 +23,6 @@ struct SEClass<L: Language, C: Component<L>> {
 pub struct SEGraph<L: Language, C: Component<L>> {
     suf: SUF<SEClass<L, C>>,
     hashcons: ApplyMap<Shape<L>, Id>,
-    usages: HashMap<Id, HashSet<Shape<L>>>,
 }
 
 impl<L: Language, C: Component<L>> SEGraph<L, C> {
@@ -30,7 +30,6 @@ impl<L: Language, C: Component<L>> SEGraph<L, C> {
         SEGraph {
             suf: SUF::new(),
             hashcons: ApplyMap::new(),
-            usages: Default::default(),
         }
     }
 
