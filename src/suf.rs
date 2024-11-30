@@ -75,8 +75,8 @@ impl<C> SUF<C> {
             x = self.find(x);
             y = self.find(y);
             let n1 = self[x.id()].slots.len() + self[y.id()].slots.len();
-            self.shrink(x.id(), &x.m().inverse() * y.m().clone() * self[y.id()].slots.clone());
-            self.shrink(y.id(), &y.m().inverse() * x.m().clone() * self[x.id()].slots.clone());
+            self.shrink(x.id(), &x.m().inverse() * y.m() * self[y.id()].slots.clone());
+            self.shrink(y.id(), &y.m().inverse() * x.m() * self[x.id()].slots.clone());
             let n2 = self[x.id()].slots.len() + self[y.id()].slots.len();
             if n1 == n2 { break; }
         }
@@ -90,7 +90,7 @@ impl<C> SUF<C> {
             let generators = self[y.id()].group
                                          .generators()
                                          .into_iter()
-                                         .map(|x| &(&m * x) * m.inverse())
+                                         .map(|x| &m * &x * m.inverse())
                                          .collect();
             self[x.id()].group.add_set(generators);
             // self[y.id()].group is now meaningless.
