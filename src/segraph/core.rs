@@ -16,7 +16,7 @@ struct SEClass<L: Language, C: Component<L>> {
 // invariants:
 // - hashcons[sh] represents sh
 // - i represents classes[i].nodes[sh] * sh
-// - usages[i].contains(sh) <-> sh in hashcons && sh references i
+// - classes[i].usages.contains(sh) <-> sh in hashcons && sh references i
 //
 // Note: the bijection in the hashcons goes from Id    to Shape,
 // while the bijection in the nodes    goes from Shape to Id.
