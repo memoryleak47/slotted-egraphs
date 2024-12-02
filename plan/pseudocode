@@ -1,0 +1,181 @@
+# pseudocode:
+
+
+### 1. SlottedUF ###
+struct SlottedUF {
+    vec: Vec<UFClass>,
+}
+
+struct UFClass {
+    leader: AppliedId,
+    slots: Set<Slot>,
+    group: Group,
+}
+
+impl SlottedUF {
+    fn new(&mut self, s: Set<Slot>) -> AppliedId {
+        let i = vec.len();
+        vec.push(UFClass {
+            leader: identity(s) * i,
+            slots: s,
+            group: trivial_group(s),
+        });
+
+        identity(s) * i
+    }
+
+    fn shrink(&mut self, i: Id, s: Set<Slot>) {
+        let red = vec[i].slots \ s;
+        let red = Cup {vec[i].group.orbit(x) for x in red};
+        let s = vec[i].slots \ red;
+        
+        vec[i].leader = identity(s) * i;
+        vec[i].slots = s;
+        vec[i].group = vec[i].group.iter_generators().map(|x| x.restrict(s)).collect();
+    }
+
+    fn union(&mut self, mut x: AppliedId, mut y: AppliedId) {
+        loop {
+            x = find(x);
+            y = find(y);
+            shrink(x.id, slots(x.m^-1 * y.m * y.id));
+            shrink(y.id, slots(y.m^-1 * x.m * x.id));
+            if nothing shrunk { break }
+        }
+
+        if x.id == y.id {
+            vec[x.id].group.add(x.m * y.m^-1);
+        } else {
+            # move y into x
+            m = x.m^-1 * y.m
+            vec[y].leader = m * x.id
+            vec[x].group.extend(vec[y].group.iter_generators().map(|x| m*x*m^-1))
+            vec[y].group = none;
+        }
+    }
+
+    // we omit path compression for now.
+    fn find(&self, mut x: AppliedId) -> AppliedId {
+        loop {
+            let y = vec[x.id].leader.apply_slotmap(x.m)
+            if x == y { return x; }
+            x = y;
+        }
+    }
+
+    fn is_equal(&self, x: AppliedId, y: AppliedId) -> bool {
+        let x = find(x);
+        let y = find(y);
+        if x.id != y.id { return false; }
+        vec[x.id].group.contains(x.m * y.m^-1)
+    }
+}
+
+### 2. Slotted E-Graph (no explanations) ###
+
+struct SlottedEClass {
+    nodes: Map<Shape, SlotMap>,
+    usages: Set<Shape>,
+}
+
+struct SlottedEGraph {
+    uf: SlottedUF,
+    hashcons: Map<Shape, Id>,
+    classes: Map<Id, SlottedEClass>, # dead classes are ommited
+    dirty: Set<Id>,
+}
+
+impl SlottedEGraph {
+    fn add(&mut self, x: L) -> AppliedId {
+        let (sh, bij, perms) = shape_and_sym(x);
+        if let Some(i) = hashcons[sh] {
+            return bij * classes[i].nodes[sh] * i # or something like this
+        } else {
+            # do we want fresh slots? 
+            let s = bij.values();
+            let i = uf.new(s);
+            uf.vec[i].groups.extend(perms);
+            classes[i.id] = SlottedEClass {
+                nodes: {},
+                usages: {},
+            }
+            self.raw_add(sh, bij, i.id);
+            return i;
+        }
+    }
+
+    # updates usages, hashcons, nodes
+    fn raw_add(&mut self, sh: Shape, bij: SlotMap, i: Id) {
+        assert!(hashcons[sh] == none);
+
+        classes[i].nodes.insert(sh, bij);
+        hashcons[sh] = i;
+        for x in sh.ids() {
+            classes[x].usages.insert(sh);
+        }
+    }
+
+    fn raw_remove(&mut self, sh: Shape) -> AppliedId {
+        let i = hashcons.remove(sh);
+        let bij = classes[i].nodes.remove(sh);
+        for x in sh.ids() {
+            classes[x].usages.remove(sh);
+        }
+
+        bij * i
+    }
+
+    fn union(&mut self, x: AppliedId, y: AppliedId) {
+        let x = find(x);
+        let y = find(y);
+        self.uf.union(x, y);
+
+        if x.id changed by new redundancies / symmetries {
+            self.dirty.push(x.id);
+        }
+
+        if x.id != y.id { # y has been moved into x
+            self.dirty.push(y.id);
+
+            # move e-nodes from y to x
+            for (sh, _) in self.classes[y.id].clone() {
+                let app_id = self.raw_remove(sh);
+                m = x.m^-1 * y.m * app_id.m; # or something like this
+                self.raw_add(sh, m, x.id);
+            }
+        }
+    }
+
+    # called directly before ematch only
+    fn rebuild(&mut self) {
+        while self.dirty.len() > 0 {
+            let todo = self.dirty.take().map(|x| self.classes[x].usages).flatten();
+            for old_sh in todo {
+                let i = hashcons[old_sh];
+                let bij = self.classes[i].nodes[old_sh];
+                let (sh, bij, perms) = shape_and_sym(bij * old_sh);
+
+                self.uf.shrink(i, bij.values());
+                self.uf.vec[i].groups.extend(perms);
+
+                let old = self.raw_remove(old_sh);
+
+                if let Some(y) = hashcons[sh] {
+                    self.union(bij * i, y);
+                } else {
+                    self.raw_add(sh);
+                }
+            }
+        }
+        
+    }
+
+    # computes the shape and finds symmetries
+    fn shape_and_sym(&self, n: L) -> (Shape, Bijection, perms: Vec<SlotMap>) {
+        # TODO
+    }
+
+    fn is_equal(&self, x: AppliedId, y: AppliedId) -> bool {
+        self.uf.is_equal(x, y)
+    }
+}
