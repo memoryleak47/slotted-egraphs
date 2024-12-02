@@ -1,11 +1,19 @@
 use crate::*;
 use std::ops::Index;
 
-#[derive(Clone, Hash, PartialEq, Eq, PartialOrd, Ord, Default)]
+mod rename;
+pub use rename::*;
+
+mod like;
+pub use like::*;
+
+mod rf;
+pub use rf::*;
+
+#[derive(Clone, Hash, PartialEq, Eq, PartialOrd, Ord, Default, Debug)]
 /// A mapping between the parameter-slots of an e-class, and some "invocation" slots that you want to put into them.
 ///
 /// This type is relevant for [AppliedId]s.
-#[derive(Debug)]
 pub struct SlotMap {
     // if (l, r) in map, then there is no (l, r') in map. Each key is uniquely contained.
     // Also: map is sorted by their keys.
@@ -15,6 +23,10 @@ pub struct SlotMap {
 impl SlotMap {
     pub fn new() -> Self {
         SlotMap { map: Default::default() }
+    }
+
+    pub fn rf(&self) -> SlotMapRef<&SlotMap> {
+        SlotMapRef(self)
     }
 
     pub fn len(&self) -> usize {

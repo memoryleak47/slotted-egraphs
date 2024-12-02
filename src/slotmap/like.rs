@@ -14,6 +14,13 @@ impl SlotMapLike for SlotMap {
     fn iter(&self) -> impl Iterator<Item=(Slot, Slot)> { self.iter() }
     fn into(self) -> SlotMap { self }
 }
+
+impl<M: SlotMapLike> SlotMapLike for SlotMapRef<M> {
+    fn map(&self, x: Slot) -> Option<Slot> { self.0.map(x) }
+    fn iter(&self) -> impl Iterator<Item=(Slot, Slot)> { self.0.iter() }
+    fn into(self) -> SlotMap { self.0.into() }
+}
+
 pub struct Compose<L: SlotMapLike, R: SlotMapLike>(pub L, pub R);
 impl<L: SlotMapLike, R: SlotMapLike> SlotMapLike for Compose<L, R> {
     fn map(&self, x: Slot) -> Option<Slot> {

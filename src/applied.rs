@@ -20,26 +20,20 @@ pub trait Applicable: Access<Slot> {
         self.access(SlotsHandler)
     }
 
-    fn apply_slotmap(&self, m: impl SlotMapLike) -> Self where Self: Clone {
+    fn apply_slotmap(&self, m: SlotMapRef<impl SlotMapLike>) -> Self where Self: Clone {
         let mut c = self.clone();
         c.apply_slotmap_inplace(m);
         c
     }
 
-    fn apply_slotmap_fresh(&self, m: impl SlotMapLike) -> Self where Self: Clone {
-        let mut c = self.clone();
-        c.apply_slotmap_fresh_inplace(m.into());
-        c
-    }
-
-    fn apply_slotmap_inplace<M: SlotMapLike>(&mut self, m: M) {
-        struct ApplySlotMapHandler<M> { m: M }
+    fn apply_slotmap_inplace<M: SlotMapLike>(&mut self, m: SlotMapRef<M>) {
+        struct ApplySlotMapHandler<M> { m: SlotMapRef<M> }
 
         impl<'a, M: SlotMapLike> Handler<&'a mut Slot> for ApplySlotMapHandler<M> {
             type R = ();
             fn call(self, it: impl Iterator<Item=&'a mut Slot>) {
                 for x in it {
-                    *x = self.m.map(*x).unwrap();
+                    *x = self.m.0.map(*x).unwrap();
                 }
             }
         }
@@ -110,15 +104,15 @@ impl Access<Slot> for SlotMap {
 impl<T: Applicable> Applied<T> {
     fn apply(self) -> T {
         let AppliedBy(m, mut t) = self;
-        t.apply_slotmap_inplace(&m);
+        t.apply_slotmap_inplace(m.rf());
         t
     }
 }
 
 impl AppliedId {
-    pub fn m(&self) -> &SlotMap {
+    pub fn m(&self) -> SlotMapRef<&SlotMap> {
         let AppliedBy(m, _) = self;
-        m
+        m.rf()
     }
 
     pub fn id(&self) -> Id {
