@@ -1,12 +1,16 @@
 use crate::*;
 
+// uniquely identifies a shape in the e-graph.
+// To find where ShapeId x is, compute classes[find(x)].nodes[x]
+pub type ShapeId = Id;
+
 trait Component<L: Language> {
     fn construct(l: &Shape<L>) -> Self;
 }
 
 struct SEClass<L: Language, C: Component<L>> {
-    nodes: ApplyMap<Shape<L>, SlotMap>,
-    usages: HashSet<Shape<L>>,
+    nodes: HashMap<ShapeId, Applied<Shape<L>>>,
+    usages: HashSet<ShapeId>,
     c: C,
 }
 
