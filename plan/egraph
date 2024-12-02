@@ -7,7 +7,7 @@ struct SlottedEClass {
 
 struct SlottedEGraph {
     uf: SlottedUF,
-    hashcons: Map<Shape, Id>,
+    hashcons: Map<Shape, AppliedId>,
     classes: Map<Id, SlottedEClass>, # dead classes are ommited
     dirty: Set<Id>,
 }
@@ -15,8 +15,8 @@ struct SlottedEGraph {
 impl SlottedEGraph {
     fn add(&mut self, x: L) -> AppliedId {
         let (sh, bij, perms) = shape_and_sym(x);
-        if let Some(i) = hashcons[sh] {
-            return bij * classes[i].nodes[sh] * i # or something like this
+        if let Some(m * i) = hashcons[sh] {
+            return bij * m * i;
         } else {
             # do we want fresh slots? 
             let s = bij.values();
@@ -36,20 +36,20 @@ impl SlottedEGraph {
         assert!(hashcons[sh] == none);
 
         classes[i].nodes.insert(sh, bij);
-        hashcons[sh] = i;
+        hashcons[sh] = bij.inverse() * i;
         for x in sh.ids() {
             classes[x].usages.insert(sh);
         }
     }
 
     fn raw_remove(&mut self, sh: Shape) -> AppliedId {
-        let i = hashcons.remove(sh);
-        let bij = classes[i].nodes.remove(sh);
+        let app_id = hashcons.remove(sh);
+        classes[app_id.id].nodes.remove(sh);
         for x in sh.ids() {
             classes[x].usages.remove(sh);
         }
 
-        bij * i
+        app_id
     }
 
     fn union(&mut self, x: AppliedId, y: AppliedId) {
@@ -78,19 +78,18 @@ impl SlottedEGraph {
         while self.dirty.len() > 0 {
             let todo = self.dirty.take().map(|x| self.classes[x].usages).flatten();
             for old_sh in todo {
-                let i = hashcons[old_sh];
-                let bij = self.classes[i].nodes[old_sh];
-                let (sh, bij, perms) = shape_and_sym(bij * old_sh);
+                let old_bij * i = hashcons[old_sh];
+                let (sh, bij, perms) = shape_and_sym(old_bij.inverse() * old_sh);
 
                 self.uf.shrink(i, bij.values());
                 self.uf.vec[i].groups.extend(perms);
 
                 let old = self.raw_remove(old_sh);
 
-                if let Some(y) = hashcons[sh] {
-                    self.union(bij * i, y);
+                if let Some(bij2 * i2) = hashcons[sh] {
+                    self.union(bij * i, bij2 * i2);
                 } else {
-                    self.raw_add(sh);
+                    self.raw_add(sh, bij, i);
                 }
             }
         }
