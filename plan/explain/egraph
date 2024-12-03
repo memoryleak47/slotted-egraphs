@@ -18,3 +18,19 @@ struct EGraph {
     suf: Suf,
     classes: Vec<Class>,
 }
+
+type Proof = Todo!();
+
+impl EGraph {
+    fn add(&mut self, n: L) -> AppliedId {
+        todo!()
+    }
+
+    fn union(&mut self, x: AppliedId, y: AppliedId) {
+        todo!()
+    }
+
+    fn explain_equivalence(&mut self, x: AppliedId, y: AppliedId) -> Proof {
+        todo!()
+    }
+}
