@@ -1,0 +1,20 @@
+# explain e-graph
+
+# hashcons collisions etc. are all checked manually for now.
+# there's no hashing tricks in this conceptual design.
+
+struct ProvenContains {
+    node: L,
+    parent_proof: Equation, 
+    child_proofs: Vec<Equation>,
+}
+
+struct Class {
+    syn_node: L,
+    active_nodes: Vec<ProvenContains>,
+}
+
+struct EGraph {
+    suf: Suf,
+    classes: Vec<Class>,
+}
