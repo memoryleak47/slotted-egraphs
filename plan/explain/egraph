@@ -39,7 +39,11 @@ impl EGraph {
     }
 
     fn union(&mut self, x: AppliedId, y: AppliedId) {
-        todo!()
+        suf.union(x, y);
+
+        if y.id deprecated {
+            moves nodes from y to x
+        }
     }
 
     fn explain_equivalence(&mut self, x: AppliedId, y: AppliedId) -> Proof {
