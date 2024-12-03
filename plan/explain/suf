@@ -16,7 +16,7 @@ struct Registry(HashMap<Equation, ProofStep>);
 impl Suf {
     fn new() -> Self;
     fn add(&mut self, s: Set<Slot>) -> Id;
-    fn union(&mut self, Equation);
+    fn union(&mut self, Equation, j: Justification);
     fn is_equal(&self, eq: &Equation) -> Option<Registry> {
       # canonicalize both ids-sides, and check whether the group contains it.
       # return a new registry, containing all relevant proof steps
@@ -29,5 +29,10 @@ enum ProofStep {
     Transitivity(Equation, Equation),
     Refl(Id), # generates syn refl
     Symmetry(Equation),
-    Explicit(j: Justification, children: Vec<Equation>)
+    Explicit(Justification),
+}
+
+struct Justification {
+    s: String,
+    children: Vec<Equation>
 }
