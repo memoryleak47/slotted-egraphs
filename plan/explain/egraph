@@ -23,7 +23,19 @@ type Proof = Todo!();
 
 impl EGraph {
     fn add(&mut self, n: L) -> AppliedId {
-        todo!()
+        if let m*x = n for some x, i with classes[i].active_nodes.contains(x) {
+            return m*i
+        } else {
+            let i = suf.add(n.slots());
+            classes.insert(i, Class {
+                syn_node: n, # really?
+                active_nodes: vec![n],
+            });
+            while n ==_cong m*n for some m {
+                suf.groups[i].extend(m);
+            }
+            return identity * i;
+        }
     }
 
     fn union(&mut self, x: AppliedId, y: AppliedId) {
