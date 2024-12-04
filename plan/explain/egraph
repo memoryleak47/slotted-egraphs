@@ -19,8 +19,6 @@ struct EGraph {
     classes: Vec<Class>,
 }
 
-type Proof = Todo!();
-
 impl EGraph {
     fn add(&mut self, n: L) -> AppliedId {
         if let m*x = n for some x, i with classes[i].active_nodes.contains(x) {
@@ -49,4 +47,27 @@ impl EGraph {
     fn explain_equivalence(&mut self, x: AppliedId, y: AppliedId) -> Proof {
         todo!()
     }
+}
+
+
+type LemmaId = usize;
+
+struct Proof {
+    # the last lemma is the goal
+    Vec<Lemma>, # indexed by LemmaId
+}
+
+struct Lemma {
+    lhs: Term,
+    rhs: Term,
+    by: ProofStep,
+}
+
+# references to other lemmas using LemmaIds
+enum ProofStep {
+    Refl(...)
+    Symm(...)
+    Trans(...)
+    Congruence(...)
+    Explicit(...)
 }
