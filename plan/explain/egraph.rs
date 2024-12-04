@@ -47,9 +47,6 @@ impl EGraph {
     }
 }
 
-
-type LemmaId = usize;
-
 struct Proof {
     // the last lemma is the goal
     Vec<Lemma>, // indexed by LemmaId
@@ -61,11 +58,17 @@ struct Lemma {
     by: ProofStep,
 }
 
+// or Applied<Lemma>
+struct AppliedLemma {
+    lemma_id: usize,
+    application: SlotMap,
+}
+
 // references to other lemmas using LemmaIds
 enum ProofStep {
     Reflexivity,
-    Symmetry(LemmaId),
-    Transitivity(LemmaId, LemmaId),
-    Congruence(Vec<LemmaId>),
+    Symmetry(AppliedLemma),
+    Transitivity(AppliedLemma, AppliedLemma),
+    Congruence(Vec<AppliedLemma>),
     Explicit(/*justification*/ String),
 }
