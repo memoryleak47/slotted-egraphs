@@ -58,7 +58,7 @@ struct Lemma {
     by: ProofStep,
 }
 
-// or Applied<Lemma>
+// or Applied<LemmaId>
 struct AppliedLemma {
     lemma_id: usize,
     application: SlotMap,
