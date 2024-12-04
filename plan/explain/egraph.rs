@@ -63,9 +63,9 @@ struct Lemma {
 
 // references to other lemmas using LemmaIds
 enum ProofStep {
-    Refl(...)
-    Symm(...)
-    Trans(...)
-    Congruence(...)
-    Explicit(...)
+    Reflexivity,
+    Symmetry(LemmaId),
+    Transitivity(LemmaId, LemmaId),
+    Congruence(Vec<LemmaId>),
+    Explicit(/*justification*/ String),
 }
