@@ -42,7 +42,32 @@ impl EGraph {
         }
     }
 
-    fn explain_equivalence(&mut self, x: AppliedId, y: AppliedId) -> Proof {
+    fn explain_equivalence(&mut self, x: AppliedId, y: AppliedId) -> Option<Proof> {
+        let registry = self.suf.is_equal(x, y)?;
+
+        let mut map: HashMap<Equation, LemmaId> = HashMap::new();
+        let mut lemmas = Vec::new();
+
+        for (Equation(l, r, m), step) in registry {
+            let lemma_id = lemmas.len();
+            map.insert(eq, lemma_id);
+
+            let slotmap = mapping slots(l) u slots(r) -> {$0, ...} while slotmap[x] = slotmap[m[x]];
+            let lemma = Lemma {
+                lhs: self.syn_term(slotmap * l),
+                rhs: self.syn_term(slotmap * r),
+                by: self.port_step(step),
+            };
+            lemmas.push(lemma);
+        }
+        Some(Proof(lemmas.into_iter()))
+    }
+
+    fn port_step(&self, ProofStep) -> ProofStep2 {
+        todo!()
+    }
+
+    fn syn_term(&self, i: /*syn*/ AppliedId) -> Term {
         todo!()
     }
 }
@@ -52,10 +77,14 @@ struct Proof {
     Vec<Lemma>, // indexed by LemmaId
 }
 
+// drawn as:
+// lemma3($0, $1, $2, $3):
+//   foo($0) = bar($1, $2, $3)
+//   by thing(lemma2($1), lemma4($2, $3))
 struct Lemma {
     lhs: Term,
     rhs: Term,
-    by: ProofStep,
+    by: ProofStep2,
 }
 
 // or Applied<LemmaId>
@@ -64,7 +93,7 @@ struct AppliedLemma {
     application: SlotMap,
 }
 
-enum ProofStep {
+enum ProofStep2 {
     Reflexivity,
     Symmetry(AppliedLemma),
     Transitivity(AppliedLemma, AppliedLemma),
