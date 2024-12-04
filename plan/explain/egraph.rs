@@ -56,15 +56,26 @@ impl EGraph {
             let lemma = Lemma {
                 lhs: self.syn_term(slotmap * l),
                 rhs: self.syn_term(slotmap * r),
-                by: self.port_step(step),
+                by: self.port_step(step, &map),
             };
             lemmas.push(lemma);
         }
-        Some(Proof(lemmas.into_iter()))
+        Some(Proof(lemmas))
     }
 
-    fn port_step(&self, ProofStep) -> ProofStep2 {
-        todo!()
+    fn port_step(&self, step: ProofStep, map: &HashMap<Equation, LemmaId>) -> ProofStep2 {
+        match step {
+            Transitivity(Equation, Equation) => { ... }
+            Refl(Id) => { ... }
+            Symmetry(Equation) => { ... }
+            Explicit(j) => {
+                if j.is_congruence() {
+                    ProofStep2::Congruence(...)
+                } else {
+                    ProofStep2::Explicit(...)
+                }
+            }
+        }
     }
 
     fn syn_term(&self, i: /*syn*/ AppliedId) -> Term {
