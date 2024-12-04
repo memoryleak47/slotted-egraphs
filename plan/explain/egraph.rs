@@ -52,7 +52,7 @@ impl EGraph {
             let lemma_id = lemmas.len();
             map.insert(eq, lemma_id);
 
-            let slotmap = mapping slots(l) u slots(r) -> {$0, ...} while slotmap[x] = slotmap[m[x]];
+            let slotmap = mapping syn_slots(l) u syn_slots(r) -> {$0, ...} while slotmap[x] = slotmap[m[x]];
             let lemma = Lemma {
                 lhs: self.syn_term(slotmap * l),
                 rhs: self.syn_term(slotmap * r),
