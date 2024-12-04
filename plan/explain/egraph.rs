@@ -1,6 +1,8 @@
 // hashcons collisions etc. are all checked manually for now.
 // there's no hashing tricks in this conceptual design.
 
+// Also, the set of e-nodes can be reverse-engineered by looking into the unionfind.
+
 enum State {
     Leader,
     Semi, // you've been merged into a leader, but your e-node is still used.
@@ -13,7 +15,6 @@ struct Class {
     syn_to_sem_child_proofs: Vec<Equation>,
 
     state: State,
-    active_nodes: Vec<Id>, // is empty for all non-leaders
 }
 
 struct EGraph {
