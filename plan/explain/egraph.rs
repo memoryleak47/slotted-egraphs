@@ -64,7 +64,6 @@ struct AppliedLemma {
     application: SlotMap,
 }
 
-// references to other lemmas using LemmaIds
 enum ProofStep {
     Reflexivity,
     Symmetry(AppliedLemma),
