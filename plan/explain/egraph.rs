@@ -1,15 +1,19 @@
 // hashcons collisions etc. are all checked manually for now.
 // there's no hashing tricks in this conceptual design.
 
-struct ProvenContains {
-    node: L,
-    parent_proof: Equation, 
-    child_proofs: Vec<Equation>,
+enum State {
+    Leader,
+    Semi, // you've been merged into a leader, but your e-node is still used.
+    Follower, // you've been merged into a leader, and are now unused.
 }
 
 struct Class {
     syn_node: L,
-    active_nodes: Vec<ProvenContains>,
+    sem_node: L,
+    syn_to_sem_child_proofs: Vec<Equation>,
+
+    state: State,
+    active_nodes: Vec<Id>, // is empty for all non-leaders
 }
 
 struct EGraph {
