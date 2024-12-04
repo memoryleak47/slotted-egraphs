@@ -1,7 +1,5 @@
-# explain e-graph
-
-# hashcons collisions etc. are all checked manually for now.
-# there's no hashing tricks in this conceptual design.
+// hashcons collisions etc. are all checked manually for now.
+// there's no hashing tricks in this conceptual design.
 
 struct ProvenContains {
     node: L,
@@ -26,7 +24,7 @@ impl EGraph {
         } else {
             let i = suf.add(n.slots());
             classes.insert(i, Class {
-                syn_node: n, # really?
+                syn_node: n, // really?
                 active_nodes: vec![n],
             });
             while n ==_cong m*n for some m {
@@ -53,8 +51,8 @@ impl EGraph {
 type LemmaId = usize;
 
 struct Proof {
-    # the last lemma is the goal
-    Vec<Lemma>, # indexed by LemmaId
+    // the last lemma is the goal
+    Vec<Lemma>, // indexed by LemmaId
 }
 
 struct Lemma {
@@ -63,7 +61,7 @@ struct Lemma {
     by: ProofStep,
 }
 
-# references to other lemmas using LemmaIds
+// references to other lemmas using LemmaIds
 enum ProofStep {
     Refl(...)
     Symm(...)
