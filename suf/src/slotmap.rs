@@ -8,7 +8,7 @@ pub(crate) type Perm = Bijection;
 // Bijections are bijective SlotMaps.
 pub(crate) type Bijection = SlotMap;
 
-#[derive(Clone, Hash, PartialEq, Eq, PartialOrd, Ord, Default)]
+#[derive(Debug, Clone, Hash, PartialEq, Eq, PartialOrd, Ord, Default)]
 /// A mapping between the parameter-slots of an e-class, and some "invocation" slots that you want to put into them.
 ///
 /// This type is relevant for [AppliedId]s.
