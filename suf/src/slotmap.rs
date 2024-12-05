@@ -1,5 +1,6 @@
 use crate::*;
 use std::ops::Index;
+use std::ops::Mul;
 
 // Permutations are a special kind of Bijections.
 // Their key & value sets agree!
@@ -267,3 +268,11 @@ fn test_slotmap() {
     m.check();
 }
 
+// a * b * i == (b.compose_partial(a)) * i
+impl<'a, 'b> Mul<&'a SlotMap> for &'b SlotMap {
+    type Output = SlotMap;
+
+    fn mul(self, other: &SlotMap) -> SlotMap {
+        other.compose_partial(self)
+    }
+}

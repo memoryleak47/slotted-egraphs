@@ -1,5 +1,7 @@
 use crate::*;
 
+pub type Id = usize;
+
 struct Suf {
     vec: Vec<Class>,
 }
@@ -16,7 +18,7 @@ impl Suf {
     }
 
     pub fn add(&mut self, slots: HashSet<Slot>) -> Id {
-        let i = Id(self.vec.len());
+        let i = self.vec.len();
         let leader = (SlotMap::identity(&slots), i);
         let group = Group::new(slots.clone(), Default::default());
         self.vec.push(Class {
@@ -25,6 +27,15 @@ impl Suf {
             group,
         });
         i
+    }
+
+    fn find(&mut self, (mut m, mut id): (SlotMap, Id)) -> (SlotMap, Id) {
+        loop {
+            let (m2, id2) = &self.vec[id].leader;
+            // m * m2 * id2 == m * id
+            let m3 = &m * &m2;
+            if (&id, &m) == (&id2, &m2) { return (m, id); }
+        }
     }
 
 /*
@@ -55,15 +66,6 @@ impl Suf {
             vec[y].leader = m * x.id
             vec[x].group.extend(vec[y].group.iter_generators().map(|x| m*x*m^-1))
             vec[y].group = none;
-        }
-    }
-
-    // we omit path compression for now.
-    fn find(&mut self, mut x: AppliedId) -> AppliedId {
-        loop {
-            let y = vec[x.id].leader.apply_slotmap(x.m)
-            if x == y { return x; }
-            x = y;
         }
     }
 

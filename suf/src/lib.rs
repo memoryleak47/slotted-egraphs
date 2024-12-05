@@ -10,9 +10,6 @@ pub use registry::*;
 mod group;
 pub use group::*;
 
-mod types;
-pub use types::*;
-
 mod suf;
 pub use suf::*;
 
