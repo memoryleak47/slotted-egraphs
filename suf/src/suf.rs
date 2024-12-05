@@ -5,7 +5,7 @@ struct Suf {
 }
 
 struct Class {
-    leader: AppliedId,
+    leader: (SlotMap, Id),
     slots: HashSet<Slot>,
     group: Group,
 }
@@ -17,7 +17,7 @@ impl Suf {
 
     pub fn add(&mut self, slots: HashSet<Slot>) -> Id {
         let i = Id(self.v.len());
-        let leader = AppliedId(SlotMap::identity(&slots), i);
+        let leader = (SlotMap::identity(&slots), i);
         let group = Group::new(slots.clone(), Default::default());
         self.v.push(Class {
             leader,
@@ -25,5 +25,19 @@ impl Suf {
             group,
         });
         i
+    }
+
+    fn find(&mut self, x: &(SlotMap, Id)) -> (SlotMap, Id) {
+        todo!()
+    }
+
+    fn compose(&mut self, eq1: &(Id, Id, SlotMap), eq2: &(Id, Id, SlotMap)) -> (Id, Id, SlotMap) {
+        todo!()
+    }
+
+    pub fn union(&mut self, eq: &(Id, Id, SlotMap)) {
+        // simplify
+        // 1. add redundancies
+        todo!()
     }
 }

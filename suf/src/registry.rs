@@ -1,6 +1,6 @@
 use crate::*;
 
-pub struct Registry(HashMap<Equation, ProofStep>);
+pub struct Registry(HashMap<(Id, Id, SlotMap), ProofStep>);
 
 // trait
 pub trait WithRegistry {
@@ -20,6 +20,6 @@ impl WithRegistry for Registry {
 enum ProofStep {
     Refl,
     Symmetry,
-    Transitivity(AppliedId), // contains b if transitivity using a = b = c
-    Explicit(String, /*depends on*/ Vec<Equation>),
+    Transitivity((Id, Id, SlotMap)), // contains b if transitivity using a = b = c
+    Explicit(String, /*depends on*/ Vec<(Id, Id, SlotMap)>),
 }
