@@ -10,18 +10,18 @@ pub use registry::*;
 mod group;
 pub use group::*;
 
+mod types;
+pub use types::*;
+
+mod suf;
+pub use suf::*;
+
 pub type HashMap<K, V> = std::collections::HashMap<K, V>;
 pub type HashSet<T> = std::collections::HashSet<T>;
 
 pub const CHECKS: bool = false;
 
-pub struct Id(usize);
-pub struct AppliedId(SlotMap, Id);
-pub struct Equation(Id, Id, SlotMap);
 
-struct Suf {
-    
-}
 
 fn main() {
     println!("Hello, world!");
