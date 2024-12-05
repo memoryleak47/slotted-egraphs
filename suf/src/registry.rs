@@ -20,6 +20,6 @@ impl WithRegistry for Registry {
 enum ProofStep {
     Refl,
     Symmetry,
-    Transitivity((Id, Id, SlotMap)), // contains b if transitivity using a = b = c
+    Transitivity(Id, SlotMap), // contains b if transitivity using a = b = c
     Explicit(String, /*depends on*/ Vec<(Id, Id, SlotMap)>),
 }
