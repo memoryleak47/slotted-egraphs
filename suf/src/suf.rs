@@ -111,16 +111,16 @@ impl Suf {
             (x, y, x_to_y) = (x2, y2, &my2_inv * &mx2);
         }
 
-/*
-        if x.id == y.id {
-            vec[x.id].group.add(x.m * y.m^-1);
+        if x == y {
+            self.vec[x].group.add(x_to_y);
         } else {
             // move y into x
+/*
             m = x.m^-1 * y.m
             self.vec[y].leader = (m, x.id);
             self.vec[x].group.extend(vec[y].group.iter_generators().map(|x| m*x*m^-1))
             self.vec[y].group = none;
-        }
 */
+        }
     }
 }
