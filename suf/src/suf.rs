@@ -39,13 +39,13 @@ impl Suf {
         }
     }
 
-    fn find(&mut self, mut m: SlotMap, mut id: Id) -> (SlotMap, Id) {
+    fn find(&mut self, m: &SlotMap, id: Id) -> (SlotMap, Id) {
         let (m2, id2) = self.find_id(id);
-        (&m * &m2, id2)
+        (m * &m2, id2)
     }
 
     fn is_equal(&mut self, x: Id, y: Id, x_to_y: SlotMap) -> bool {
-        let (x_to_orig_y, x) = self.find(x_to_y, x);
+        let (x_to_orig_y, x) = self.find(&x_to_y, x);
         let (y_to_orig_y, y) = self.find_id(y);
         if x != y { return false; }
         self.vec[x].group.contains(&(&x_to_orig_y.inverse() * &y_to_orig_y))
@@ -79,8 +79,8 @@ impl Suf {
 /*
     fn union(&mut self, x: Id, y: Id, x_to_y: SlotMap) {
         loop {
-            let (m2, x2) = self.find(x);
-            let (m2, y2) = self.find(y);
+            let (m2, x2) = self.find(x_to_y, x);
+            let (m2, y2) = self.find_id(y);
             self.shrink(x.id, slots(x.m^-1 * y.m * y.id));
             self.shrink(y.id, slots(y.m^-1 * x.m * x.id));
             if nothing shrunk { break }
@@ -91,9 +91,9 @@ impl Suf {
         } else {
             // move y into x
             m = x.m^-1 * y.m
-            vec[y].leader = m * x.id
-            vec[x].group.extend(vec[y].group.iter_generators().map(|x| m*x*m^-1))
-            vec[y].group = none;
+            self.vec[y].leader = (m, x.id);
+            self.vec[x].group.extend(vec[y].group.iter_generators().map(|x| m*x*m^-1))
+            self.vec[y].group = none;
         }
     }
 */
