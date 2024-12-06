@@ -1,6 +1,7 @@
 use crate::*;
 use std::ops::Index;
 use std::ops::Mul;
+use std::fmt::{self, Formatter, Debug};
 
 // Permutations are a special kind of Bijections.
 // Their key & value sets agree!
@@ -9,7 +10,7 @@ pub(crate) type Perm = Bijection;
 // Bijections are bijective SlotMaps.
 pub(crate) type Bijection = SlotMap;
 
-#[derive(Debug, Clone, Hash, PartialEq, Eq, PartialOrd, Ord, Default)]
+#[derive(Clone, Hash, PartialEq, Eq, PartialOrd, Ord, Default)]
 /// A mapping between the parameter-slots of an e-class, and some "invocation" slots that you want to put into them.
 pub struct SlotMap {
     // if (l, r) in map, then there is no (l, r') in map. Each key is uniquely contained.
@@ -276,3 +277,18 @@ impl<'a, 'b> Mul<&'a SlotMap> for &'b SlotMap {
         other.compose_partial(self)
     }
 }
+
+impl Debug for SlotMap {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), fmt::Error> {
+        write!(f, "[")?;
+        let n = self.len();
+        for (i, (x, y)) in self.iter().enumerate() {
+            write!(f, "{x:?} -> {y:?}")?;
+            if i < n-1 {
+                write!(f, ", ")?;
+            }
+        }
+        write!(f, "]")
+    }
+}
+

@@ -128,4 +128,11 @@ impl Suf {
             self.vec[x].leader = (x_to_y, y);
         }
     }
+
+    pub fn dump(&self) {
+        for (i, c) in self.vec.iter().enumerate() {
+            let (m, leader) = &self.vec[i].leader;
+            println!("class {i} -> {:?} * {}", m, leader);
+        }
+    }
 }

@@ -18,6 +18,7 @@ fn simple_suf() {
     let a = suf.add(set(["a_1", "a_2"]));
     let b = suf.add(set(["b_1", "b_2"]));
     let m = map([("a_1", "b_1"), ("a_2", "b_2")]);
+    suf.dump();
     suf.union(a, b, &m);
     assert!(suf.is_equal(a, b, m));
 }
