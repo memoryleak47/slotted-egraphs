@@ -30,7 +30,7 @@ impl Suf {
     }
 
     // TODO path compression
-    fn find(&mut self, (mut m, mut id): (SlotMap, Id)) -> (SlotMap, Id) {
+    fn find(&mut self, mut m: SlotMap, mut id: Id) -> (SlotMap, Id) {
         loop {
             let (m2, id2) = &self.vec[id].leader;
             // m * m2 * id2 == m * id
@@ -38,6 +38,13 @@ impl Suf {
             if (&m, &id) == (&m2, &id2) { return (m, id); }
             (m, id) = (m2, *id2);
         }
+    }
+
+    fn is_equal(&mut self, x: Id, y: Id, x_to_y: SlotMap) -> bool {
+        let (x_to_orig_y, x) = self.find(x_to_y, x);
+        let (y_to_orig_y, y) = self.find(SlotMap::identity(&self.vec[y].slots), y);
+        if x != y { return false; }
+        self.vec[x].group.contains(&(&x_to_orig_y.inverse() * &y_to_orig_y))
     }
 
 /*
@@ -71,11 +78,5 @@ impl Suf {
         }
     }
 
-    fn is_equal(&self, x: AppliedId, y: AppliedId) -> bool {
-        let x = find(x);
-        let y = find(y);
-        if x.id != y.id { return false; }
-        vec[x.id].group.contains(x.m * y.m^-1)
-    }
 */
 }
