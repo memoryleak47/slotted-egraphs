@@ -35,6 +35,7 @@ impl Suf {
             // m * m2 * id2 == m * id
             let m2 = &m * &m2;
             if (&m, &id) == (&m2, &id2) { return (m, id); }
+            (m, id) = (m2, *id2);
         }
     }
 
