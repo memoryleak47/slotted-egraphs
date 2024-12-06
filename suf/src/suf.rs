@@ -47,17 +47,33 @@ impl Suf {
         self.vec[x].group.contains(&(&x_to_orig_y.inverse() * &y_to_orig_y))
     }
 
-/*
-    fn shrink(&mut self, i: Id, s: Set<Slot>) {
-        let red = self.vec[i].slots \ s;
-        let red = Cup {vec[i].group.orbit(x) for x in red};
-        let s = vec[i].slots \ red;
+    // call `shink(i, s)` when `i` is equated to something with slotset `s`.
+    fn shrink(&mut self, i: Id, s: &HashSet<Slot>) {
+        let c = &mut self.vec[i];
+        let red = &c.slots - &s;
+        let red = red.iter()
+                     .map(|x| c.group.orbit(*x))
+                     .flatten()
+                     .collect();
+        let s = &c.slots - &red;
         
-        vec[i].leader = identity(s) * i;
-        vec[i].slots = s;
-        vec[i].group = vec[i].group.iter_generators().map(|x| x.restrict(s)).collect();
+        c.leader = (SlotMap::identity(&s), i);
+        let restrict = |m: SlotMap| -> SlotMap {
+            m.iter()
+             .filter(|(x, _)|
+                s.contains(&x)
+             )
+             .collect()
+        };
+        let generators = c.group.generators()
+                         .into_iter()
+                         .map(restrict)
+                         .collect();
+        c.group = Group::new(s.clone(), generators);
+        c.slots = s;
     }
 
+/*
     fn union(&mut self, mut x: AppliedId, mut y: AppliedId) {
         loop {
             x = find(x);
