@@ -62,7 +62,7 @@ impl Suf {
                      .flatten()
                      .collect();
         let s = &c.group.omega - &red;
-        
+
         c.leader = (SlotMap::identity(&s), i);
         let restrict = |m: SlotMap| -> SlotMap {
             m.iter()
@@ -81,8 +81,11 @@ impl Suf {
     }
 
     fn union(&mut self, x: Id, y: Id, x_to_y: &SlotMap) {
+        let mut x = x;
+        let mut y = y;
+        let mut x_to_y = x_to_y.clone();
         loop {
-            let (mx2, x2) = self.find(x_to_y, x);
+            let (mx2, x2) = self.find(&x_to_y, x);
             let (my2, y2) = self.find_id(y);
             let mx2_inv = mx2.inverse();
             let my2_inv = my2.inverse();
@@ -90,6 +93,7 @@ impl Suf {
             // mx2 * x2 == my2 * y2
             // -> x2 == mx2^-1 * my2 * y2
             // -> y2 == my2^-1 * mx2 * x2
+
             let x_set = self.vec[y2].group.omega
                     .iter()
                     .filter_map(|a| my2.get(*a).and_then(|a| mx2_inv.get(a)))
@@ -103,6 +107,8 @@ impl Suf {
             let y_delta = self.shrink(y2, &y_set);
 
             if !x_delta && !y_delta { break }
+
+            (x, y, x_to_y) = (x2, y2, &my2_inv * &mx2);
         }
 
 /*
