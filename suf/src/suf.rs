@@ -8,7 +8,6 @@ pub struct Suf {
 
 struct Class {
     leader: (SlotMap, Id),
-    slots: HashSet<Slot>,
     group: Group,
 }
 
@@ -20,10 +19,9 @@ impl Suf {
     pub fn add(&mut self, slots: HashSet<Slot>) -> Id {
         let i = self.vec.len();
         let leader = (SlotMap::identity(&slots), i);
-        let group = Group::new(slots.clone(), Default::default());
+        let group = Group::new(slots, Default::default());
         self.vec.push(Class {
             leader,
-            slots,
             group,
         });
         i
@@ -42,7 +40,7 @@ impl Suf {
 
     fn is_equal(&mut self, x: Id, y: Id, x_to_y: SlotMap) -> bool {
         let (x_to_orig_y, x) = self.find(x_to_y, x);
-        let (y_to_orig_y, y) = self.find(SlotMap::identity(&self.vec[y].slots), y);
+        let (y_to_orig_y, y) = self.find(SlotMap::identity(&self.vec[y].group.omega), y);
         if x != y { return false; }
         self.vec[x].group.contains(&(&x_to_orig_y.inverse() * &y_to_orig_y))
     }
@@ -50,12 +48,12 @@ impl Suf {
     // call `shink(i, s)` when `i` is equated to something with slotset `s`.
     fn shrink(&mut self, i: Id, s: &HashSet<Slot>) {
         let c = &mut self.vec[i];
-        let red = &c.slots - &s;
+        let red = &c.group.omega - &s;
         let red = red.iter()
                      .map(|x| c.group.orbit(*x))
                      .flatten()
                      .collect();
-        let s = &c.slots - &red;
+        let s = &c.group.omega - &red;
         
         c.leader = (SlotMap::identity(&s), i);
         let restrict = |m: SlotMap| -> SlotMap {
@@ -69,8 +67,7 @@ impl Suf {
                          .into_iter()
                          .map(restrict)
                          .collect();
-        c.group = Group::new(s.clone(), generators);
-        c.slots = s;
+        c.group = Group::new(s, generators);
     }
 
 /*

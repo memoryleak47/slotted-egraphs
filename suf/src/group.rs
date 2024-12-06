@@ -8,7 +8,7 @@ use crate::*;
 #[derive(Clone, Debug)]
 pub struct Group {
     // all perms are bijections : omega -> omega.
-    omega: HashSet<Slot>,
+    pub omega: HashSet<Slot>,
     next: Option<Box<Next>>,
 }
 
