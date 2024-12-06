@@ -45,7 +45,7 @@ impl Suf {
         self.vec[x].group.contains(&(&x_to_orig_y.inverse() * &y_to_orig_y))
     }
 
-    // call `shink(i, s)` when `i` is equated to something with slotset `s`.
+    // call `shrink(i, s)` when the leader `i` is equated to something with slotset `s`.
     fn shrink(&mut self, i: Id, s: &HashSet<Slot>) {
         let c = &mut self.vec[i];
         let red = &c.group.omega - &s;
@@ -71,25 +71,24 @@ impl Suf {
     }
 
 /*
-    fn union(&mut self, mut x: AppliedId, mut y: AppliedId) {
+    fn union(&mut self, x: Id, y: Id, x_to_y: SlotMap) {
         loop {
-            x = find(x);
-            y = find(y);
-            shrink(x.id, slots(x.m^-1 * y.m * y.id));
-            shrink(y.id, slots(y.m^-1 * x.m * x.id));
+            let (m2, x2) = self.find(x);
+            let (m2, y2) = self.find(y);
+            self.shrink(x.id, slots(x.m^-1 * y.m * y.id));
+            self.shrink(y.id, slots(y.m^-1 * x.m * x.id));
             if nothing shrunk { break }
         }
 
         if x.id == y.id {
             vec[x.id].group.add(x.m * y.m^-1);
         } else {
-            # move y into x
+            // move y into x
             m = x.m^-1 * y.m
             vec[y].leader = m * x.id
             vec[x].group.extend(vec[y].group.iter_generators().map(|x| m*x*m^-1))
             vec[y].group = none;
         }
     }
-
 */
 }
