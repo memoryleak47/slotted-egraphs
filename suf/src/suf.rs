@@ -29,6 +29,7 @@ impl Suf {
         i
     }
 
+    // TODO path compression
     fn find(&mut self, (mut m, mut id): (SlotMap, Id)) -> (SlotMap, Id) {
         loop {
             let (m2, id2) = &self.vec[id].leader;
