@@ -52,9 +52,11 @@ impl Suf {
     }
 
     // call `shrink(i, s)` when the leader `i` is equated to something with slotset `s`.
-    fn shrink(&mut self, i: Id, s: &HashSet<Slot>) {
+    // returns whether something actually happened.
+    fn shrink(&mut self, i: Id, s: &HashSet<Slot>) -> bool {
         let c = &mut self.vec[i];
         let red = &c.group.omega - &s;
+        if red.is_empty() { return false; }
         let red = red.iter()
                      .map(|x| c.group.orbit(*x))
                      .flatten()
@@ -74,18 +76,36 @@ impl Suf {
                          .map(restrict)
                          .collect();
         c.group = Group::new(s, generators);
+
+        true
     }
 
-/*
-    fn union(&mut self, x: Id, y: Id, x_to_y: SlotMap) {
+    fn union(&mut self, x: Id, y: Id, x_to_y: &SlotMap) {
         loop {
-            let (m2, x2) = self.find(x_to_y, x);
-            let (m2, y2) = self.find_id(y);
-            self.shrink(x.id, slots(x.m^-1 * y.m * y.id));
-            self.shrink(y.id, slots(y.m^-1 * x.m * x.id));
-            if nothing shrunk { break }
+            let (mx2, x2) = self.find(x_to_y, x);
+            let (my2, y2) = self.find_id(y);
+            let mx2_inv = mx2.inverse();
+            let my2_inv = my2.inverse();
+
+            // mx2 * x2 == my2 * y2
+            // -> x2 == mx2^-1 * my2 * y2
+            // -> y2 == my2^-1 * mx2 * x2
+            let x_set = self.vec[y2].group.omega
+                    .iter()
+                    .filter_map(|a| my2.get(*a).and_then(|a| mx2_inv.get(a)))
+                    .collect();
+            let x_delta = self.shrink(x2, &x_set);
+
+            let y_set = self.vec[x2].group.omega
+                    .iter()
+                    .filter_map(|a| mx2.get(*a).and_then(|a| my2_inv.get(a)))
+                    .collect();
+            let y_delta = self.shrink(y2, &y_set);
+
+            if !x_delta && !y_delta { break }
         }
 
+/*
         if x.id == y.id {
             vec[x.id].group.add(x.m * y.m^-1);
         } else {
@@ -95,6 +115,6 @@ impl Suf {
             self.vec[x].group.extend(vec[y].group.iter_generators().map(|x| m*x*m^-1))
             self.vec[y].group = none;
         }
-    }
 */
+    }
 }
