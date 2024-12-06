@@ -27,7 +27,7 @@ impl Suf {
         i
     }
 
-    fn find_id(&mut self, id: Id) -> (SlotMap, Id) {
+    pub fn find_id(&mut self, id: Id) -> (SlotMap, Id) {
         let (m2, id2) = self.vec[id].leader.clone();
         if id == id2 {
             return (m2, id2);
@@ -39,12 +39,12 @@ impl Suf {
         }
     }
 
-    fn find(&mut self, m: &SlotMap, id: Id) -> (SlotMap, Id) {
+    pub fn find(&mut self, m: &SlotMap, id: Id) -> (SlotMap, Id) {
         let (m2, id2) = self.find_id(id);
         (m * &m2, id2)
     }
 
-    fn is_equal(&mut self, x: Id, y: Id, x_to_y: SlotMap) -> bool {
+    pub fn is_equal(&mut self, x: Id, y: Id, x_to_y: SlotMap) -> bool {
         let (x_to_orig_y, x) = self.find(&x_to_y, x);
         let (y_to_orig_y, y) = self.find_id(y);
         if x != y { return false; }
@@ -53,7 +53,7 @@ impl Suf {
 
     // call `shrink(i, s)` when the leader `i` is equated to something with slotset `s`.
     // returns whether something actually happened.
-    fn shrink(&mut self, i: Id, s: &HashSet<Slot>) -> bool {
+    pub fn shrink(&mut self, i: Id, s: &HashSet<Slot>) -> bool {
         let c = &mut self.vec[i];
         let red = &c.group.omega - &s;
         if red.is_empty() { return false; }
@@ -80,7 +80,7 @@ impl Suf {
         true
     }
 
-    fn union(&mut self, x: Id, y: Id, x_to_y: &SlotMap) {
+    pub fn union(&mut self, x: Id, y: Id, x_to_y: &SlotMap) {
         let mut x = x;
         let mut y = y;
         let mut x_to_y = x_to_y.clone();
