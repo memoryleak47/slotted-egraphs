@@ -2,7 +2,7 @@ use crate::*;
 
 pub type Id = usize;
 
-struct Suf {
+pub struct Suf {
     vec: Vec<Class>,
 }
 
@@ -33,8 +33,8 @@ impl Suf {
         loop {
             let (m2, id2) = &self.vec[id].leader;
             // m * m2 * id2 == m * id
-            let m3 = &m * &m2;
-            if (&id, &m) == (&id2, &m2) { return (m, id); }
+            let m2 = &m * &m2;
+            if (&m, &id) == (&m2, &id2) { return (m, id); }
         }
     }
 
