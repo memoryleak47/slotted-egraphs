@@ -20,5 +20,6 @@ fn simple_suf() {
     let m = map([("a_1", "b_1"), ("a_2", "b_2")]);
     suf.dump();
     suf.union(a, b, &m);
+    suf.dump();
     assert!(suf.is_equal(a, b, m));
 }

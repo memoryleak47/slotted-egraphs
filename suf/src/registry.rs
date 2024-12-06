@@ -18,7 +18,7 @@ impl WithRegistry for Registry {
 }
 
 enum ProofStep {
-    Refl,
+    Refl, // never stored in the Suf, but might be returned from `explain_equivalence`.
     Symmetry,
     Transitivity(Id, SlotMap), // contains b if transitivity using a = b = c
     Explicit(String, /*depends on*/ Vec<(Id, Id, SlotMap)>),
