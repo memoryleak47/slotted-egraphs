@@ -1,0 +1,2 @@
+most functions are generic over &mut impl WithRegistry.
+Then the registry doesn't need to be part of the Suf itself at all.
