@@ -125,3 +125,40 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         }
     }
 }
+
+
+#[macro_export]
+macro_rules! rw {
+    ($name:expr; $lhs:expr => $rhs:expr) => {
+        Rewrite::new($name, $lhs, $rhs)
+    };
+
+    ($name:expr; $lhs:expr => $rhs:expr, if !$cond:expr) => {
+        Rewrite::new_if($name, $lhs, $rhs, not($cond))
+    };
+
+    ($name:expr; $lhs:expr => $rhs:expr, if $cond:expr) => {
+        Rewrite::new_if($name, $lhs, $rhs, $cond)
+    };
+}
+
+pub trait Cond<L, N>: Fn(&Subst, &EGraph<L, N>) -> bool + 'static {}
+impl<T, L: Language, N: Analysis<L>> Cond<L, N> for T where T: Fn(&Subst, &EGraph<L, N>) -> bool + 'static {}
+
+pub fn slot_free_in<L: Language, N: Analysis<L>>(slot: &str, var: &str) -> impl Cond<L, N> {
+    let s: Slot = Slot::named(slot);
+    let var = var.to_string();
+    move |subst, _| !subst[&*var].slots().contains(&s)
+}
+
+pub fn or<L: Language, N: Analysis<L>>(x: impl Cond<L, N>, y: impl Cond<L, N>) -> impl Cond<L, N> {
+    move |subst, eg| x(subst, eg) || y(subst, eg)
+}
+
+pub fn and<L: Language, N: Analysis<L>>(x: impl Cond<L, N>, y: impl Cond<L, N>) -> impl Cond<L, N> {
+    move |subst, eg| x(subst, eg) && y(subst, eg)
+}
+
+pub fn not<L: Language, N: Analysis<L>>(x: impl Cond<L, N>) -> impl Cond<L, N> {
+    move |subst, eg| !x(subst, eg)
+}
