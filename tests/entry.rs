@@ -1,8 +1,8 @@
 pub use slotted_egraphs::*;
 pub use std::hash::Hash;
 
-pub type HashMap<K, V> = fnv::FnvHashMap<K, V>;
-pub type HashSet<T> = fnv::FnvHashSet<T>;
+pub type HashMap<K, V> = fxhash::FxHashMap<K, V>;
+pub type HashSet<T> = fxhash::FxHashSet<T>;
 
 mod arith;
 pub use arith::*;
