@@ -109,7 +109,10 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         self.lookup_internal(&self.shape(n))
     }
 
-    pub(in crate::egraph) fn lookup_internal(&self, (shape, n_bij): &(L, Bijection)) -> Option<AppliedId> {
+    pub(in crate::egraph) fn lookup_internal(
+        &self,
+        (shape, n_bij): &(L, Bijection),
+    ) -> Option<AppliedId> {
         let i = self.hashcons.get(&shape)?;
         let c = &self.classes[i];
         let cn_bij = &c.nodes[&shape].elem;
@@ -126,10 +129,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         // They shouldn't come up in the AppliedId.
         let out = out.iter().filter(|(x, _)| c.slots.contains(x)).collect();
 
-        let app_id = self.mk_sem_applied_id(
-            *i,
-            out,
-        );
+        let app_id = self.mk_sem_applied_id(*i, out);
 
         if CHECKS {
             assert_eq!(&c.slots, &app_id.m.keys());
@@ -172,10 +172,20 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     // adds (sh, bij) to the eclass `id`.
     // TODO src_id should be optional!
     #[cfg_attr(feature = "trace", instrument(level = "trace", skip_all))]
-    pub(in crate::egraph) fn raw_add_to_class(&mut self, id: Id, (sh, bij): (L, Bijection), src_id: Id) {
+    pub(in crate::egraph) fn raw_add_to_class(
+        &mut self,
+        id: Id,
+        (sh, bij): (L, Bijection),
+        src_id: Id,
+    ) {
         let psn = ProvenSourceNode { elem: bij, src_id };
 
-        let tmp1 = self.classes.get_mut(&id).unwrap().nodes.insert(sh.clone(), psn);
+        let tmp1 = self
+            .classes
+            .get_mut(&id)
+            .unwrap()
+            .nodes
+            .insert(sh.clone(), psn);
         let tmp2 = self.hashcons.insert(sh.clone(), id);
         if CHECKS {
             assert!(tmp1.is_none());
@@ -202,7 +212,6 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
 
         opt_psn.unwrap()
     }
-
 }
 
 impl<L: Language, N: Analysis<L>> EGraph<L, N> {
@@ -217,7 +226,8 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         let c_id = Id(self.unionfind_len()); // Pick the next unused Id.
 
         let syn_slots = syn_enode.slots();
-        let proven_perm = ProvenPerm::identity(c_id, &slots, &syn_slots, self.proof_registry.clone());
+        let proven_perm =
+            ProvenPerm::identity(c_id, &slots, &syn_slots, self.proof_registry.clone());
 
         let app_id = AppliedId::new(c_id, SlotMap::identity(&syn_slots));
 
@@ -231,7 +241,8 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         };
         self.classes.insert(c_id, c);
 
-        { // add syn_enode to the hashcons.
+        {
+            // add syn_enode to the hashcons.
             let (sh, bij) = syn_enode.weak_shape();
 
             if CHECKS {

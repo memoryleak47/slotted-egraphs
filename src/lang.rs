@@ -9,18 +9,20 @@ pub enum SyntaxElem {
 
 pub trait LanguageChildren: Debug + Clone + Hash + Eq {
     // TODO: add private_slot_occurrences aswell!
-    fn all_slot_occurrences_iter_mut(&mut self) -> impl Iterator<Item=&mut Slot>;
-    fn public_slot_occurrences_iter_mut(&mut self) -> impl Iterator<Item=&mut Slot>;
-    fn applied_id_occurrences_iter_mut(&mut self) -> impl Iterator<Item=&mut AppliedId>;
+    fn all_slot_occurrences_iter_mut(&mut self) -> impl Iterator<Item = &mut Slot>;
+    fn public_slot_occurrences_iter_mut(&mut self) -> impl Iterator<Item = &mut Slot>;
+    fn applied_id_occurrences_iter_mut(&mut self) -> impl Iterator<Item = &mut AppliedId>;
 
-    fn all_slot_occurrences_iter(&self) -> impl Iterator<Item=&Slot>;
-    fn public_slot_occurrences_iter(&self) -> impl Iterator<Item=&Slot>;
-    fn applied_id_occurrences_iter(&self) -> impl Iterator<Item=&AppliedId>;
+    fn all_slot_occurrences_iter(&self) -> impl Iterator<Item = &Slot>;
+    fn public_slot_occurrences_iter(&self) -> impl Iterator<Item = &Slot>;
+    fn applied_id_occurrences_iter(&self) -> impl Iterator<Item = &AppliedId>;
 
     fn to_syntax(&self) -> Vec<SyntaxElem>;
     fn from_syntax(_: &[SyntaxElem]) -> Option<Self>;
 
-    fn weak_shape_impl(&mut self, m: &mut (SlotMap, u32)) { todo!() }
+    fn weak_shape_impl(&mut self, m: &mut (SlotMap, u32)) {
+        todo!()
+    }
 }
 
 fn on_see_slot(s: &mut Slot, m: &mut (SlotMap, u32)) {
@@ -39,15 +41,29 @@ fn add_slot(s: &mut Slot, m: &mut (SlotMap, u32)) {
 }
 
 impl LanguageChildren for AppliedId {
-    fn all_slot_occurrences_iter_mut(&mut self) -> impl Iterator<Item=&mut Slot> { self.m.values_mut() }
-    fn public_slot_occurrences_iter_mut(&mut self) -> impl Iterator<Item=&mut Slot> { self.m.values_mut() }
-    fn applied_id_occurrences_iter_mut(&mut self) -> impl Iterator<Item=&mut AppliedId> { std::iter::once(self) }
+    fn all_slot_occurrences_iter_mut(&mut self) -> impl Iterator<Item = &mut Slot> {
+        self.m.values_mut()
+    }
+    fn public_slot_occurrences_iter_mut(&mut self) -> impl Iterator<Item = &mut Slot> {
+        self.m.values_mut()
+    }
+    fn applied_id_occurrences_iter_mut(&mut self) -> impl Iterator<Item = &mut AppliedId> {
+        std::iter::once(self)
+    }
 
-    fn all_slot_occurrences_iter(&self) -> impl Iterator<Item=&Slot> { self.m.values_immut() }
-    fn public_slot_occurrences_iter(&self) -> impl Iterator<Item=&Slot> { self.m.values_immut() }
-    fn applied_id_occurrences_iter(&self) -> impl Iterator<Item=&AppliedId> { std::iter::once(self) }
+    fn all_slot_occurrences_iter(&self) -> impl Iterator<Item = &Slot> {
+        self.m.values_immut()
+    }
+    fn public_slot_occurrences_iter(&self) -> impl Iterator<Item = &Slot> {
+        self.m.values_immut()
+    }
+    fn applied_id_occurrences_iter(&self) -> impl Iterator<Item = &AppliedId> {
+        std::iter::once(self)
+    }
 
-    fn to_syntax(&self) -> Vec<SyntaxElem> { vec![SyntaxElem::AppliedId(self.clone())] }
+    fn to_syntax(&self) -> Vec<SyntaxElem> {
+        vec![SyntaxElem::AppliedId(self.clone())]
+    }
     fn from_syntax(elems: &[SyntaxElem]) -> Option<Self> {
         match elems {
             [SyntaxElem::AppliedId(x)] => Some(x.clone()),
@@ -63,15 +79,29 @@ impl LanguageChildren for AppliedId {
 }
 
 impl LanguageChildren for Slot {
-    fn all_slot_occurrences_iter_mut(&mut self) -> impl Iterator<Item=&mut Slot> { std::iter::once(self) }
-    fn public_slot_occurrences_iter_mut(&mut self) -> impl Iterator<Item=&mut Slot> { std::iter::once(self) }
-    fn applied_id_occurrences_iter_mut(&mut self) -> impl Iterator<Item=&mut AppliedId> { std::iter::empty()  }
+    fn all_slot_occurrences_iter_mut(&mut self) -> impl Iterator<Item = &mut Slot> {
+        std::iter::once(self)
+    }
+    fn public_slot_occurrences_iter_mut(&mut self) -> impl Iterator<Item = &mut Slot> {
+        std::iter::once(self)
+    }
+    fn applied_id_occurrences_iter_mut(&mut self) -> impl Iterator<Item = &mut AppliedId> {
+        std::iter::empty()
+    }
 
-    fn all_slot_occurrences_iter(&self) -> impl Iterator<Item=&Slot> { std::iter::once(self) }
-    fn public_slot_occurrences_iter(&self) -> impl Iterator<Item=&Slot> { std::iter::once(self) }
-    fn applied_id_occurrences_iter(&self) -> impl Iterator<Item=&AppliedId> { std::iter::empty() }
+    fn all_slot_occurrences_iter(&self) -> impl Iterator<Item = &Slot> {
+        std::iter::once(self)
+    }
+    fn public_slot_occurrences_iter(&self) -> impl Iterator<Item = &Slot> {
+        std::iter::once(self)
+    }
+    fn applied_id_occurrences_iter(&self) -> impl Iterator<Item = &AppliedId> {
+        std::iter::empty()
+    }
 
-    fn to_syntax(&self) -> Vec<SyntaxElem> { vec![SyntaxElem::Slot(*self)] }
+    fn to_syntax(&self) -> Vec<SyntaxElem> {
+        vec![SyntaxElem::Slot(*self)]
+    }
     fn from_syntax(elems: &[SyntaxElem]) -> Option<Self> {
         match elems {
             [SyntaxElem::Slot(x)] => Some(x.clone()),
@@ -113,11 +143,7 @@ macro_rules! bare_language_child {
 }
 
 bare_language_child!(
-    u128, u64, u32, u16, u8,
-    i128, i64, i32, i16, i8,
-    usize, isize,
-    bool, char,
-    Symbol
+    u128, u64, u32, u16, u8, i128, i64, i32, i16, i8, usize, isize, bool, char, Symbol
 );
 
 #[derive(Hash, PartialEq, Eq, Debug, Clone)]
@@ -128,26 +154,34 @@ pub struct Bind<T> {
 
 impl<L: LanguageChildren> LanguageChildren for Bind<L> {
     // mut:
-    fn all_slot_occurrences_iter_mut(&mut self) -> impl Iterator<Item=&mut Slot> {
+    fn all_slot_occurrences_iter_mut(&mut self) -> impl Iterator<Item = &mut Slot> {
         std::iter::once(&mut self.slot).chain(self.elem.all_slot_occurrences_iter_mut())
     }
 
-    fn public_slot_occurrences_iter_mut(&mut self) -> impl Iterator<Item=&mut Slot> {
-        self.elem.public_slot_occurrences_iter_mut().filter(|x| **x != self.slot)
+    fn public_slot_occurrences_iter_mut(&mut self) -> impl Iterator<Item = &mut Slot> {
+        self.elem
+            .public_slot_occurrences_iter_mut()
+            .filter(|x| **x != self.slot)
     }
 
-    fn applied_id_occurrences_iter_mut(&mut self) -> impl Iterator<Item=&mut AppliedId> { self.elem.applied_id_occurrences_iter_mut() }
+    fn applied_id_occurrences_iter_mut(&mut self) -> impl Iterator<Item = &mut AppliedId> {
+        self.elem.applied_id_occurrences_iter_mut()
+    }
 
     // immut:
-    fn all_slot_occurrences_iter(&self) -> impl Iterator<Item=&Slot> {
+    fn all_slot_occurrences_iter(&self) -> impl Iterator<Item = &Slot> {
         std::iter::once(&self.slot).chain(self.elem.all_slot_occurrences_iter())
     }
 
-    fn public_slot_occurrences_iter(&self) -> impl Iterator<Item=&Slot> {
-        self.elem.public_slot_occurrences_iter().filter(|x| **x != self.slot)
+    fn public_slot_occurrences_iter(&self) -> impl Iterator<Item = &Slot> {
+        self.elem
+            .public_slot_occurrences_iter()
+            .filter(|x| **x != self.slot)
     }
 
-    fn applied_id_occurrences_iter(&self) -> impl Iterator<Item=&AppliedId> { self.elem.applied_id_occurrences_iter() }
+    fn applied_id_occurrences_iter(&self) -> impl Iterator<Item = &AppliedId> {
+        self.elem.applied_id_occurrences_iter()
+    }
 
     // syntax:
     fn to_syntax(&self) -> Vec<SyntaxElem> {
@@ -158,13 +192,12 @@ impl<L: LanguageChildren> LanguageChildren for Bind<L> {
     }
 
     fn from_syntax(elems: &[SyntaxElem]) -> Option<Self> {
-        let SyntaxElem::Slot(slot) = elems.get(0)? else { return None };
+        let SyntaxElem::Slot(slot) = elems.get(0)? else {
+            return None;
+        };
         let elem = L::from_syntax(&elems[1..])?;
 
-        Some(Bind {
-            slot: *slot,
-            elem,
-        })
+        Some(Bind { slot: *slot, elem })
     }
 
     fn weak_shape_impl(&mut self, m: &mut (SlotMap, u32)) {
@@ -192,7 +225,6 @@ pub trait Language: Debug + Clone + Hash + Eq {
     /// List the mutable references to all child [AppliedId]s in your E-Node, in the order of occurrence.
     fn applied_id_occurrences_mut(&mut self) -> Vec<&mut AppliedId>;
 
-
     fn all_slot_occurrences(&self) -> Vec<Slot>;
     fn public_slot_occurrences(&self) -> Vec<Slot>;
     fn applied_id_occurrences(&self) -> Vec<&AppliedId>;
@@ -210,9 +242,21 @@ pub trait Language: Debug + Clone + Hash + Eq {
     #[doc(hidden)]
     fn check(&self) {
         let mut c = self.clone();
-        let all: HashSet<*mut Slot> = c.all_slot_occurrences_mut().into_iter().map(|x| x as *mut Slot).collect();
-        let public: HashSet<*mut Slot> = c.public_slot_occurrences_mut().into_iter().map(|x| x as *mut Slot).collect();
-        let private: HashSet<*mut Slot> = c.private_slot_occurrences_mut().into_iter().map(|x| x as *mut Slot).collect();
+        let all: HashSet<*mut Slot> = c
+            .all_slot_occurrences_mut()
+            .into_iter()
+            .map(|x| x as *mut Slot)
+            .collect();
+        let public: HashSet<*mut Slot> = c
+            .public_slot_occurrences_mut()
+            .into_iter()
+            .map(|x| x as *mut Slot)
+            .collect();
+        let private: HashSet<*mut Slot> = c
+            .private_slot_occurrences_mut()
+            .into_iter()
+            .map(|x| x as *mut Slot)
+            .collect();
 
         assert!(public.is_disjoint(&private));
 
@@ -223,7 +267,6 @@ pub trait Language: Debug + Clone + Hash + Eq {
         let all2: HashSet<*mut Slot> = public.union(&private).copied().collect();
         assert_eq!(all2, all);
     }
-
 
     // generated methods:
 
@@ -264,7 +307,10 @@ pub trait Language: Debug + Clone + Hash + Eq {
     // TODO m.values() might collide with your private slot names.
     // Should we rename our private slots to be safe?
     #[doc(hidden)]
-    #[cfg_attr(feature = "trace", instrument(name = "Lang::apply_slotmap_partial", level = "trace", skip_all))]
+    #[cfg_attr(
+        feature = "trace",
+        instrument(name = "Lang::apply_slotmap_partial", level = "trace", skip_all)
+    )]
     fn apply_slotmap_partial(&self, m: &SlotMap) -> Self {
         let mut prv = Default::default();
         if CHECKS {
@@ -285,19 +331,27 @@ pub trait Language: Debug + Clone + Hash + Eq {
         c
     }
 
-
     #[track_caller]
     #[doc(hidden)]
-    #[cfg_attr(feature = "trace", instrument(name = "Lang::apply_slotmap", level = "trace", skip_all))]
+    #[cfg_attr(
+        feature = "trace",
+        instrument(name = "Lang::apply_slotmap", level = "trace", skip_all)
+    )]
     fn apply_slotmap(&self, m: &SlotMap) -> Self {
         if CHECKS {
-            assert!(m.keys().is_superset(&self.slots()), "Language::apply_slotmap: The SlotMap doesn't map all free slots!");
+            assert!(
+                m.keys().is_superset(&self.slots()),
+                "Language::apply_slotmap: The SlotMap doesn't map all free slots!"
+            );
         }
         self.apply_slotmap_partial(m)
     }
 
     #[doc(hidden)]
-    #[cfg_attr(feature = "trace", instrument(name = "Lang::apply_slotmap_fresh", level = "trace", skip_all))]
+    #[cfg_attr(
+        feature = "trace",
+        instrument(name = "Lang::apply_slotmap_fresh", level = "trace", skip_all)
+    )]
     fn apply_slotmap_fresh(&self, m: &SlotMap) -> Self {
         let mut prv = Default::default();
         if CHECKS {
@@ -321,7 +375,10 @@ pub trait Language: Debug + Clone + Hash + Eq {
     #[doc(hidden)]
     #[cfg_attr(feature = "trace", instrument(level = "trace", skip_all))]
     fn ids(&self) -> Vec<Id> {
-        self.applied_id_occurrences().into_iter().map(|x| x.id).collect()
+        self.applied_id_occurrences()
+            .into_iter()
+            .map(|x| x.id)
+            .collect()
     }
 
     // let n.weak_shape() = (sh, bij); then

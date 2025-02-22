@@ -30,12 +30,12 @@ pub fn lam_step(re: &RecExpr<Lambda>) -> Option<RecExpr<Lambda>> {
                 node: re.node.clone(),
                 children: vec![b],
             })
-        },
+        }
         Lambda::App(_, _) => {
             let [l, r] = &*re.children else { panic!() };
 
             // beta-reduce
-            if let Lambda::Lam(Bind{slot:x, ..}) = &l.node {
+            if let Lambda::Lam(Bind { slot: x, .. }) = &l.node {
                 let [b] = &*l.children else { panic!() };
                 return Some(lam_subst(b, *x, r));
             }
@@ -57,7 +57,7 @@ pub fn lam_step(re: &RecExpr<Lambda>) -> Option<RecExpr<Lambda>> {
             }
 
             None
-        },
+        }
         Lambda::Var(_) => None,
         Lambda::Let(..) => panic!(),
     }
@@ -65,7 +65,7 @@ pub fn lam_step(re: &RecExpr<Lambda>) -> Option<RecExpr<Lambda>> {
 
 fn lam_subst(re: &RecExpr<Lambda>, x: Slot, t: &RecExpr<Lambda>) -> RecExpr<Lambda> {
     match &re.node {
-        Lambda::Lam(Bind{slot:y, ..}) => {
+        Lambda::Lam(Bind { slot: y, .. }) => {
             let [b] = &*re.children else { panic!() };
             if x == *y {
                 re.clone()
@@ -76,10 +76,11 @@ fn lam_subst(re: &RecExpr<Lambda>, x: Slot, t: &RecExpr<Lambda>) -> RecExpr<Lamb
                 let mut b: RecExpr<Lambda> = b.clone();
 
                 if f.contains(&y) {
-                    let y2 = (0..).map(|i| Slot::numeric(i))
-                                  .filter(|i| !f.contains(i))
-                                  .next()
-                                  .unwrap();
+                    let y2 = (0..)
+                        .map(|i| Slot::numeric(i))
+                        .filter(|i| !f.contains(i))
+                        .next()
+                        .unwrap();
 
                     let y2_node = RecExpr {
                         node: Lambda::Var(y2),
@@ -94,14 +95,14 @@ fn lam_subst(re: &RecExpr<Lambda>, x: Slot, t: &RecExpr<Lambda>) -> RecExpr<Lamb
                     children: vec![lam_subst(&b, x, t)],
                 }
             }
-        },
+        }
         Lambda::App(_, _) => {
             let [l, r] = &*re.children else { panic!() };
             RecExpr {
                 node: re.node.clone(),
                 children: vec![lam_subst(l, x, t), lam_subst(r, x, t)],
             }
-        },
+        }
         Lambda::Var(y) => {
             if x == *y {
                 t.clone()
@@ -115,14 +116,14 @@ fn lam_subst(re: &RecExpr<Lambda>, x: Slot, t: &RecExpr<Lambda>) -> RecExpr<Lamb
 
 fn lam_free_variables(re: &RecExpr<Lambda>) -> HashSet<Slot> {
     match &re.node {
-        Lambda::Lam(Bind{slot:x, ..}) => {
+        Lambda::Lam(Bind { slot: x, .. }) => {
             let [b] = &*re.children else { panic!() };
             &lam_free_variables(b) - &singleton_set(*x)
         }
         Lambda::App(_, _) => {
             let [l, r] = &*re.children else { panic!() };
             &lam_free_variables(l) | &lam_free_variables(r)
-        },
+        }
         Lambda::Var(x) => singleton_set(*x),
         Lambda::Let(..) => panic!(),
     }

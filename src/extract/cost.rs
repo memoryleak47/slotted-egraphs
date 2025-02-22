@@ -7,7 +7,9 @@ use std::marker::PhantomData;
 /// If you want to use your e-graph analysis in your cost function, then your cost function should hold a reference to the e-graph.
 pub trait CostFunction<L: Language> {
     type Cost: Ord + Clone + Debug;
-    fn cost<C>(&self, enode: &L, costs: C) -> Self::Cost where C: Fn(Id) -> Self::Cost;
+    fn cost<C>(&self, enode: &L, costs: C) -> Self::Cost
+    where
+        C: Fn(Id) -> Self::Cost;
 
     fn cost_rec(&self, expr: &RecExpr<L>) -> Self::Cost {
         let child_costs: Vec<Self::Cost> = expr.children.iter().map(|x| self.cost_rec(x)).collect();
@@ -27,7 +29,10 @@ pub struct AstSize;
 impl<L: Language> CostFunction<L> for AstSize {
     type Cost = u64;
 
-    fn cost<C>(&self, enode: &L, costs: C) -> u64 where C: Fn(Id) -> u64 {
+    fn cost<C>(&self, enode: &L, costs: C) -> u64
+    where
+        C: Fn(Id) -> u64,
+    {
         let mut s: u64 = 1;
         for x in enode.applied_id_occurrences() {
             s = s.saturating_add(costs(x.id));

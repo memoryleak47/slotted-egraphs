@@ -60,7 +60,7 @@ pub struct EGraph<L: Language, N: Analysis<L> = ()> {
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub(crate) enum PendingType {
     OnlyAnalysis, // only analysis needs to be updated.
-    Full, // the e-node, it's strong shape & the analysis need to be updated.
+    Full,         // the e-node, it's strong shape & the analysis need to be updated.
 }
 
 /// Each E-Class can be understood "semantically" or "syntactically":
@@ -87,7 +87,6 @@ pub(crate) struct EClass<L: Language, N: Analysis<L>> {
 
     analysis_data: N,
 }
-
 
 impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     /// Creates an empty e-graph.
@@ -121,14 +120,22 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     }
 
     pub fn analysis_data_mut(&mut self, i: Id) -> &mut N {
-        &mut self.classes.get_mut(&self.find_id(i)).unwrap().analysis_data
+        &mut self
+            .classes
+            .get_mut(&self.find_id(i))
+            .unwrap()
+            .analysis_data
     }
 
     pub fn enodes(&self, i: Id) -> HashSet<L> {
         // We prevent this, as otherwise the output will have wrong slots.
         assert!(self.is_alive(i), "Can't access e-nodes of dead class");
 
-        self.classes[&i].nodes.iter().map(|(x, psn)| x.apply_slotmap(&psn.elem)).collect()
+        self.classes[&i]
+            .nodes
+            .iter()
+            .map(|(x, psn)| x.apply_slotmap(&psn.elem))
+            .collect()
     }
 
     // Generates fresh slots for redundant slots.
@@ -136,12 +143,13 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         let mut out = HashSet::default();
         for x in self.enodes(i.id) {
             // This is necessary, as i.slots() might collide with the private/redundant slots of our e-nodes.
-            let set: HashSet<_> = x.all_slot_occurrences()
-                                   .into_iter()
-                                   .collect::<HashSet<_>>()
-                                   .difference(&self.classes[&i.id].slots)
-                                   .copied()
-                                   .collect();
+            let set: HashSet<_> = x
+                .all_slot_occurrences()
+                .into_iter()
+                .collect::<HashSet<_>>()
+                .difference(&self.classes[&i.id].slots)
+                .copied()
+                .collect();
             let x = x.refresh_slots(set);
 
             let red = &x.slots() - &i.m.keys();
@@ -174,8 +182,12 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
             self.check_sem_applied_id(&b);
         }
 
-        if a.id != b.id { return false; }
-        if a.m.values() != b.m.values() { return false; }
+        if a.id != b.id {
+            return false;
+        }
+        if a.m.values() != b.m.values() {
+            return false;
+        }
         let id = a.id;
 
         let perm = a.m.compose(&b.m.inverse());
@@ -216,11 +228,17 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         v.sort_by_key(|(x, _)| *x);
 
         for (i, c) in v {
-            if c.nodes.len() == 0 { continue; }
+            if c.nodes.len() == 0 {
+                continue;
+            }
 
             let mut slot_order: Vec<Slot> = c.slots.iter().cloned().collect();
             slot_order.sort();
-            let slot_str = slot_order.iter().map(|x| x.to_string()).collect::<Vec<_>>().join(", ");
+            let slot_str = slot_order
+                .iter()
+                .map(|x| x.to_string())
+                .collect::<Vec<_>>()
+                .join(", ");
             println!("\n{:?}({}):", i, &slot_str);
 
             println!(">> {:?}", &c.syn_enode);
@@ -276,7 +294,10 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     }
 
     #[cfg_attr(feature = "trace", instrument(level = "trace", skip_all))]
-    pub(crate) fn proven_proven_get_group_compatible_variants(&self, enode: &ProvenNode<L>) -> HashSet<ProvenNode<L>> {
+    pub(crate) fn proven_proven_get_group_compatible_variants(
+        &self,
+        enode: &ProvenNode<L>,
+    ) -> HashSet<ProvenNode<L>> {
         // should only be called with an up-to-date e-node.
         if CHECKS {
             for x in enode.elem.applied_id_occurrences() {
@@ -287,16 +308,24 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         let mut out = HashSet::default();
 
         // early-return, if groups are all trivial.
-        if enode.elem.ids().iter().all(|i| self.classes[i].group.is_trivial()) {
+        if enode
+            .elem
+            .ids()
+            .iter()
+            .all(|i| self.classes[i].group.is_trivial())
+        {
             out.insert(enode.clone());
             return out;
         }
 
         let n = enode.elem.applied_id_occurrences().len();
 
-        let groups: Vec<Vec<ProvenPerm>> = enode.elem.applied_id_occurrences().iter().map(
-                    |x| self.classes[&x.id].group.all_perms().into_iter().collect()
-            ).collect();
+        let groups: Vec<Vec<ProvenPerm>> = enode
+            .elem
+            .applied_id_occurrences()
+            .iter()
+            .map(|x| self.classes[&x.id].group.all_perms().into_iter().collect())
+            .collect();
 
         for l in cartesian(&groups) {
             let pn = enode.clone();
@@ -316,7 +345,10 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     }
 
     pub(crate) fn get_group_compatible_variants(&self, enode: &L) -> HashSet<L> {
-        self.proven_get_group_compatible_variants(enode).into_iter().map(|pnode| pnode.elem).collect()
+        self.proven_get_group_compatible_variants(enode)
+            .into_iter()
+            .map(|pnode| pnode.elem)
+            .collect()
     }
 
     #[cfg_attr(feature = "trace", instrument(level = "trace", skip_all))]
@@ -327,7 +359,9 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
 
         for x in set {
             let (sh, _) = x.weak_shape();
-            if shapes.contains(&sh) { continue; }
+            if shapes.contains(&sh) {
+                continue;
+            }
             shapes.insert(sh);
             out.insert(x);
         }
@@ -370,10 +404,11 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     /// This function will use [EGraph::get_syn_node] repeatedly to build up this term.
     pub fn get_syn_expr(&self, i: &AppliedId) -> RecExpr<L> {
         let enode = self.get_syn_node(i);
-        let cs = enode.applied_id_occurrences()
-                      .iter()
-                      .map(|x| self.get_syn_expr(x))
-                      .collect();
+        let cs = enode
+            .applied_id_occurrences()
+            .iter()
+            .map(|x| self.get_syn_expr(x))
+            .collect();
         RecExpr {
             node: nullify_app_ids(&enode),
             children: cs,
@@ -401,12 +436,14 @@ impl PendingType {
 // TODO re-enable use<...> when it's stabilized.
 // fn cartesian<'a, T>(input: &'a [Vec<T>]) -> impl Iterator<Item=Vec<&'a T>> /*+ use<'a, T>*/ + '_ {
 #[cfg_attr(feature = "trace", instrument(level = "trace", skip_all))]
-fn cartesian<T>(input: &[Vec<T>]) -> impl Iterator<Item=Vec<&T>> + '_ {
+fn cartesian<T>(input: &[Vec<T>]) -> impl Iterator<Item = Vec<&T>> + '_ {
     let n = input.len();
     let mut indices = vec![0; n];
     let mut done = false;
     let f = move || {
-        if done { return None; }
+        if done {
+            return None;
+        }
         let out: Vec<&T> = (0..n).map(|i| &input[i][indices[i]]).collect();
         for i in 0..n {
             indices[i] += 1;

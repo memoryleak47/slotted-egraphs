@@ -30,7 +30,6 @@ pub fn simplify_to_nf<R: Realization>(s: &str) -> String {
     panic!("failed to reach NF! Or the beta-NF is just AstSize-suboptimal!");
 }
 
-
 pub fn simplify<R: Realization>(s: &str) -> String {
     let re = RecExpr::parse(s).unwrap();
     let mut eg = EGraph::new();

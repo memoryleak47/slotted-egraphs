@@ -48,7 +48,6 @@ pub fn binomial() {
     assert_reaches(a, b, 40);
 }
 
-
 #[test]
 fn small15() {
     let eg: &mut EGraph<Rise> = &mut EGraph::new();
@@ -66,7 +65,11 @@ fn small14() {
     equate("(app (var $0) (var $1))", "(app (var $1) (var $2))", eg);
     eg.dump();
     eg.check();
-    explain("(app (app (var $0) (var $1)) x)", "(app (app (var $2) (var $3)) x)", eg);
+    explain(
+        "(app (app (var $0) (var $1)) x)",
+        "(app (app (var $2) (var $3)) x)",
+        eg,
+    );
 }
 
 #[test]
@@ -74,7 +77,11 @@ fn small13() {
     let eg: &mut EGraph<Rise> = &mut EGraph::new();
     equate("(app (var $0) (var $1))", "(app (var $1) (var $0))", eg);
     eg.dump();
-    explain("(app (app (var $0) (var $1)) x)", "(app (app (var $1) (var $0)) x)", eg);
+    explain(
+        "(app (app (var $0) (var $1)) x)",
+        "(app (app (var $1) (var $0)) x)",
+        eg,
+    );
 }
 
 #[test]
@@ -115,25 +122,73 @@ fn small9() {
 #[test]
 fn small8() {
     let eg: &mut EGraph<Rise> = &mut EGraph::new();
-    equate("(app (app (var $0) (var $1)) x)", "(app (app (var $1) (var $0)) x)", eg);
-    equate("(app (app (var $0) (var $1)) y)", "(app (app (var $1) (var $0)) y)", eg);
-    equate("(app (app (var $0) (var $1)) x)", "(app (app (var $0) (var $1)) y)", eg);
+    equate(
+        "(app (app (var $0) (var $1)) x)",
+        "(app (app (var $1) (var $0)) x)",
+        eg,
+    );
+    equate(
+        "(app (app (var $0) (var $1)) y)",
+        "(app (app (var $1) (var $0)) y)",
+        eg,
+    );
+    equate(
+        "(app (app (var $0) (var $1)) x)",
+        "(app (app (var $0) (var $1)) y)",
+        eg,
+    );
     eg.dump();
-    explain("(app (app (var $0) (var $1)) x)", "(app (app (var $1) (var $0)) y)", eg);
+    explain(
+        "(app (app (var $0) (var $1)) x)",
+        "(app (app (var $1) (var $0)) y)",
+        eg,
+    );
 }
 
 #[test]
 fn small7() {
     let eg: &mut EGraph<Rise> = &mut EGraph::new();
-    equate("(app (app (var $0) (var $1)) (var $2))", "(app (app (var $1) (var $0)) (var $2))", eg);
-    equate("(app (app (var $0) (var $1)) (var $2))", "(app (app (var $0) (var $2)) (var $1))", eg);
+    equate(
+        "(app (app (var $0) (var $1)) (var $2))",
+        "(app (app (var $1) (var $0)) (var $2))",
+        eg,
+    );
+    equate(
+        "(app (app (var $0) (var $1)) (var $2))",
+        "(app (app (var $0) (var $2)) (var $1))",
+        eg,
+    );
     eg.dump();
-    explain("(app (app (var $0) (var $1)) (var $2))", "(app (app (var $0) (var $1)) (var $2))", eg);
-    explain("(app (app (var $0) (var $1)) (var $2))", "(app (app (var $0) (var $2)) (var $1))", eg);
-    explain("(app (app (var $0) (var $1)) (var $2))", "(app (app (var $1) (var $0)) (var $2))", eg);
-    explain("(app (app (var $0) (var $1)) (var $2))", "(app (app (var $1) (var $2)) (var $0))", eg);
-    explain("(app (app (var $0) (var $1)) (var $2))", "(app (app (var $2) (var $0)) (var $1))", eg);
-    explain("(app (app (var $0) (var $1)) (var $2))", "(app (app (var $2) (var $1)) (var $0))", eg);
+    explain(
+        "(app (app (var $0) (var $1)) (var $2))",
+        "(app (app (var $0) (var $1)) (var $2))",
+        eg,
+    );
+    explain(
+        "(app (app (var $0) (var $1)) (var $2))",
+        "(app (app (var $0) (var $2)) (var $1))",
+        eg,
+    );
+    explain(
+        "(app (app (var $0) (var $1)) (var $2))",
+        "(app (app (var $1) (var $0)) (var $2))",
+        eg,
+    );
+    explain(
+        "(app (app (var $0) (var $1)) (var $2))",
+        "(app (app (var $1) (var $2)) (var $0))",
+        eg,
+    );
+    explain(
+        "(app (app (var $0) (var $1)) (var $2))",
+        "(app (app (var $2) (var $0)) (var $1))",
+        eg,
+    );
+    explain(
+        "(app (app (var $0) (var $1)) (var $2))",
+        "(app (app (var $2) (var $1)) (var $0))",
+        eg,
+    );
 }
 
 #[test]
@@ -152,7 +207,6 @@ fn small5() {
     eg.dump();
     explain("(var $2)", "(app (var $2) y)", eg);
 }
-
 
 #[test]
 fn small3() {

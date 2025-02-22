@@ -20,7 +20,7 @@ impl Debug for SlotMap {
         let n = self.len();
         for (i, (x, y)) in self.iter().enumerate() {
             write!(f, "{x:?} -> {y:?}")?;
-            if i < n-1 {
+            if i < n - 1 {
                 write!(f, ", ")?;
             }
         }

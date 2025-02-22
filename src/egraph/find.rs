@@ -50,7 +50,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         map[i.0].elem.id == i
     }
 
-    pub(crate) fn unionfind_iter(&self) -> impl Iterator<Item=(Id, AppliedId)> {
+    pub(crate) fn unionfind_iter(&self) -> impl Iterator<Item = (Id, AppliedId)> {
         let mut map = self.unionfind.borrow_mut();
         let mut out = Vec::new();
 
@@ -79,7 +79,6 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     pub(crate) fn proven_proven_find_enode(&self, enode: &ProvenNode<L>) -> ProvenNode<L> {
         self.chain_pn_map(enode, |_, pai| self.proven_proven_find_applied_id(&pai))
     }
-
 
     // normalize i.id
     //
@@ -110,7 +109,9 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         pai2.elem.m = pai2.elem.m.compose_partial(&pai.elem.m);
 
         #[cfg(feature = "explanations")]
-        { pai2.proof = prove_transitivity(pai.proof.clone(), pai2.proof, &self.proof_registry); }
+        {
+            pai2.proof = prove_transitivity(pai.proof.clone(), pai2.proof, &self.proof_registry);
+        }
 
         if CHECKS {
             self.check_pai(&pai);
@@ -130,6 +131,4 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
             .filter(|x| map[x.0].elem.id == *x)
             .collect()
     }
-
-
 }

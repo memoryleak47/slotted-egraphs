@@ -8,7 +8,10 @@ pub struct AstSizeNoLet;
 impl CostFunction<Lambda> for AstSizeNoLet {
     type Cost = MyCost;
 
-    fn cost<C>(&self, enode: &Lambda, costs: C) -> MyCost where C: Fn(Id) -> MyCost {
+    fn cost<C>(&self, enode: &Lambda, costs: C) -> MyCost
+    where
+        C: Fn(Id) -> MyCost,
+    {
         if let Lambda::Let(..) = enode {
             MyCost::Infinite
         } else {
@@ -57,4 +60,3 @@ impl Ord for MyCost {
         self.partial_cmp(other).unwrap()
     }
 }
-

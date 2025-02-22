@@ -147,5 +147,5 @@ macro_rules! unpack_tests {
             let s2 = add();
             check_eq::<$R>(&s1, &s2);
         }
-    }
+    };
 }

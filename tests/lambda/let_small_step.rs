@@ -10,15 +10,17 @@ impl Realization for LambdaRealLambda {
 
 unpack_tests!(LambdaRealLambda);
 
-
 pub fn rewrite_let(eg: &mut EGraph<Lambda>) {
-    apply_rewrites(eg, &[
-        beta(),
-        my_let_unused(),
-        let_var_same(),
-        let_app(),
-        let_lam_diff(),
-    ]);
+    apply_rewrites(
+        eg,
+        &[
+            beta(),
+            my_let_unused(),
+            let_var_same(),
+            let_app(),
+            let_lam_diff(),
+        ],
+    );
 }
 
 fn beta() -> Rewrite<Lambda> {
@@ -45,7 +47,8 @@ fn let_app() -> Rewrite<Lambda> {
     let pat = "(let $1 (app ?a ?b) ?e)";
     let outpat = "(app (let $1 ?a ?e) (let $1 ?b ?e))";
     Rewrite::new_if("let-app", pat, outpat, |subst, _| {
-        subst["a"].slots().contains(&Slot::numeric(1)) || subst["b"].slots().contains(&Slot::numeric(1))
+        subst["a"].slots().contains(&Slot::numeric(1))
+            || subst["b"].slots().contains(&Slot::numeric(1))
     })
 }
 

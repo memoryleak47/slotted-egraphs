@@ -1,6 +1,6 @@
+use crate::*;
 use std::cell::RefCell;
 use std::rc::Rc;
-use crate::*;
 
 #[derive(Clone, Default, Debug)]
 pub(crate) struct ProofRegistry(Rc<RefCell<HashMap<Equation, ProvenEq>>>);
@@ -35,4 +35,3 @@ impl ProofRegistry {
         peq
     }
 }
-

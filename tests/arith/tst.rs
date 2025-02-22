@@ -22,9 +22,9 @@ fn assert_reaches(start: &str, goal: &str, steps: usize) {
     assert!(false);
 }
 
-
 #[test]
-fn t1() { // x+y = y+x
+fn t1() {
+    // x+y = y+x
     let x = "$0";
     let y = "$1";
 
@@ -34,7 +34,8 @@ fn t1() { // x+y = y+x
 }
 
 #[test]
-fn t2() { // (x+y) * (x+y) = (x+y) * (y+x)
+fn t2() {
+    // (x+y) * (x+y) = (x+y) * (y+x)
     let x = "$0";
     let y = "$1";
     let z = "$2";
@@ -46,7 +47,8 @@ fn t2() { // (x+y) * (x+y) = (x+y) * (y+x)
 }
 
 #[test]
-fn t3() { // (x+y) * (y+z) = (z+y) * (y+x)
+fn t3() {
+    // (x+y) * (y+z) = (z+y) * (y+x)
     let x = "$0";
     let y = "$1";
     let z = "$2";
@@ -57,7 +59,8 @@ fn t3() { // (x+y) * (y+z) = (z+y) * (y+x)
 }
 
 #[test]
-fn t4() { // (x+y)**2 = x**2 + x*y + x*y + y**2
+fn t4() {
+    // (x+y)**2 = x**2 + x*y + x*y + y**2
     let a = "(mul (add (var $x) (var $y)) (add (var $x) (var $y)))";
     let b = "(add (mul (var $x) (var $x))
              (add (mul (var $x) (var $y))
@@ -67,7 +70,7 @@ fn t4() { // (x+y)**2 = x**2 + x*y + x*y + y**2
     assert_reaches(a, b, 10);
 }
 
-fn add_chain(it: impl Iterator<Item=usize>) -> String {
+fn add_chain(it: impl Iterator<Item = usize>) -> String {
     let mut it = it.map(|u| format!("(var ${u})"));
     let mut x = format!("{}", it.next().unwrap());
     for y in it {
@@ -77,7 +80,8 @@ fn add_chain(it: impl Iterator<Item=usize>) -> String {
 }
 
 #[test]
-fn t5() { // x0+...+xN = xN+...+x0
+fn t5() {
+    // x0+...+xN = xN+...+x0
     // This times out for larger N!
     // TODO reset N to 7.
     const N: usize = 4;
@@ -89,7 +93,8 @@ fn t5() { // x0+...+xN = xN+...+x0
 }
 
 #[test]
-fn t6() { // z*(x+y) = z*(y+x)
+fn t6() {
+    // z*(x+y) = z*(y+x)
     let x = "$0";
     let y = "$1";
     let z = "$2";
@@ -97,7 +102,6 @@ fn t6() { // z*(x+y) = z*(y+x)
     let a = &format!("(mul (var {z}) (add (var {x}) (var {y})))");
     let b = &format!("(mul (var {z}) (add (var {y}) (var {x})))");
     assert_reaches2(a, b, 10);
-
 
     // assert_reaches, but only using add_comm!
     fn assert_reaches2(start: &str, goal: &str, steps: usize) {

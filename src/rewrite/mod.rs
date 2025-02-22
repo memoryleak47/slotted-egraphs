@@ -26,7 +26,6 @@ pub struct RewriteT<L: Language, N: Analysis<L>, T: Any> {
     pub applier: Box<dyn Fn(T, &mut EGraph<L, N>)>,
 }
 
-
 impl<L: Language + 'static, N: Analysis<L> + 'static, T: 'static> RewriteT<L, N, T> {
     /// Use this function to convert it to an actual [Rewrite].
     pub fn into(self) -> Rewrite<L, N> {
@@ -34,7 +33,7 @@ impl<L: Language + 'static, N: Analysis<L> + 'static, T: 'static> RewriteT<L, N,
         let applier = self.applier;
         Rewrite {
             searcher: Box::new(move |eg| Box::new((*searcher)(eg))),
-            applier: Box::new(move |t, eg| (*applier)(any_to_t(t), eg))
+            applier: Box::new(move |t, eg| (*applier)(any_to_t(t), eg)),
         }
     }
 }
@@ -46,7 +45,10 @@ fn any_to_t<T: Any>(t: Box<dyn Any>) -> T {
 /// Applies each given rewrite rule to the E-Graph once.
 /// Returns an indicator for whether the e-graph changed as a result.
 #[cfg_attr(feature = "trace", instrument(level = "trace", skip_all))]
-pub fn apply_rewrites<L: Language, N: Analysis<L>>(eg: &mut EGraph<L, N>, rewrites: &[Rewrite<L, N>]) -> bool {
+pub fn apply_rewrites<L: Language, N: Analysis<L>>(
+    eg: &mut EGraph<L, N>,
+    rewrites: &[Rewrite<L, N>],
+) -> bool {
     let prog = eg.progress();
 
     let ts: Vec<Box<dyn Any>> = rewrites.iter().map(|rw| (*rw.searcher)(eg)).collect();
@@ -64,7 +66,12 @@ impl<L: Language + 'static, N: Analysis<L> + 'static> Rewrite<L, N> {
     }
 
     /// Create a conditional rewrite rule.
-    pub fn new_if(rule: &str, a: &str, b: &str, cond: impl Fn(&Subst, &EGraph<L, N>) -> bool + 'static) -> Self {
+    pub fn new_if(
+        rule: &str,
+        a: &str,
+        b: &str,
+        cond: impl Fn(&Subst, &EGraph<L, N>) -> bool + 'static,
+    ) -> Self {
         let a = Pattern::parse(a).unwrap();
         let b = Pattern::parse(b).unwrap();
         let rule = rule.to_string();
@@ -74,7 +81,8 @@ impl<L: Language + 'static, N: Analysis<L> + 'static> Rewrite<L, N> {
             applier: Box::new(move |substs, eg| {
                 Self::apply_substs_cond(substs, &cond, &a2, &b, &rule, eg)
             }),
-        }.into()
+        }
+        .into()
     }
 
     #[cfg_attr(feature = "trace", instrument(level = "trace", skip_all))]
@@ -84,7 +92,7 @@ impl<L: Language + 'static, N: Analysis<L> + 'static> Rewrite<L, N> {
         a: &Pattern<L>,
         b: &Pattern<L>,
         rule: &str,
-        eg: &mut EGraph<L, N>
+        eg: &mut EGraph<L, N>,
     ) {
         for subst in substs {
             if cond(&subst, eg) {
@@ -93,7 +101,6 @@ impl<L: Language + 'static, N: Analysis<L> + 'static> Rewrite<L, N> {
         }
     }
 }
-
 
 #[derive(PartialEq, Eq)]
 /// A Progress Measure to check saturation of an e-graph with.
@@ -109,7 +116,6 @@ pub struct ProgressMeasure {
 
     /// How many symmetries the egraphs knows. If number_of_classes & number_of_live_classes & sum_of_slots isn't changed, this can only increase (by proving a symmetry by union).
     pub sum_of_symmetries: usize,
-
 }
 
 impl<L: Language, N: Analysis<L>> EGraph<L, N> {
@@ -125,7 +131,6 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         }
     }
 }
-
 
 #[macro_export]
 macro_rules! rw {
@@ -143,7 +148,10 @@ macro_rules! rw {
 }
 
 pub trait Cond<L, N>: Fn(&Subst, &EGraph<L, N>) -> bool + 'static {}
-impl<T, L: Language, N: Analysis<L>> Cond<L, N> for T where T: Fn(&Subst, &EGraph<L, N>) -> bool + 'static {}
+impl<T, L: Language, N: Analysis<L>> Cond<L, N> for T where
+    T: Fn(&Subst, &EGraph<L, N>) -> bool + 'static
+{
+}
 
 pub fn slot_free_in<L: Language, N: Analysis<L>>(slot: &str, var: &str) -> impl Cond<L, N> {
     let s: Slot = Slot::named(slot);

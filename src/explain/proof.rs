@@ -1,6 +1,6 @@
 use crate::*;
 
-use std::hash::{Hasher, Hash};
+use std::hash::{Hash, Hasher};
 
 #[derive(Clone, PartialEq, Eq, Hash)]
 pub struct Equation {
@@ -9,7 +9,7 @@ pub struct Equation {
 }
 
 #[derive(Clone, Debug)]
-pub struct ExplicitProof(pub /*justification: */ Option<String>);
+pub struct ExplicitProof(pub Option<String>);
 #[derive(Clone, Debug)]
 pub struct ReflexivityProof;
 #[derive(Clone, Debug)]
@@ -26,7 +26,6 @@ pub enum Proof {
     Symmetry(SymmetryProof),
     Transitivity(TransitivityProof),
     Congruence(CongruenceProof),
-
     // Both global renaming within equations and alpha-equivalence will be handled in the other rules too.
     // All equations will be understood as an arbitrary representative from its global renaming equivalence class.
     // So f(x, y) = g(x, y) is conceptually the same equation as f(a, b) = g(a, b).
@@ -47,7 +46,10 @@ impl ProvenEqRaw {
     pub(crate) fn null() -> ProvenEq {
         let app_id = AppliedId::new(Id(0), Default::default());
         Arc::new(ProvenEqRaw {
-            eq: Equation { l: app_id.clone(), r: app_id.clone() },
+            eq: Equation {
+                l: app_id.clone(),
+                r: app_id.clone(),
+            },
             proof: Proof::Explicit(ExplicitProof(None)),
         })
     }
@@ -65,10 +67,12 @@ impl ProvenEqRaw {
 
 impl PartialEq for ProvenEqRaw {
     // TODO normalize slotnames before this?
-    fn eq(&self, other: &Self) -> bool { self.eq == other.eq }
+    fn eq(&self, other: &Self) -> bool {
+        self.eq == other.eq
+    }
 }
 
-impl Eq for ProvenEqRaw { }
+impl Eq for ProvenEqRaw {}
 
 impl Hash for ProvenEqRaw {
     fn hash<H: Hasher>(&self, hasher: &mut H) {
@@ -99,7 +103,10 @@ impl SymmetryProof {
     pub fn check(&self, eq: &Equation, reg: &ProofRegistry) -> ProvenEq {
         let SymmetryProof(x) = self;
 
-        let flipped = Equation { l: x.r.clone(), r: x.l.clone() };
+        let flipped = Equation {
+            l: x.r.clone(),
+            r: x.l.clone(),
+        };
         assert_match_equation(eq, &flipped);
 
         let eq = eq.clone();
@@ -126,24 +133,44 @@ impl TransitivityProof {
         let recompute_theta1 = |theta1: &mut SlotMap, theta2: &SlotMap| {
             // eq1.r*theta1 == eq2.l*theta2
             // -> theta1 == eq1.r^-1 * eq2.l * theta2
-            *theta1 = theta1.try_union(&eq1.r.m.inverse().compose_partial(&eq2.l.m).compose_partial(theta2)).unwrap();
+            *theta1 = theta1
+                .try_union(
+                    &eq1.r
+                        .m
+                        .inverse()
+                        .compose_partial(&eq2.l.m)
+                        .compose_partial(theta2),
+                )
+                .unwrap();
         };
 
         let recompute_theta2 = |theta1: &SlotMap, theta2: &mut SlotMap| {
             // eq1.r*theta1 == eq2.l*theta2
             // -> theta2 == eq2.l^-1 * eq1.r * theta2
-            *theta2 = theta2.try_union(&eq2.l.m.inverse().compose_partial(&eq1.r.m).compose_partial(theta1)).unwrap();
+            *theta2 = theta2
+                .try_union(
+                    &eq2.l
+                        .m
+                        .inverse()
+                        .compose_partial(&eq1.r.m)
+                        .compose_partial(theta1),
+                )
+                .unwrap();
         };
 
         recompute_theta1(&mut theta1, &theta2);
         recompute_theta2(&theta1, &mut theta2);
 
         for x in eq1.slots() {
-            if !theta1.contains_key(x) { theta1.insert(x, Slot::fresh()); }
+            if !theta1.contains_key(x) {
+                theta1.insert(x, Slot::fresh());
+            }
         }
         recompute_theta2(&theta1, &mut theta2);
         for x in eq2.slots() {
-            if !theta2.contains_key(x) { theta2.insert(x, Slot::fresh()); }
+            if !theta2.contains_key(x) {
+                theta2.insert(x, Slot::fresh());
+            }
         }
 
         let renamed_eq1 = eq1.apply_slotmap(&theta1);
@@ -152,7 +179,6 @@ impl TransitivityProof {
         assert_eq!(renamed_eq1.l, eq.l);
         assert_eq!(renamed_eq2.r, eq.r);
         assert_eq!(renamed_eq1.r, renamed_eq2.l);
-
 
         let eq = eq.clone();
         let proof = Proof::Transitivity(self.clone());
@@ -199,7 +225,8 @@ impl CongruenceProof {
 
         let eq = eq.clone();
         let proof = Proof::Congruence(self.clone());
-        eg.proof_registry.insert(Arc::new(ProvenEqRaw { eq, proof }))
+        eg.proof_registry
+            .insert(Arc::new(ProvenEqRaw { eq, proof }))
     }
 }
 
@@ -249,7 +276,11 @@ impl ProvenEqRaw {
 pub(crate) fn match_app_id(a: &AppliedId, b: &AppliedId) -> SlotMap {
     if CHECKS {
         assert_eq!(a.id, b.id);
-        assert_eq!(a.m.keys(), b.m.keys(), "match_app_id failed: different set of arguments");
+        assert_eq!(
+            a.m.keys(),
+            b.m.keys(),
+            "match_app_id failed: different set of arguments"
+        );
     }
 
     // a.m :: slots(i) -> A

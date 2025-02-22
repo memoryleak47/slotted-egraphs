@@ -1,26 +1,25 @@
 use crate::*;
 
 pub fn rewrite_arith(eg: &mut EGraph<Arith>) {
-    apply_rewrites(eg, &[
-        beta(),
-        eta(),
-
-        my_let_unused(),
-        let_var_same(),
-        let_app(),
-        let_lam_diff(),
-
-        add_comm(),
-        add_assoc1(),
-        add_assoc2(),
-
-        mul_comm(),
-        mul_assoc1(),
-        mul_assoc2(),
-
-        distr1(),
-        distr2(),
-    ]);
+    apply_rewrites(
+        eg,
+        &[
+            beta(),
+            eta(),
+            my_let_unused(),
+            let_var_same(),
+            let_app(),
+            let_lam_diff(),
+            add_comm(),
+            add_assoc1(),
+            add_assoc2(),
+            mul_comm(),
+            mul_assoc1(),
+            mul_assoc2(),
+            distr1(),
+            distr2(),
+        ],
+    );
 }
 
 fn beta() -> Rewrite<Arith> {
@@ -63,7 +62,8 @@ fn let_app() -> Rewrite<Arith> {
     let pat = "(let $1 (app ?a ?b) ?e)";
     let outpat = "(app (let $1 ?a ?e) (let $1 ?b ?e))";
     Rewrite::new_if("let-app", pat, outpat, |subst, _| {
-        subst["a"].slots().contains(&Slot::numeric(1)) || subst["b"].slots().contains(&Slot::numeric(1))
+        subst["a"].slots().contains(&Slot::numeric(1))
+            || subst["b"].slots().contains(&Slot::numeric(1))
     })
 }
 

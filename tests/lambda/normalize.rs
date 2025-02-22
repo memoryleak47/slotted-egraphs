@@ -4,9 +4,12 @@ pub fn lam_normalize(re: &RecExpr<Lambda>) -> RecExpr<Lambda> {
     lam_normalize_impl(re, &mut 0, Default::default())
 }
 
-
 // map :: original name -> normalized name.
-fn lam_normalize_impl(re: &RecExpr<Lambda>, counter: &mut usize, map: HashMap<Slot, Slot>) -> RecExpr<Lambda> {
+fn lam_normalize_impl(
+    re: &RecExpr<Lambda>,
+    counter: &mut usize,
+    map: HashMap<Slot, Slot>,
+) -> RecExpr<Lambda> {
     let mut alloc_slot = || {
         let out = Slot::numeric(*counter as _);
         *counter += 1;
@@ -14,7 +17,7 @@ fn lam_normalize_impl(re: &RecExpr<Lambda>, counter: &mut usize, map: HashMap<Sl
     };
 
     match &re.node {
-        Lambda::Lam(Bind{slot:x, ..}) => {
+        Lambda::Lam(Bind { slot: x, .. }) => {
             let [b] = &*re.children else { panic!() };
 
             let mut map = map.clone();
@@ -24,10 +27,13 @@ fn lam_normalize_impl(re: &RecExpr<Lambda>, counter: &mut usize, map: HashMap<Sl
             let b = lam_normalize_impl(b, counter, map);
 
             RecExpr {
-                node: Lambda::Lam(Bind{slot:norm_x, elem:AppliedId::null()}),
+                node: Lambda::Lam(Bind {
+                    slot: norm_x,
+                    elem: AppliedId::null(),
+                }),
                 children: vec![b],
             }
-        },
+        }
         Lambda::App(_, _) => {
             let [l, r] = &*re.children else { panic!() };
 
@@ -38,7 +44,7 @@ fn lam_normalize_impl(re: &RecExpr<Lambda>, counter: &mut usize, map: HashMap<Sl
                 node: Lambda::App(AppliedId::null(), AppliedId::null()),
                 children: vec![l, r],
             }
-        },
+        }
         Lambda::Var(x) => {
             let norm_x = map[x];
 
@@ -46,7 +52,7 @@ fn lam_normalize_impl(re: &RecExpr<Lambda>, counter: &mut usize, map: HashMap<Sl
                 node: Lambda::Var(norm_x),
                 children: vec![],
             }
-        },
+        }
         Lambda::Let(..) => panic!(),
     }
 }

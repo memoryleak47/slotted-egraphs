@@ -25,14 +25,14 @@ pub fn rise_rules(subst_m: RiseSubstMethod) -> Vec<Rewrite<Rise>> {
     match subst_m {
         RiseSubstMethod::Extraction => {
             rewrites.push(beta_extr_direct());
-        },
+        }
         RiseSubstMethod::SmallStep => {
             rewrites.push(beta());
             rewrites.push(my_let_unused());
             rewrites.push(let_var_same());
             rewrites.push(let_app());
             rewrites.push(let_lam_diff());
-        },
+        }
         RiseSubstMethod::SmallStepUnoptimized => {
             rewrites.push(beta());
             rewrites.push(let_var_same());
@@ -40,7 +40,7 @@ pub fn rise_rules(subst_m: RiseSubstMethod) -> Vec<Rewrite<Rise>> {
             rewrites.push(let_app_unopt());
             rewrites.push(let_lam_diff_unopt());
             rewrites.push(let_const());
-        },
+        }
     }
 
     rewrites
@@ -93,7 +93,8 @@ fn let_app() -> Rewrite<Rise> {
     let pat = "(let $1 (app ?a ?b) ?e)";
     let outpat = "(app (let $1 ?a ?e) (let $1 ?b ?e))";
     Rewrite::new_if("let-app", pat, outpat, |subst, _| {
-        subst["a"].slots().contains(&Slot::numeric(1)) || subst["b"].slots().contains(&Slot::numeric(1))
+        subst["a"].slots().contains(&Slot::numeric(1))
+            || subst["b"].slots().contains(&Slot::numeric(1))
     })
 }
 
@@ -125,7 +126,11 @@ fn let_const() -> Rewrite<Rise> {
         searcher: Box::new(|_| ()),
         applier: Box::new(move |(), eg| {
             for subst in ematch_all(eg, &pat) {
-                if eg.enodes_applied(&subst["c"]).iter().any(|n| matches!(n, Rise::Symbol(_) | Rise::Number(_))) {
+                if eg
+                    .enodes_applied(&subst["c"])
+                    .iter()
+                    .any(|n| matches!(n, Rise::Symbol(_) | Rise::Number(_)))
+                {
                     let orig = pattern_subst(eg, &pat, &subst);
                     eg.union_justified(&orig, &subst["c"], Some("let-const".to_string()));
                 }
@@ -148,13 +153,10 @@ fn map_fission() -> Rewrite<Rise> {
     let x = 0;
     let mfi = 1;
 
-    let pat = &format!(
-        "(app map (lam ${x} (app ?f ?gx)))"
-    );
+    let pat = &format!("(app map (lam ${x} (app ?f ?gx)))");
 
-    let outpat = &format!(
-        "(lam ${mfi} (app (app map ?f) (app (app map (lam ${x} ?gx)) (var ${mfi}))))"
-    );
+    let outpat =
+        &format!("(lam ${mfi} (app (app map ?f) (app (app map (lam ${x} ?gx)) (var ${mfi}))))");
 
     Rewrite::new_if("map-fission", pat, outpat, move |subst, _| {
         !subst["f"].slots().contains(&Slot::numeric(x))

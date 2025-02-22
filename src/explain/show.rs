@@ -5,9 +5,7 @@ type ShowMap = HashMap<*const ProvenEqRaw, (usize, String)>;
 impl ProvenEqRaw {
     /// Prints the proof steps.
     pub fn to_string<L: Language, N: Analysis<L>>(&self, eg: &EGraph<L, N>) -> String {
-        self.show_impl(&|i| {
-            eg.get_syn_expr(i).to_string()
-        })
+        self.show_impl(&|i| eg.get_syn_expr(i).to_string())
     }
 
     /// Prints the proof steps, using the internal [AppliedId]s to represent terms.
@@ -60,11 +58,11 @@ impl ProvenEqRaw {
                 Proof::Symmetry(SymmetryProof(_)) => format!("symmetry({})", ids[0]),
                 Proof::Transitivity(TransitivityProof(_, _)) => {
                     format!("transitivity({}, {})", ids[0], ids[1])
-                },
+                }
                 Proof::Congruence(CongruenceProof(xs)) => {
                     let s = ids.join(", ");
                     format!("congruence({s})")
-                },
+                }
             };
 
             let i = v.len();
@@ -73,7 +71,5 @@ impl ProvenEqRaw {
             v.insert(x as *const ProvenEqRaw, (i, out));
             assert_eq!(stack.pop(), Some(x));
         }
-
     }
 }
-

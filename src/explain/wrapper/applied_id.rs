@@ -27,12 +27,20 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     // x=y & y=z make x=z
     // It will return "next.elem" but using the slots of "start". The proofs concatenate.
     // Assumes that "next.m.values() ~ slots(start.id)"
-    pub(crate) fn chain_pai(&self, start: &ProvenAppliedId, next: &ProvenAppliedId) -> ProvenAppliedId {
+    pub(crate) fn chain_pai(
+        &self,
+        start: &ProvenAppliedId,
+        next: &ProvenAppliedId,
+    ) -> ProvenAppliedId {
         ProvenAppliedId {
             elem: next.elem.apply_slotmap(&start.elem.m),
 
             #[cfg(feature = "explanations")]
-            proof: prove_transitivity(start.proof.clone(), next.proof.clone(), &self.proof_registry),
+            proof: prove_transitivity(
+                start.proof.clone(),
+                next.proof.clone(),
+                &self.proof_registry,
+            ),
         }
     }
 
@@ -45,7 +53,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
                 // should this already be synified before calling this?
                 let syn = self.synify_app_id(app_id.clone());
                 prove_reflexivity(&syn, &self.proof_registry)
-            }
+            },
         }
     }
 

@@ -4,7 +4,8 @@ use crate::lambda::*;
 pub fn y() -> String {
     let a = format!("(lam $0 (app (var $1) (app (var $0) (var $0))))");
 
-    format!("(lam $1 (app {a} {a}))") }
+    format!("(lam $1 (app {a} {a}))")
+}
 
 pub fn zero() -> String {
     format!("(lam $0 (lam $1 (var $0)))")
@@ -28,9 +29,9 @@ pub fn app(x: String, y: String) -> String {
 
 // add 0 y = y
 // add (x+1) y = add x (y+1)
-// 
+//
 // add = Y add_impl
-// 
+//
 // add_impl add x y = (x y) (\z. add z (suc y))
 pub fn add() -> String {
     app(y(), add_impl())

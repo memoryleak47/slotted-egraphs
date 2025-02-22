@@ -15,11 +15,15 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
             let flipped = prove_symmetry(proof.clone(), &self.proof_registry);
             let new_prf = prove_transitivity(proof, flipped, &self.proof_registry);
 
-            let old_prf = self.proven_find_applied_id(&self.mk_syn_identity_applied_id(i)).proof;
+            let old_prf = self
+                .proven_find_applied_id(&self.mk_syn_identity_applied_id(i))
+                .proof;
             prove_transitivity(new_prf, old_prf, &self.proof_registry)
         });
 
-        let elem = self.mk_syn_identity_applied_id(i).apply_slotmap_partial(&SlotMap::identity(cap));
+        let elem = self
+            .mk_syn_identity_applied_id(i)
+            .apply_slotmap_partial(&SlotMap::identity(cap));
 
         #[cfg(feature = "explanations")]
         if CHECKS {
@@ -28,12 +32,15 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
             assert_eq!(elem, elem2);
         }
 
-        self.unionfind_set(i, ProvenAppliedId {
-            elem,
+        self.unionfind_set(
+            i,
+            ProvenAppliedId {
+                elem,
 
-            #[cfg(feature = "explanations")]
-            proof: prf,
-        });
+                #[cfg(feature = "explanations")]
+                proof: prf,
+            },
+        );
     }
 
     // We expect `from` to be on the lhs of this equation.
@@ -83,7 +90,9 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
                 proven_perm.check();
             }
 
-            let perm = proven_perm.elem.into_iter()
+            let perm = proven_perm
+                .elem
+                .into_iter()
                 .filter(|(x, _)| cap.contains(x))
                 .collect();
 
@@ -94,7 +103,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
                 #[cfg(feature = "explanations")]
                 proof: prf,
                 #[cfg(feature = "explanations")]
-                reg: self.proof_registry.clone()
+                reg: self.proof_registry.clone(),
             };
             if CHECKS {
                 out.check();
@@ -115,12 +124,16 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
 
     #[cfg_attr(feature = "trace", instrument(level = "trace", skip_all))]
     pub(crate) fn rebuild(&mut self) {
-        if CHECKS { self.check(); }
+        if CHECKS {
+            self.check();
+        }
         while let Some(sh) = self.pending.keys().cloned().next() {
             let pending_ty = self.pending.remove(&sh).unwrap();
             self.handle_pending(sh, pending_ty);
 
-            if CHECKS { self.check(); }
+            if CHECKS {
+                self.check();
+            }
         }
     }
 
@@ -223,9 +236,15 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
             };
             let (weak2, bij2) = pc2.node.elem.weak_shape();
             if weak == weak2 {
-                if CHECKS { self.check_pc(&pc1); }
-                if CHECKS { self.check_pc(&pc2); }
-                if CHECKS { assert_eq!(pc1.target_id(), pc2.target_id()); }
+                if CHECKS {
+                    self.check_pc(&pc1);
+                }
+                if CHECKS {
+                    self.check_pc(&pc2);
+                }
+                if CHECKS {
+                    assert_eq!(pc1.target_id(), pc2.target_id());
+                }
                 let (a, b, proof) = self.pc_congruence(&pc1, &pc2);
 
                 // or is it the opposite direction? (flip a with b)
@@ -272,7 +291,10 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
 
     #[cfg_attr(feature = "trace", instrument(level = "trace", skip_all))]
     pub(crate) fn pc_from_shape(&self, sh: &L) -> ProvenContains<L> {
-        let i = self.hashcons.get(&sh).expect("pc_from_shape should only be called if the shape exists in the e-graph!");
+        let i = self
+            .hashcons
+            .get(&sh)
+            .expect("pc_from_shape should only be called if the shape exists in the e-graph!");
         let c = self.classes[&i].nodes[&sh].src_id;
 
         // this shall change! Later on we want to deprecate the src-id.

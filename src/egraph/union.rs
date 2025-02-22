@@ -6,9 +6,12 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     }
 
     pub fn union_justified(&mut self, l: &AppliedId, r: &AppliedId, j: Option<String>) -> bool {
-        let subst = [(String::from("a"), l.clone()),
-                     (String::from("b"), r.clone())]
-                        .into_iter().collect();
+        let subst = [
+            (String::from("a"), l.clone()),
+            (String::from("b"), r.clone()),
+        ]
+        .into_iter()
+        .collect();
         let a = Pattern::parse("?a").unwrap();
         let b = Pattern::parse("?b").unwrap();
 
@@ -16,7 +19,13 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     }
 
     #[cfg_attr(feature = "trace", instrument(level = "trace", skip_all))]
-    pub fn union_instantiations(&mut self, from_pat: &Pattern<L>, to_pat: &Pattern<L>, subst: &Subst, justification: Option<String>) -> bool {
+    pub fn union_instantiations(
+        &mut self,
+        from_pat: &Pattern<L>,
+        to_pat: &Pattern<L>,
+        subst: &Subst,
+        justification: Option<String>,
+    ) -> bool {
         let a = pattern_subst(self, from_pat, subst);
         let b = pattern_subst(self, to_pat, subst);
 
@@ -36,7 +45,12 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     }
 
     #[cfg_attr(feature = "trace", instrument(level = "trace", skip_all))]
-    pub(in crate::egraph) fn union_internal(&mut self, l: &AppliedId, r: &AppliedId, proof: ProvenEq) -> bool {
+    pub(in crate::egraph) fn union_internal(
+        &mut self,
+        l: &AppliedId,
+        r: &AppliedId,
+        proof: ProvenEq,
+    ) -> bool {
         // normalize inputs
         let pai_l = self.proven_find_applied_id(&l);
         let pai_r = self.proven_find_applied_id(&r);
@@ -61,7 +75,9 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
 
     fn union_leaders(&mut self, l: AppliedId, r: AppliedId, proof: ProvenEq) -> bool {
         // early return, if union should not be made.
-        if self.eq(&l, &r) { return false; }
+        if self.eq(&l, &r) {
+            return false;
+        }
 
         let cap = &l.slots() & &r.slots();
 
@@ -95,7 +111,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
                 #[cfg(feature = "explanations")]
                 proof,
                 #[cfg(feature = "explanations")]
-                reg: self.proof_registry.clone()
+                reg: self.proof_registry.clone(),
             };
 
             if CHECKS {
@@ -105,7 +121,9 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
                 proven_perm.check();
             }
             let grp = &mut self.classes.get_mut(&id).unwrap().group;
-            if grp.contains(&proven_perm.to_slotmap()) { return false; }
+            if grp.contains(&proven_perm.to_slotmap()) {
+                return false;
+            }
 
             grp.add(proven_perm);
 
@@ -113,9 +131,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
 
             true
         } else {
-            let slot_size = |i| {
-                self.classes[&i].syn_enode.slots().len()
-            };
+            let slot_size = |i| self.classes[&i].syn_enode.slots().len();
 
             let size = |i| {
                 let c = &self.classes[&i];
@@ -128,8 +144,12 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
                 // we prefer e-classes with e-nodes with few slots (i.e. prefer constants over e-node with redundancies).
                 // It generates easier proofs.
                 let (ssl, ssr) = (slot_size(l), slot_size(r));
-                if ssl > ssr { return true; }
-                if ssl < ssr { return false; }
+                if ssl > ssr {
+                    return true;
+                }
+                if ssl < ssr {
+                    return false;
+                }
 
                 // prefer bigger e-classes, because then we need to update less.
                 size(l) <= size(r)
@@ -217,11 +237,16 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         let f = from.m.compose_partial(&to.m.inverse());
 
         let change_permutation_from_from_to_to = |x: Perm| -> Perm {
-            let perm: Perm = x.iter().filter_map(|(x, y)| {
-                if f.contains_key(x) && f.contains_key(y) {
-                    Some((f[x], f[y]))
-                } else { None }
-            }).collect();
+            let perm: Perm = x
+                .iter()
+                .filter_map(|(x, y)| {
+                    if f.contains_key(x) && f.contains_key(y) {
+                        Some((f[x], f[y]))
+                    } else {
+                        None
+                    }
+                })
+                .collect();
 
             if CHECKS {
                 assert!(perm.is_perm());
@@ -238,7 +263,10 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         let change_proven_permutation_from_from_to_to = |proven_perm: ProvenPerm| {
             let new_perm = change_permutation_from_from_to_to(proven_perm.elem);
             #[cfg(feature = "explanations")]
-            let new_proof = self.prove_transitivity(prf_rev.clone(), self.prove_transitivity(proven_perm.proof, prf.clone()));
+            let new_proof = self.prove_transitivity(
+                prf_rev.clone(),
+                self.prove_transitivity(proven_perm.proof, prf.clone()),
+            );
             ProvenPerm {
                 elem: new_perm,
                 #[cfg(feature = "explanations")]
@@ -248,7 +276,9 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
             }
         };
 
-        let set = self.classes[&from.id].group.generators()
+        let set = self.classes[&from.id]
+            .group
+            .generators()
             .into_iter()
             .map(change_proven_permutation_from_from_to_to)
             .collect();

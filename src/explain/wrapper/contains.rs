@@ -34,7 +34,12 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
 
         #[cfg(feature = "explanations")]
         {
-            let a: Vec<Id> = self.get_syn_node(&self.mk_syn_identity_applied_id(pc.pai.proof.l.id)).applied_id_occurrences().iter().map(|x| x.id).collect();
+            let a: Vec<Id> = self
+                .get_syn_node(&self.mk_syn_identity_applied_id(pc.pai.proof.l.id))
+                .applied_id_occurrences()
+                .iter()
+                .map(|x| x.id)
+                .collect();
             let b: Vec<Id> = pc.node.proofs.iter().map(|eq| eq.l.id).collect();
             assert_eq!(a, b);
         }
@@ -63,7 +68,11 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         }
     }
 
-    pub(crate) fn chain_pc_map(&self, start: &ProvenContains<L>, f: impl Fn(usize, ProvenAppliedId) -> ProvenAppliedId) -> ProvenContains<L> {
+    pub(crate) fn chain_pc_map(
+        &self,
+        start: &ProvenContains<L>,
+        f: impl Fn(usize, ProvenAppliedId) -> ProvenAppliedId,
+    ) -> ProvenContains<L> {
         let out = ProvenContains {
             node: self.chain_pn_map(&start.node, f),
             pai: start.pai.clone(),
@@ -83,7 +92,11 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
 
     // After this fn, both PCs talk about the same e-node.
     // panics, if that's impossible.
-    fn match_pcs(&self, a: &ProvenContains<L>, b: &ProvenContains<L>) -> (ProvenContains<L>, ProvenContains<L>) {
+    fn match_pcs(
+        &self,
+        a: &ProvenContains<L>,
+        b: &ProvenContains<L>,
+    ) -> (ProvenContains<L>, ProvenContains<L>) {
         let (sh1, bij1) = a.node.elem.weak_shape();
         let (sh2, bij2) = b.node.elem.weak_shape();
         if CHECKS {
@@ -115,7 +128,11 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         (a.clone(), b)
     }
 
-    pub(crate) fn pc_congruence(&self, a: &ProvenContains<L>, b: &ProvenContains<L>) -> (AppliedId, AppliedId, ProvenEq) {
+    pub(crate) fn pc_congruence(
+        &self,
+        a: &ProvenContains<L>,
+        b: &ProvenContains<L>,
+    ) -> (AppliedId, AppliedId, ProvenEq) {
         if CHECKS {
             self.check_pc(a);
             self.check_pc(b);

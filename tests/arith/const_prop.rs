@@ -9,7 +9,7 @@ impl Analysis<Arith> for ConstProp {
             (Some(x), Some(y)) => {
                 assert_eq!(x, y);
                 ConstProp(Some(x))
-            },
+            }
             (Some(x), _) => ConstProp(Some(x)),
             (_, Some(x)) => ConstProp(Some(x)),
             (_, _) => ConstProp(None),
@@ -19,28 +19,15 @@ impl Analysis<Arith> for ConstProp {
     fn make(eg: &EGraph<Arith, Self>, sh: &Arith) -> ConstProp {
         match sh {
             Arith::Number(x) => ConstProp(Some(*x)),
-            Arith::Add(x, y) => {
-                ConstProp(
-                    get_both(eg, x, y)
-                        .map(|(x, y)| x+y)
-                )
-            },
-            Arith::Mul(x, y) => {
-                ConstProp(
-                    get_both(eg, x, y)
-                        .map(|(x, y)| x*y)
-                )
-            },
+            Arith::Add(x, y) => ConstProp(get_both(eg, x, y).map(|(x, y)| x + y)),
+            Arith::Mul(x, y) => ConstProp(get_both(eg, x, y).map(|(x, y)| x * y)),
             _ => ConstProp(None),
         }
     }
 }
 
 fn get_both(eg: &EGraph<Arith, ConstProp>, x: &AppliedId, y: &AppliedId) -> Option<(u32, u32)> {
-    Some((
-        eg.analysis_data(x.id).0?,
-        eg.analysis_data(y.id).0?,
-    ))
+    Some((eg.analysis_data(x.id).0?, eg.analysis_data(y.id).0?))
 }
 
 #[test]

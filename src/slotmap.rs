@@ -20,7 +20,9 @@ pub struct SlotMap {
 
 impl SlotMap {
     pub fn new() -> Self {
-        SlotMap { map: Default::default() }
+        SlotMap {
+            map: Default::default(),
+        }
     }
 
     pub fn len(&self) -> usize {
@@ -41,10 +43,12 @@ impl SlotMap {
 
     pub fn insert(&mut self, l: Slot, r: Slot) {
         match self.search(l) {
-            Ok(i) => { self.map[i] = (l, r); },
+            Ok(i) => {
+                self.map[i] = (l, r);
+            }
             Err(i) => {
                 self.map.insert(i, (l, r));
-            },
+            }
         }
     }
 
@@ -52,27 +56,35 @@ impl SlotMap {
         self.search(l).ok().map(|i| self.map[i].1)
     }
 
-    pub fn iter(&self) -> impl Iterator<Item=(Slot, Slot)> + '_ {
+    pub fn iter(&self) -> impl Iterator<Item = (Slot, Slot)> + '_ {
         self.map.iter().copied()
     }
 
-    pub fn into_iter(self) -> impl Iterator<Item=(Slot, Slot)> {
+    pub fn into_iter(self) -> impl Iterator<Item = (Slot, Slot)> {
         self.map.into_iter()
     }
 
     // ordered by their keys!
-    pub fn values_mut(&mut self) -> impl Iterator<Item=&mut Slot> + '_ {
+    pub fn values_mut(&mut self) -> impl Iterator<Item = &mut Slot> + '_ {
         self.map.iter_mut().map(|(_, y)| y)
     }
 
-    pub fn values_immut(&self) -> impl Iterator<Item=&Slot> + '_ {
+    pub fn values_immut(&self) -> impl Iterator<Item = &Slot> + '_ {
         self.map.iter().map(|(_, y)| y)
     }
 
-    pub fn keys(&self) -> HashSet<Slot> { self.iter().map(|(x, _)| x).collect() }
-    pub fn values(&self) -> HashSet<Slot> { self.iter().map(|(_, y)| y).collect() }
-    pub fn keys_vec(&self) -> Vec<Slot> { self.iter().map(|(x, _)| x).collect() }
-    pub fn values_vec(&self) -> Vec<Slot> { self.iter().map(|(_, y)| y).collect() }
+    pub fn keys(&self) -> HashSet<Slot> {
+        self.iter().map(|(x, _)| x).collect()
+    }
+    pub fn values(&self) -> HashSet<Slot> {
+        self.iter().map(|(_, y)| y).collect()
+    }
+    pub fn keys_vec(&self) -> Vec<Slot> {
+        self.iter().map(|(x, _)| x).collect()
+    }
+    pub fn values_vec(&self) -> Vec<Slot> {
+        self.iter().map(|(_, y)| y).collect()
+    }
 
     pub fn inverse(&self) -> SlotMap {
         if CHECKS {
@@ -177,7 +189,11 @@ impl SlotMap {
         for (x, y) in other.iter() {
             if CHECKS {
                 if let Some(z) = out.get(x) {
-                    assert_eq!(y, z, "SlotMap::union: The SlotMaps disagree! {:?} -> {:?} / {:?}", x, z, y);
+                    assert_eq!(
+                        y, z,
+                        "SlotMap::union: The SlotMaps disagree! {:?} -> {:?} / {:?}",
+                        x, z, y
+                    );
                 }
             }
             out.insert(x, y);
@@ -191,7 +207,9 @@ impl SlotMap {
 
         for (x, y) in other.iter() {
             if let Some(z) = out.get(x) {
-                if y != z { return None; }
+                if y != z {
+                    return None;
+                }
             }
             out.insert(x, y);
         }
@@ -231,7 +249,10 @@ impl Index<Slot> for SlotMap {
 }
 
 impl FromIterator<(Slot, Slot)> for SlotMap {
-    fn from_iter<T>(iter: T) -> Self where T: IntoIterator<Item = (Slot, Slot)> {
+    fn from_iter<T>(iter: T) -> Self
+    where
+        T: IntoIterator<Item = (Slot, Slot)>,
+    {
         let mut m = SlotMap::new();
         for (x, y) in iter.into_iter() {
             if CHECKS {

@@ -49,8 +49,15 @@ impl<L: Language, CF: CostFunction<L>> Extractor<L, CF> {
             map.insert(i.id, WithOrdRev(enode, c));
 
             for x in eg.usages(i.id).clone() {
-                if x.applied_id_occurrences().iter().all(|i| map.contains_key(&i.id)) {
-                    if eg.lookup(&x).map(|i| map.contains_key(&i.id)).unwrap_or(false) {
+                if x.applied_id_occurrences()
+                    .iter()
+                    .all(|i| map.contains_key(&i.id))
+                {
+                    if eg
+                        .lookup(&x)
+                        .map(|i| map.contains_key(&i.id))
+                        .unwrap_or(false)
+                    {
                         continue;
                     }
                     let x = eg.class_nf(&x);
@@ -76,10 +83,7 @@ impl<L: Language, CF: CostFunction<L>> Extractor<L, CF> {
             children.push(n);
         }
 
-        RecExpr {
-            node: l,
-            children,
-        }
+        RecExpr { node: l, children }
     }
 
     pub fn get_best_cost<N: Analysis<L>>(&self, i: &AppliedId, eg: &EGraph<L, N>) -> CF::Cost {
@@ -87,12 +91,18 @@ impl<L: Language, CF: CostFunction<L>> Extractor<L, CF> {
     }
 }
 
-pub fn ast_size_extract<L: Language, N: Analysis<L>>(i: &AppliedId, eg: &EGraph<L, N>) -> RecExpr<L> {
+pub fn ast_size_extract<L: Language, N: Analysis<L>>(
+    i: &AppliedId,
+    eg: &EGraph<L, N>,
+) -> RecExpr<L> {
     extract::<L, N, AstSize>(i, eg)
 }
 
 // `i` is not allowed to have free variables, hence prefer `Id` over `AppliedId`.
-pub fn extract<L: Language, N: Analysis<L>, CF: CostFunction<L> + Default>(i: &AppliedId, eg: &EGraph<L, N>) -> RecExpr<L> {
+pub fn extract<L: Language, N: Analysis<L>, CF: CostFunction<L> + Default>(
+    i: &AppliedId,
+    eg: &EGraph<L, N>,
+) -> RecExpr<L> {
     let cost_fn = CF::default();
     let extractor = Extractor::<L, CF>::new(eg, cost_fn);
     let out = extractor.extract(&i, eg);

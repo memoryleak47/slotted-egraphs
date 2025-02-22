@@ -21,9 +21,12 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     #[track_caller]
     pub(crate) fn check_sem_applied_id(&self, app_id: &AppliedId) {
         app_id.check();
-        assert_eq!(self.slots(app_id.id), app_id.m.keys(), "checking sem AppliedId failed: Wrong key-set, {app_id:?}");
+        assert_eq!(
+            self.slots(app_id.id),
+            app_id.m.keys(),
+            "checking sem AppliedId failed: Wrong key-set, {app_id:?}"
+        );
     }
-
 
     // mk_syn_applied_id & friends.
     #[track_caller]
@@ -37,19 +40,20 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         app_id
     }
 
-
     #[track_caller]
     pub(crate) fn mk_syn_identity_applied_id(&self, i: Id) -> AppliedId {
         self.mk_syn_applied_id(i, SlotMap::identity(&self.syn_slots(i)))
     }
 
-
     #[track_caller]
     pub(crate) fn check_syn_applied_id(&self, app_id: &AppliedId) {
         app_id.check();
-        assert_eq!(self.syn_slots(app_id.id), app_id.m.keys(), "checking syn AppliedId failed: Wrong key-set, {app_id:?}");
+        assert_eq!(
+            self.syn_slots(app_id.id),
+            app_id.m.keys(),
+            "checking syn AppliedId failed: Wrong key-set, {app_id:?}"
+        );
     }
-
 
     pub fn check(&self) {
         // Checks whether the hashcons / usages are correct.
@@ -64,7 +68,9 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         // redundancy-check for leaders.
         // TODO add a similar check for followers, using unionfind_get.
         for (i, c) in &self.classes {
-            if !self.is_alive(*i) { continue; }
+            if !self.is_alive(*i) {
+                continue;
+            }
 
             // There should be no symmetries witnessed by the unionfind.
             // It would make stuff just weird.
@@ -90,8 +96,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
                 hashcons.insert(sh.clone(), *i);
 
                 for ref_id in sh.ids() {
-                    usages.get_mut(&ref_id).unwrap()
-                          .insert(sh.clone());
+                    usages.get_mut(&ref_id).unwrap().insert(sh.clone());
                 }
             }
         }
@@ -108,8 +113,14 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         }
 
         // check that self.classes contains exactly these classes which point to themselves in the unionfind.
-        let all_keys = self.unionfind_iter().map(|(x, _)| x).collect::<HashSet<_>>();
-        let all_values = self.unionfind_iter().map(|(_, x)| x.id).collect::<HashSet<_>>();
+        let all_keys = self
+            .unionfind_iter()
+            .map(|(x, _)| x)
+            .collect::<HashSet<_>>();
+        let all_values = self
+            .unionfind_iter()
+            .map(|(_, x)| x.id)
+            .collect::<HashSet<_>>();
         let all_classes = self.classes.keys().copied().collect::<HashSet<_>>();
         let all: HashSet<Id> = &(&all_keys | &all_values) | &all_classes;
         for i in all {
@@ -136,11 +147,13 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
 
         // Check that all ENodes are valid.
         for (_, c) in &self.classes {
-            for (sh, ProvenSourceNode { elem: bij, ..}) in &c.nodes {
+            for (sh, ProvenSourceNode { elem: bij, .. }) in &c.nodes {
                 let real = sh.apply_slotmap(bij);
                 assert!(real.slots().is_superset(&c.slots));
 
-                if self.pending.get(&sh) == Some(&PendingType::Full) { continue; }
+                if self.pending.get(&sh) == Some(&PendingType::Full) {
+                    continue;
+                }
 
                 let (computed_sh, computed_bij) = self.shape(&real);
                 assert_eq!(&computed_sh, sh);
@@ -156,7 +169,10 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
             }
         }
 
-        fn check_internal_applied_id<L: Language, N: Analysis<L>>(eg: &EGraph<L, N>, app_id: &AppliedId) {
+        fn check_internal_applied_id<L: Language, N: Analysis<L>>(
+            eg: &EGraph<L, N>,
+            app_id: &AppliedId,
+        ) {
             // 1. the app_id needs to be normalized!
             let y = eg.find_applied_id(app_id);
             assert_eq!(app_id, &y);

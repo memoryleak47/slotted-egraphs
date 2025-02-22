@@ -31,8 +31,8 @@ struct Next<P: Permutation> {
 impl<P: Permutation> Group<P> {
     pub fn new(identity: &P, generators: HashSet<P>) -> Self {
         let identity = identity.clone();
-        let next = find_lowest_nonstab(&generators)
-                    .map(|s| Box::new(Next::new(s, &identity, generators)));
+        let next =
+            find_lowest_nonstab(&generators).map(|s| Box::new(Next::new(s, &identity, generators)));
         Group { identity, next }
     }
 
@@ -94,9 +94,11 @@ impl<P: Permutation> Group<P> {
         match &self.next {
             None => p.iter().all(|(x, y)| x == y),
             Some(n) => {
-                let Some(part) = &n.ot.get(&p[n.stab]) else { return false };
+                let Some(part) = &n.ot.get(&p[n.stab]) else {
+                    return false;
+                };
                 n.g.contains(&p.compose(&part.inverse().to_slotmap()))
-            },
+            }
         }
     }
 
@@ -106,7 +108,8 @@ impl<P: Permutation> Group<P> {
             None => None,
             Some(n) => {
                 let part = &n.ot.get(&p[n.stab])?;
-                let step = n.g.proven_contains(&p.compose(&part.inverse().to_slotmap()))?;
+                let step =
+                    n.g.proven_contains(&p.compose(&part.inverse().to_slotmap()))?;
                 // step == p * part^-1
                 // -> step * part == p
                 let out = step.compose(part);
@@ -114,7 +117,7 @@ impl<P: Permutation> Group<P> {
                     assert_eq!(&out.to_slotmap(), p);
                 }
                 Some(out)
-            },
+            }
         }
     }
 
@@ -132,7 +135,9 @@ impl<P: Permutation> Group<P> {
             *self = Group::new(&self.identity, &self.generators() | &perms);
 
             true
-        } else { false }
+        } else {
+            false
+        }
     }
 
     pub fn count(&self) -> usize {
@@ -170,14 +175,20 @@ fn build_ot<P: Permutation>(stab: Slot, identity: &P, generators: &HashSet<P>) -
         }
 
         let len2 = ot.len();
-        if len == len2 { break; }
+        if len == len2 {
+            break;
+        }
     }
 
     ot
 }
 
 // extends the set of generators using Schreiers Lemma.
-fn schreiers_lemma<P: Permutation>(stab: Slot, ot: &HashMap<Slot, P>, generators: HashSet<P>) -> HashSet<P> {
+fn schreiers_lemma<P: Permutation>(
+    stab: Slot,
+    ot: &HashMap<Slot, P>,
+    generators: HashSet<P>,
+) -> HashSet<P> {
     let mut out = HashSet::default();
     for (_, r) in ot {
         for s in &generators {
@@ -195,10 +206,7 @@ fn find_lowest_nonstab<P: Permutation>(generators: &HashSet<P>) -> Option<Slot> 
     for gen in generators {
         for (x, y) in gen.iter() {
             if x != y {
-                min = min.iter()
-                         .copied()
-                         .chain(std::iter::once(x))
-                         .min();
+                min = min.iter().copied().chain(std::iter::once(x)).min();
             }
         }
     }

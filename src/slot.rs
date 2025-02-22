@@ -1,6 +1,6 @@
 use crate::*;
-use std::fmt::*;
 use std::cell::RefCell;
+use std::fmt::*;
 
 #[derive(Clone, Copy, Hash, PartialEq, Eq, PartialOrd, Ord)]
 /// Slots represent Variable names.
@@ -46,15 +46,15 @@ impl Slot {
     /// Generates a named slot like `$xyz`
     pub fn named(s: &str) -> Slot {
         if let Ok(x) = s.parse::<u64>() {
-            return Slot(x*4); // numeric
+            return Slot(x * 4); // numeric
         }
 
         SLOT_TABLE.with_borrow_mut(|tab| {
             if s.starts_with("f") {
                 if let Ok(x) = s[1..].parse::<u64>() {
-                    let out = x*4+1;
+                    let out = x * 4 + 1;
                     if tab.fresh_idx <= out {
-                        tab.fresh_idx = out+4;
+                        tab.fresh_idx = out + 4;
                     }
                     return Slot(out); // fresh
                 }
@@ -65,7 +65,7 @@ impl Slot {
             }
 
             let i = tab.named_vec.len() as u64;
-            let i = 4*i + 2;
+            let i = 4 * i + 2;
             tab.named_vec.push(s.to_string());
             tab.named_map.insert(s.to_string(), i);
             Slot(i) // new named
@@ -76,19 +76,17 @@ impl Slot {
 impl Display for Slot {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
         let u = self.0;
-        match u%4 {
+        match u % 4 {
             // numeric:
-            0 => write!(f, "${}", u/4),
+            0 => write!(f, "${}", u / 4),
 
             // fresh:
-            1 => write!(f, "$f{}", (u-1)/4),
+            1 => write!(f, "$f{}", (u - 1) / 4),
 
             // named:
             2 => {
-                let idx = ((u-2)/4) as usize;
-                SLOT_TABLE.with_borrow(|tab| {
-                    write!(f, "${}", tab.named_vec[idx])
-                })
+                let idx = ((u - 2) / 4) as usize;
+                SLOT_TABLE.with_borrow(|tab| write!(f, "${}", tab.named_vec[idx]))
             }
 
             // unused:

@@ -1,5 +1,5 @@
-pub use std::hash::Hash;
 pub use slotted_egraphs::*;
+pub use std::hash::Hash;
 
 pub type HashMap<K, V> = fnv::FnvHashMap<K, V>;
 pub type HashSet<T> = fnv::FnvHashSet<T>;
@@ -28,7 +28,6 @@ pub use array::*;
 pub fn singleton_set<T: Eq + Hash>(t: T) -> HashSet<T> {
     [t].into_iter().collect()
 }
-
 
 pub fn id<L: Language>(s: &str, eg: &mut EGraph<L>) -> AppliedId {
     eg.check();
@@ -61,4 +60,3 @@ pub fn explain<L: Language>(s1: &str, s2: &str, eg: &mut EGraph<L>) {
     println!("{}", eg.explain_equivalence(s1, s2).to_string(eg));
     eg.check();
 }
-

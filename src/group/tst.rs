@@ -24,21 +24,24 @@ fn group_test3() {
 // perms:
 
 fn shift(n: usize) -> Perm {
-    mk_perm(n, |i| (i+1)%n)
+    mk_perm(n, |i| (i + 1) % n)
 }
 
 fn flip(n: usize, x: usize, y: usize) -> Perm {
-    mk_perm(n, |i|
-        if i == x { y } 
-        else if i == y { x }
-        else { i }
-    )
+    mk_perm(n, |i| {
+        if i == x {
+            y
+        } else if i == y {
+            x
+        } else {
+            i
+        }
+    })
 }
-
 
 // helper fns:
 
-fn check_group(generators: impl IntoIterator<Item=Perm>) {
+fn check_group(generators: impl IntoIterator<Item = Perm>) {
     let generators: HashSet<Perm> = generators.into_iter().collect();
     let omega: HashSet<_> = generators.iter().next().unwrap().values();
     let identity = SlotMap::identity(&omega);
@@ -58,14 +61,17 @@ fn enrich(perms: HashSet<Perm>) -> HashSet<Perm> {
                 perms.insert(x.compose(y));
             }
         }
-        if copy.len() == perms.len() { break; }
+        if copy.len() == perms.len() {
+            break;
+        }
     }
     perms
 }
 
-fn s(n: usize) -> Slot { Slot::numeric(n as _) }
+fn s(n: usize) -> Slot {
+    Slot::numeric(n as _)
+}
 
 fn mk_perm(n: usize, f: impl Fn(usize) -> usize) -> Perm {
     (0..n).map(|x| (s(x), s(f(x)))).collect()
 }
-

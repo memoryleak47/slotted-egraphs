@@ -13,10 +13,12 @@ pub(crate) struct ProvenNode<L> {
 }
 
 impl<L: Language> PartialEq for ProvenNode<L> {
-    fn eq(&self, other: &Self) -> bool { self.elem == other.elem }
+    fn eq(&self, other: &Self) -> bool {
+        self.elem == other.elem
+    }
 }
 
-impl<L: Language> Eq for ProvenNode<L> { }
+impl<L: Language> Eq for ProvenNode<L> {}
 
 impl<L: Language> Hash for ProvenNode<L> {
     fn hash<H: Hasher>(&self, hasher: &mut H) {
@@ -74,10 +76,11 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
 
     pub(crate) fn refl_pn(&self, start: &L) -> ProvenNode<L> {
         #[cfg(feature = "explanations")]
-        let rfl = start.applied_id_occurrences()
-                       .into_iter()
-                       .map(|x| self.refl_proof(x.id))
-                       .collect();
+        let rfl = start
+            .applied_id_occurrences()
+            .into_iter()
+            .map(|x| self.refl_proof(x.id))
+            .collect();
         ProvenNode {
             elem: start.clone(),
             #[cfg(feature = "explanations")]
@@ -93,7 +96,11 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         self.prove_reflexivity(&app_id)
     }
 
-    pub(crate) fn chain_pn_map(&self, start: &ProvenNode<L>, f: impl Fn(usize, ProvenAppliedId) -> ProvenAppliedId) -> ProvenNode<L> {
+    pub(crate) fn chain_pn_map(
+        &self,
+        start: &ProvenNode<L>,
+        f: impl Fn(usize, ProvenAppliedId) -> ProvenAppliedId,
+    ) -> ProvenNode<L> {
         let mut pn = start.clone();
         let n = pn.elem.applied_id_occurrences().len();
 
@@ -117,7 +124,9 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
             *old_app_id = pai.elem;
 
             #[cfg(feature = "explanations")]
-            { *old_proof = pai.proof; }
+            {
+                *old_proof = pai.proof;
+            }
         }
         pn
     }

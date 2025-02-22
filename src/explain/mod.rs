@@ -40,13 +40,21 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         let i1 = self.add_syn_expr(t1);
         let i2 = self.add_syn_expr(t2);
 
-        if !self.eq(&i1, &i2) { panic!("Can't explain an equivalence that does not hold!"); }
+        if !self.eq(&i1, &i2) {
+            panic!("Can't explain an equivalence that does not hold!");
+        }
 
         let pai1 = self.proven_find_applied_id(&i1);
-        let ProvenAppliedId { elem: l1, proof: prf1 } = &pai1;
+        let ProvenAppliedId {
+            elem: l1,
+            proof: prf1,
+        } = &pai1;
 
         let pai2 = self.proven_find_applied_id(&i2);
-        let ProvenAppliedId { elem: l2, proof: prf2 } = &pai2;
+        let ProvenAppliedId {
+            elem: l2,
+            proof: prf2,
+        } = &pai2;
 
         if CHECKS {
             assert_eq!(l1.id, l2.id);
@@ -55,7 +63,10 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
 
         let bij = l2.m.compose(&l1.m.inverse());
         let symmetry_prf = &self.classes[&id].group.proven_contains(&bij).unwrap();
-        let ProvenAppliedId { elem: l1, proof: prf1 } = self.chain_pai_pp(&pai1, symmetry_prf);
+        let ProvenAppliedId {
+            elem: l1,
+            proof: prf1,
+        } = self.chain_pai_pp(&pai1, symmetry_prf);
 
         let prf2 = self.prove_symmetry(prf2.clone());
 

@@ -11,11 +11,11 @@ For an example implementation of a Language with binders in slotted e-graphs,
 consider the RISE implementation in [here](https://github.com/memoryleak47/slotted-egraphs/tree/main/tests/rise/mod.rs).
 */
 
-use std::hash::Hash;
-use std::fmt::Debug;
 use std::error::Error;
-use std::sync::Arc;
+use std::fmt::Debug;
+use std::hash::Hash;
 use std::ops::Deref;
+use std::sync::Arc;
 
 #[doc(hidden)]
 pub type HashMap<K, V> = fnv::FnvHashMap<K, V>;

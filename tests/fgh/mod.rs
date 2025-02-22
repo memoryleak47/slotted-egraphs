@@ -1,8 +1,8 @@
 #![allow(unused)]
 #![allow(non_snake_case)]
 
-use slotted_egraphs::*;
 use crate::*;
+use slotted_egraphs::*;
 
 define_language! {
     pub enum Fgh {

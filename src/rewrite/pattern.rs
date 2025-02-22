@@ -7,13 +7,17 @@ use crate::*;
 /// - It supports (on the rhs) substitutions `b[x := t]` to substitute natively.
 pub enum Pattern<L: Language> {
     ENode(L, Vec<Pattern<L>>),
-    PVar(String), // ?x
+    PVar(String),                                             // ?x
     Subst(Box<Pattern<L>>, Box<Pattern<L>>, Box<Pattern<L>>), // Subst(b, x, t) means `b[x := t]`
 }
 
 // We write this as pattern[subst] for short.
 #[cfg_attr(feature = "trace", instrument(level = "trace", skip_all))]
-pub fn pattern_subst<L: Language, N: Analysis<L>>(eg: &mut EGraph<L, N>, pattern: &Pattern<L>, subst: &Subst) -> AppliedId {
+pub fn pattern_subst<L: Language, N: Analysis<L>>(
+    eg: &mut EGraph<L, N>,
+    pattern: &Pattern<L>,
+    subst: &Subst,
+) -> AppliedId {
     match &pattern {
         Pattern::ENode(n, children) => {
             let mut n = n.clone();
@@ -25,12 +29,13 @@ pub fn pattern_subst<L: Language, N: Analysis<L>>(eg: &mut EGraph<L, N>, pattern
                 *(refs[i]) = pattern_subst(eg, &children[i], subst);
             }
             eg.add_syn(n)
-        },
-        Pattern::PVar(v) => {
-            subst.get(v)
-                 .unwrap_or_else(|| panic!("encountered `?{v}` in pattern, but it is missing in the `subst`"))
-                 .clone()
-        },
+        }
+        Pattern::PVar(v) => subst
+            .get(v)
+            .unwrap_or_else(|| {
+                panic!("encountered `?{v}` in pattern, but it is missing in the `subst`")
+            })
+            .clone(),
         Pattern::Subst(b, x, t) => {
             let b = pattern_subst(eg, &*b, subst);
             let x = pattern_subst(eg, &*x, subst);
@@ -41,12 +46,15 @@ pub fn pattern_subst<L: Language, N: Analysis<L>>(eg: &mut EGraph<L, N>, pattern
             let out = method.subst(b, x, t, eg);
             eg.subst_method = Some(method);
             out
-        },
+        }
     }
 }
 
 // TODO maybe move into EGraph API?
-pub fn lookup_rec_expr<L: Language, N: Analysis<L>>(re: &RecExpr<L>, eg: &EGraph<L, N>) -> Option<AppliedId> {
+pub fn lookup_rec_expr<L: Language, N: Analysis<L>>(
+    re: &RecExpr<L>,
+    eg: &EGraph<L, N>,
+) -> Option<AppliedId> {
     let mut n = re.node.clone();
     let mut refs: Vec<&mut AppliedId> = n.applied_id_occurrences_mut();
     if CHECKS {
@@ -59,7 +67,9 @@ pub fn lookup_rec_expr<L: Language, N: Analysis<L>>(re: &RecExpr<L>, eg: &EGraph
 }
 
 pub fn pattern_to_re<L: Language>(pat: &Pattern<L>) -> RecExpr<L> {
-    let Pattern::ENode(n, children) = &pat else { panic!() };
+    let Pattern::ENode(n, children) = &pat else {
+        panic!()
+    };
     let children: Vec<RecExpr<L>> = children.iter().map(|x| pattern_to_re(x)).collect();
     RecExpr {
         node: n.clone(),
@@ -69,8 +79,5 @@ pub fn pattern_to_re<L: Language>(pat: &Pattern<L>) -> RecExpr<L> {
 
 pub fn re_to_pattern<L: Language>(re: &RecExpr<L>) -> Pattern<L> {
     let children: Vec<Pattern<L>> = re.children.iter().map(|x| re_to_pattern(x)).collect();
-    Pattern::ENode(
-        re.node.clone(),
-        children,
-    )
+    Pattern::ENode(re.node.clone(), children)
 }

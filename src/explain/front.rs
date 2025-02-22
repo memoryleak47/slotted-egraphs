@@ -1,20 +1,34 @@
 use crate::*;
 
 #[track_caller]
-pub(crate) fn prove_explicit(l: &AppliedId, r: &AppliedId, j: Option<String>, reg: &ProofRegistry) -> ProvenEq {
-    let eq = Equation { l: l.clone(), r: r.clone() };
+pub(crate) fn prove_explicit(
+    l: &AppliedId,
+    r: &AppliedId,
+    j: Option<String>,
+    reg: &ProofRegistry,
+) -> ProvenEq {
+    let eq = Equation {
+        l: l.clone(),
+        r: r.clone(),
+    };
     ExplicitProof(j).check(&eq, reg)
 }
 
 #[track_caller]
 pub(crate) fn prove_reflexivity(id: &AppliedId, reg: &ProofRegistry) -> ProvenEq {
-    let eq = Equation { l: id.clone(), r: id.clone() };
+    let eq = Equation {
+        l: id.clone(),
+        r: id.clone(),
+    };
     ReflexivityProof.check(&eq, reg)
 }
 
 #[track_caller]
 pub(crate) fn prove_symmetry(x: ProvenEq, reg: &ProofRegistry) -> ProvenEq {
-    let eq = Equation { l: x.r.clone(), r: x.l.clone() };
+    let eq = Equation {
+        l: x.r.clone(),
+        r: x.l.clone(),
+    };
     SymmetryProof(x).check(&eq, reg)
 }
 
@@ -78,8 +92,12 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         let l_slots = self.slots(peq.l.id);
         let r_slots = self.slots(peq.r.id);
         for s in &peq.l.slots() & &peq.r.slots() {
-            if !l_slots.contains(&l_rev[s]) { return true; }
-            if !r_slots.contains(&r_rev[s]) { return true; }
+            if !l_slots.contains(&l_rev[s]) {
+                return true;
+            }
+            if !r_slots.contains(&r_rev[s]) {
+                return true;
+            }
         }
 
         false
@@ -100,7 +118,9 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     }
 
     pub(crate) fn get_redundancy_proof(&self, i: Id) -> ProvenEq {
-        let a = self.proven_find_applied_id(&self.mk_syn_identity_applied_id(i)).proof;
+        let a = self
+            .proven_find_applied_id(&self.mk_syn_identity_applied_id(i))
+            .proof;
         let a_rev = prove_symmetry(a.clone(), &self.proof_registry);
 
         prove_transitivity(a, a_rev, &self.proof_registry)
@@ -112,7 +132,12 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
 // Further it should always produce maximally disassociated output.
 impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     #[track_caller]
-    pub(crate) fn prove_explicit(&self, l: &AppliedId, r: &AppliedId, j: Option<String>) -> ProvenEq {
+    pub(crate) fn prove_explicit(
+        &self,
+        l: &AppliedId,
+        r: &AppliedId,
+        j: Option<String>,
+    ) -> ProvenEq {
         if CHECKS {
             self.check_syn_applied_id(l);
             self.check_syn_applied_id(r);
@@ -158,7 +183,12 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         }
     }
 
-    fn lift_sem_congruence(&self, l: AppliedId, r: AppliedId, child_proofs: &[ProvenEq]) -> ProvenEq {
+    fn lift_sem_congruence(
+        &self,
+        l: AppliedId,
+        r: AppliedId,
+        child_proofs: &[ProvenEq],
+    ) -> ProvenEq {
         self.assert_sem_congruence(&l, &r, &child_proofs);
 
         let l_node = alpha_normalize(&self.get_syn_node(&l));
@@ -177,7 +207,10 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
             final_child_proofs.push(new_proof);
         }
 
-        let eq = Equation { l: l.clone(), r: r.clone() };
+        let eq = Equation {
+            l: l.clone(),
+            r: r.clone(),
+        };
         let cong = CongruenceProof(final_child_proofs).check(&eq, self);
 
         self.disassociate_proven_eq(cong)
@@ -185,7 +218,10 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
 
     pub(crate) fn prove_congruence(&self, l: Id, r: Id, child_proofs: &[ProvenEq]) -> ProvenEq {
         // pretty sure this is unnecessary:
-        let child_proofs: Vec<_> = child_proofs.iter().map(|x| self.disassociate_proven_eq(x.clone())).collect();
+        let child_proofs: Vec<_> = child_proofs
+            .iter()
+            .map(|x| self.disassociate_proven_eq(x.clone()))
+            .collect();
 
         let l_id = self.mk_syn_identity_applied_id(l);
         let r_id = self.mk_syn_identity_applied_id(r);
@@ -195,7 +231,11 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         let r_node = alpha_normalize(&rr);
 
         let mut map = SlotMap::new();
-        for (l, r) in nullify_app_ids(&l_node).all_slot_occurrences().iter().zip(nullify_app_ids(&r_node).all_slot_occurrences().iter()) {
+        for (l, r) in nullify_app_ids(&l_node)
+            .all_slot_occurrences()
+            .iter()
+            .zip(nullify_app_ids(&r_node).all_slot_occurrences().iter())
+        {
             try_insert(*l, *r, &mut map);
         }
 
@@ -232,9 +272,13 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
 }
 
 fn try_insert(k: Slot, v: Slot, map: &mut SlotMap) {
-    if map.get(k) == Some(v) { return; }
+    if map.get(k) == Some(v) {
+        return;
+    }
 
-    if map.get(k).is_some() { panic!(); }
+    if map.get(k).is_some() {
+        panic!();
+    }
 
     map.insert(k, v);
 }

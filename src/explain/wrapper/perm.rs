@@ -1,10 +1,10 @@
 use crate::*;
 
-use std::ops::Index;
 use std::hash::{Hash, Hasher};
+use std::ops::Index;
 
-pub(crate) trait Permutation: Index<Slot, Output=Slot> + Clone + Eq + Hash {
-    fn iter(&self) -> impl Iterator<Item=(Slot, Slot)>;
+pub(crate) trait Permutation: Index<Slot, Output = Slot> + Clone + Eq + Hash {
+    fn iter(&self) -> impl Iterator<Item = (Slot, Slot)>;
     fn compose(&self, other: &Self) -> Self;
     fn inverse(&self) -> Self;
 
@@ -14,9 +14,15 @@ pub(crate) trait Permutation: Index<Slot, Output=Slot> + Clone + Eq + Hash {
 }
 
 impl Permutation for Perm {
-    fn iter(&self) -> impl Iterator<Item=(Slot, Slot)> { Self::iter(self) }
-    fn compose(&self, other: &Self) -> Self { Self::compose(self, other) }
-    fn inverse(&self) -> Self { Self::inverse(self) }
+    fn iter(&self) -> impl Iterator<Item = (Slot, Slot)> {
+        Self::iter(self)
+    }
+    fn compose(&self, other: &Self) -> Self {
+        Self::compose(self, other)
+    }
+    fn inverse(&self) -> Self {
+        Self::inverse(self)
+    }
 }
 
 #[derive(Clone, Debug)]
@@ -27,14 +33,16 @@ pub(crate) struct ProvenPerm {
     pub proof: ProvenEq,
 
     #[cfg(feature = "explanations")]
-    pub reg: ProofRegistry
+    pub reg: ProofRegistry,
 }
 
 impl PartialEq for ProvenPerm {
-    fn eq(&self, other: &Self) -> bool { self.elem == other.elem }
+    fn eq(&self, other: &Self) -> bool {
+        self.elem == other.elem
+    }
 }
 
-impl Eq for ProvenPerm { }
+impl Eq for ProvenPerm {}
 
 impl Hash for ProvenPerm {
     fn hash<H: Hasher>(&self, hasher: &mut H) {
@@ -43,7 +51,9 @@ impl Hash for ProvenPerm {
 }
 
 impl Permutation for ProvenPerm {
-    fn iter(&self) -> impl Iterator<Item=(Slot, Slot)> { self.elem.iter() }
+    fn iter(&self) -> impl Iterator<Item = (Slot, Slot)> {
+        self.elem.iter()
+    }
     fn compose(&self, other: &Self) -> Self {
         if CHECKS {
             self.check();
@@ -84,7 +94,7 @@ impl Permutation for ProvenPerm {
             #[cfg(feature = "explanations")]
             proof: prf,
             #[cfg(feature = "explanations")]
-            reg: self.reg.clone()
+            reg: self.reg.clone(),
         };
         if CHECKS {
             out.check();
@@ -94,7 +104,12 @@ impl Permutation for ProvenPerm {
 }
 
 impl ProvenPerm {
-    pub(crate) fn identity(i: Id, slots: &HashSet<Slot>, syn_slots: &HashSet<Slot>, reg: ProofRegistry) -> Self {
+    pub(crate) fn identity(
+        i: Id,
+        slots: &HashSet<Slot>,
+        syn_slots: &HashSet<Slot>,
+        reg: ProofRegistry,
+    ) -> Self {
         let map = Perm::identity(slots);
 
         let identity = SlotMap::identity(syn_slots);
@@ -106,7 +121,7 @@ impl ProvenPerm {
             #[cfg(feature = "explanations")]
             proof: prf,
             #[cfg(feature = "explanations")]
-            reg
+            reg,
         }
     }
 
@@ -130,7 +145,7 @@ impl ProvenPerm {
 
             let eq = Equation {
                 l: AppliedId::new(id, SlotMap::identity(&slots)),
-                r: AppliedId::new(id, self.elem.clone())
+                r: AppliedId::new(id, self.elem.clone()),
             };
             assert_proves_equation(&self.proof, &eq);
         }

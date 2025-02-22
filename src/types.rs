@@ -27,7 +27,6 @@ pub struct RecExpr<L: Language> {
     pub children: Vec<RecExpr<L>>,
 }
 
-
 impl AppliedId {
     pub fn new(id: Id, m: SlotMap) -> Self {
         let s = AppliedId { id, m };
@@ -44,25 +43,22 @@ impl AppliedId {
     #[track_caller]
     pub fn apply_slotmap(&self, m: &SlotMap) -> AppliedId {
         if CHECKS {
-            assert!(m.keys().is_superset(&self.slots()), "AppliedId::apply_slotmap: The SlotMap doesn't map all free slots!");
+            assert!(
+                m.keys().is_superset(&self.slots()),
+                "AppliedId::apply_slotmap: The SlotMap doesn't map all free slots!"
+            );
         }
         self.apply_slotmap_partial(m)
     }
 
     #[cfg_attr(feature = "trace", instrument(level = "trace", skip_all))]
     pub fn apply_slotmap_partial(&self, m: &SlotMap) -> AppliedId {
-        AppliedId::new(
-            self.id,
-            self.m.compose_partial(m),
-        )
+        AppliedId::new(self.id, self.m.compose_partial(m))
     }
 
     #[cfg_attr(feature = "trace", instrument(level = "trace", skip_all))]
     pub fn apply_slotmap_fresh(&self, m: &SlotMap) -> AppliedId {
-        AppliedId::new(
-            self.id,
-            self.m.compose_fresh(m),
-        )
+        AppliedId::new(self.id, self.m.compose_fresh(m))
     }
 
     #[cfg_attr(feature = "trace", instrument(level = "trace", skip_all))]
@@ -76,6 +72,9 @@ impl AppliedId {
     }
 
     pub fn null() -> Self {
-        AppliedId { id: Id(0), m: SlotMap::new() }
+        AppliedId {
+            id: Id(0),
+            m: SlotMap::new(),
+        }
     }
 }
