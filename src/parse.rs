@@ -11,7 +11,7 @@ pub enum ParseError {
 }
 
 #[derive(Debug, Clone)]
-enum Token {
+pub enum Token {
     Slot(Slot), // $42
     Ident(String), // map, 15
     PVar(String), // ?x

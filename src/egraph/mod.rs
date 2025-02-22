@@ -399,8 +399,9 @@ impl PendingType {
 
 // {1,2} x {3} x {4,5} -> (1,3,4), (1,3,5), (2,3,4), (2,3,5)
 // TODO re-enable use<...> when it's stabilized.
+// fn cartesian<'a, T>(input: &'a [Vec<T>]) -> impl Iterator<Item=Vec<&'a T>> /*+ use<'a, T>*/ + '_ {
 #[cfg_attr(feature = "trace", instrument(level = "trace", skip_all))]
-fn cartesian<'a, T>(input: &'a [Vec<T>]) -> impl Iterator<Item=Vec<&'a T>> /*+ use<'a, T>*/ + '_ {
+fn cartesian<T>(input: &[Vec<T>]) -> impl Iterator<Item=Vec<&T>> + '_ {
     let n = input.len();
     let mut indices = vec![0; n];
     let mut done = false;
