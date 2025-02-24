@@ -35,6 +35,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         let proof = ghost!(self.prove_explicit(&syn_a, &syn_b, justification));
 
         let out = self.union_internal(&a, &b, proof);
+        #[cfg(not(feature = "deferred"))]
         self.rebuild_called_from_union_instantiations();
         out
     }

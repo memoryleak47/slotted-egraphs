@@ -56,6 +56,9 @@ pub fn apply_rewrites<L: Language, N: Analysis<L>>(
         (*rw.applier)(t, eg);
     }
 
+    #[cfg(feature = "deferred")]
+    eg.rebuild();
+
     prog != eg.progress()
 }
 

@@ -7,8 +7,9 @@ license = "Apache-2.0 OR MIT"
 repository = "https://github.com/memoryleak47/slotted-egraphs/"
 
 [features]
-explanations = []
 checks = []
+deferred = []
+explanations = []
 trace = ["tracing/max_level_trace", "tracing/release_max_level_trace", "tracing"]
 
 [package.metadata.docs.rs]
