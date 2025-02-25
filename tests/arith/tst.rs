@@ -1,21 +1,32 @@
 use crate::*;
 
+fn hook(
+    eg: &mut EGraph<Arith>,
+    start: &RecExpr<Arith>,
+    goal: &RecExpr<Arith>,
+) -> Result<(), String> {
+    if let Some(i2) = lookup_rec_expr(&goal, &eg) {
+        let i1 = lookup_rec_expr(&start, &eg).unwrap();
+        if eg.eq(&i1, &i2) {
+            #[cfg(feature = "explanations")]
+            println!("{}", eg.explain_equivalence(start, goal).to_string(&eg));
+            return Ok(());
+        }
+    }
+    return Err(String::from(""));
+}
+
 fn assert_reaches(start: &str, goal: &str, steps: usize) {
     let start = RecExpr::parse(start).unwrap();
     let goal = RecExpr::parse(goal).unwrap();
 
     let mut eg = EGraph::new();
     eg.add_expr(start.clone());
-    for _ in 0..steps {
-        rewrite_arith(&mut eg);
-        if let Some(i2) = lookup_rec_expr(&goal, &eg) {
-            let i1 = lookup_rec_expr(&start, &eg).unwrap();
-            if eg.eq(&i1, &i2) {
-                #[cfg(feature = "explanations")]
-                println!("{}", eg.explain_equivalence(start, goal).to_string(&eg));
-                return;
-            }
-        }
+
+    let hook = move |eg: &mut EGraph<Arith>| hook(eg, &start, &goal);
+    let report = run_eqsat(&mut eg, vec![add_comm()], steps, 60, hook);
+    if let StopReason::Saturated = report.stop_reason {
+        return;
     }
 
     eg.dump();
@@ -110,19 +121,13 @@ fn t6() {
 
         let mut eg = EGraph::new();
         eg.add_expr(start.clone());
-        for _ in 0..steps {
-            apply_rewrites(&mut eg, &[add_comm()]);
-            if let Some(i2) = lookup_rec_expr(&goal, &eg) {
-                let i1 = lookup_rec_expr(&start, &eg).unwrap();
-                if eg.eq(&i1, &i2) {
-                    #[cfg(feature = "explanations")]
-                    println!("{}", eg.explain_equivalence(start, goal).to_string(&eg));
-                    return;
-                }
-            }
-        }
 
+        let hook = move |eg: &mut EGraph<Arith>| hook(eg, &start, &goal);
+        let report = run_eqsat(&mut eg, vec![add_comm()], steps, 60, hook);
+        if let StopReason::Saturated = report.stop_reason {
+            return;
+        }
         eg.dump();
         assert!(false);
-    }
+    };
 }
