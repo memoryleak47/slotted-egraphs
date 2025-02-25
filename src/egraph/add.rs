@@ -159,15 +159,8 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         let t = syn_enode_fresh.weak_shape();
         self.raw_add_to_class(i, t.clone(), i);
         self.pending.insert(t.0, PendingType::Full);
-        #[cfg(not(feature = "deferred"))]
-        self.rebuild_called_from_add();
 
         self.mk_syn_applied_id(i, fresh_to_old)
-    }
-
-    #[cfg_attr(feature = "trace", instrument(level = "trace", skip_all))]
-    fn rebuild_called_from_add(&mut self) {
-        self.rebuild();
     }
 
     // adds (sh, bij) to the eclass `id`.

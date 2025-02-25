@@ -8,7 +8,6 @@ repository = "https://github.com/memoryleak47/slotted-egraphs/"
 
 [features]
 checks = []
-deferred = []
 explanations = []
 trace = ["tracing/max_level_trace", "tracing/release_max_level_trace", "tracing"]
 
