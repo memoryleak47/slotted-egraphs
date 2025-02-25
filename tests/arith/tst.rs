@@ -24,7 +24,7 @@ fn assert_reaches(start: &str, goal: &str, steps: usize) {
     eg.add_expr(start.clone());
 
     let hook = move |eg: &mut EGraph<Arith>| hook(eg, &start, &goal);
-    let report = run_eqsat(&mut eg, vec![add_comm()], steps, 60, hook);
+    let report = run_eqsat(&mut eg, get_all_rewrites(), steps, 60, hook);
     if let StopReason::Saturated = report.stop_reason {
         return;
     }

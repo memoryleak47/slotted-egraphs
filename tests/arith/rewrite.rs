@@ -1,5 +1,24 @@
 use crate::*;
 
+pub fn get_all_rewrites() -> Vec<Rewrite<Arith>> {
+    vec![
+        beta(),
+        eta(),
+        my_let_unused(),
+        let_var_same(),
+        let_app(),
+        let_lam_diff(),
+        add_comm(),
+        add_assoc1(),
+        add_assoc2(),
+        mul_comm(),
+        mul_assoc1(),
+        mul_assoc2(),
+        distr1(),
+        distr2(),
+    ]
+}
+
 fn beta() -> Rewrite<Arith> {
     let pat = "(app (lam $1 ?b) ?t)";
     let outpat = "(let $1 ?b ?t)";
