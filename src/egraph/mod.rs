@@ -420,6 +420,10 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         let syn = &self.classes[&i.id].syn_enode;
         syn.apply_slotmap(&i.m)
     }
+
+    pub fn is_dirty(&self) -> bool {
+        return self.pending.len() > 0;
+    }
 }
 
 impl PendingType {
