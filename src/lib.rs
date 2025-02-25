@@ -18,10 +18,9 @@ use std::ops::Deref;
 use std::sync::Arc;
 
 #[doc(hidden)]
-pub type HashMap<K, V> = fxhash::FxHashMap<K, V>;
-
+pub type HashMap<K, V> = indexmap::IndexMap<K, V, rustc_hash::FxBuildHasher>;
 #[doc(hidden)]
-pub type HashSet<T> = fxhash::FxHashSet<T>;
+pub type HashSet<K> = indexmap::IndexSet<K, rustc_hash::FxBuildHasher>;
 
 pub use symbol_table::GlobalSymbol as Symbol;
 

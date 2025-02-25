@@ -104,7 +104,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
 
         assert_eq!(hashcons, self.hashcons);
         for (i, c) in &self.classes {
-            assert_eq!(usages[&i], c.usages);
+            assert_eq!(usages[i], c.usages);
         }
 
         for (_, c) in &self.classes {
@@ -131,7 +131,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
             } else {
                 assert!(self.classes[&i].nodes.is_empty());
                 for sh in &self.classes[&i].usages {
-                    assert_eq!(self.pending.get(&sh), Some(&PendingType::Full));
+                    assert_eq!(self.pending.get(sh), Some(&PendingType::Full));
                 }
             }
         }
@@ -152,7 +152,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
                 let real = sh.apply_slotmap(bij);
                 assert!(real.slots().is_superset(&c.slots));
 
-                if self.pending.get(&sh) == Some(&PendingType::Full) {
+                if self.pending.get(sh) == Some(&PendingType::Full) {
                     continue;
                 }
 

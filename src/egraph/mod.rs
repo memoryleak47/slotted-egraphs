@@ -264,7 +264,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         let mut out = Vec::new();
         for x in &self.classes[&i].usages {
             let j = self.lookup(x).unwrap().id;
-            let bij = &self.classes[&j].nodes[&x].elem;
+            let bij = &self.classes[&j].nodes[x].elem;
             let x = x.apply_slotmap(bij);
             out.push(x);
         }
