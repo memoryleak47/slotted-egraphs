@@ -56,6 +56,8 @@ pub fn apply_rewrites<L: Language, N: Analysis<L>>(
         (*rw.applier)(t, eg);
     }
 
+    eg.rebuild();
+
     prog != eg.progress()
 }
 

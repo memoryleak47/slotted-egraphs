@@ -146,25 +146,27 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         }
 
         // Check that all ENodes are valid.
-        for (_, c) in &self.classes {
-            for (sh, ProvenSourceNode { elem: bij, .. }) in &c.nodes {
-                let real = sh.apply_slotmap(bij);
-                assert!(real.slots().is_superset(&c.slots));
+        if !self.is_dirty() {
+            for (_, c) in &self.classes {
+                for (sh, ProvenSourceNode { elem: bij, .. }) in &c.nodes {
+                    let real = sh.apply_slotmap(bij);
+                    assert!(real.slots().is_superset(&c.slots));
 
-                if self.pending.get(&sh) == Some(&PendingType::Full) {
-                    continue;
-                }
+                    if self.pending.get(&sh) == Some(&PendingType::Full) {
+                        continue;
+                    }
 
-                let (computed_sh, computed_bij) = self.shape(&real);
-                assert_eq!(&computed_sh, sh);
+                    let (computed_sh, computed_bij) = self.shape(&real);
+                    assert_eq!(&computed_sh, sh);
 
-                // computed_bij :: shape-slots -> slots(i)
-                // bij :: shape-slots -> slots(i)
-                let perm = computed_bij.inverse().compose_partial(&bij);
-                assert!(c.group.contains(&perm));
+                    // computed_bij :: shape-slots -> slots(i)
+                    // bij :: shape-slots -> slots(i)
+                    let perm = computed_bij.inverse().compose_partial(&bij);
+                    assert!(c.group.contains(&perm));
 
-                for x in real.applied_id_occurrences() {
-                    check_internal_applied_id::<L, N>(self, &x);
+                    for x in real.applied_id_occurrences() {
+                        check_internal_applied_id::<L, N>(self, &x);
+                    }
                 }
             }
         }
