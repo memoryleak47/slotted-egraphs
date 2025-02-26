@@ -24,6 +24,7 @@ slotted-egraphs-derive = { path = "slotted-egraphs-derive" }
 tracing = { version = "0.1", features = ["attributes"], optional = true }
 symbol_table = { version = "0.3", features = ["global"] }
 rustc-hash = "2.1.1"
+vec-collections = "0.4.3"
 
 [dev-dependencies]
 divan = { version = "2.8.1", package = "codspeed-divan-compat" }

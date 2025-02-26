@@ -44,7 +44,7 @@ impl<P: Permutation> Group<P> {
         Self::new(identity, HashSet::default())
     }
 
-    pub fn orbit(&self, s: Slot) -> HashSet<Slot> {
+    pub fn orbit(&self, s: Slot) -> SmallHashSet<Slot> {
         build_ot(s, &self.identity, &self.generators())
             .keys()
             .cloned()
