@@ -22,7 +22,7 @@ pub type HashMap<K, V> = rustc_hash::FxHashMap<K, V>;
 #[doc(hidden)]
 pub type HashSet<T> = rustc_hash::FxHashSet<T>;
 
-pub type SmallHashSet<T> = vec_collections::VecSet<[T; 5]>;
+pub type SmallHashSet<T> = vec_collections::VecSet<[T; 8]>;
 pub use vec_collections::AbstractVecSet;
 
 pub use symbol_table::GlobalSymbol as Symbol;
