@@ -73,10 +73,10 @@ impl SlotMap {
         self.map.iter().map(|(_, y)| y)
     }
 
-    pub fn keys(&self) -> HashSet<Slot> {
+    pub fn keys(&self) -> SmallHashSet<Slot> {
         self.iter().map(|(x, _)| x).collect()
     }
-    pub fn values(&self) -> HashSet<Slot> {
+    pub fn values(&self) -> SmallHashSet<Slot> {
         self.iter().map(|(_, y)| y).collect()
     }
     pub fn keys_vec(&self) -> Vec<Slot> {
@@ -155,7 +155,7 @@ impl SlotMap {
         out
     }
 
-    pub fn identity(set: &HashSet<Slot>) -> SlotMap {
+    pub fn identity(set: &SmallHashSet<Slot>) -> SlotMap {
         let mut out = SlotMap::new();
         for &x in set {
             out.insert(x, x);
@@ -163,7 +163,7 @@ impl SlotMap {
         out
     }
 
-    pub fn bijection_from_fresh_to(set: &HashSet<Slot>) -> SlotMap {
+    pub fn bijection_from_fresh_to(set: &SmallHashSet<Slot>) -> SlotMap {
         let mut out = SlotMap::new();
         for &x in set {
             out.insert(Slot::fresh(), x);

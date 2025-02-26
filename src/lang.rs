@@ -235,7 +235,7 @@ pub trait Language: Debug + Clone + Hash + Eq {
     /// This function will be used to parse your E-Node.
     fn from_syntax(_: &[SyntaxElem]) -> Option<Self>;
 
-    fn slots(&self) -> HashSet<Slot>;
+    fn slots(&self) -> SmallHashSet<Slot>;
     fn weak_shape_inplace(&mut self) -> Bijection;
 
     #[track_caller]
@@ -290,7 +290,7 @@ pub trait Language: Debug + Clone + Hash + Eq {
 
     #[doc(hidden)]
     #[cfg_attr(feature = "trace", instrument(level = "trace", skip_all))]
-    fn private_slots(&self) -> HashSet<Slot> {
+    fn private_slots(&self) -> SmallHashSet<Slot> {
         self.private_slot_occurrences().into_iter().collect()
     }
 
@@ -312,7 +312,7 @@ pub trait Language: Debug + Clone + Hash + Eq {
         instrument(name = "Lang::apply_slotmap_partial", level = "trace", skip_all)
     )]
     fn apply_slotmap_partial(&self, m: &SlotMap) -> Self {
-        let mut prv = Default::default();
+        let mut prv = vec![].into();
         if CHECKS {
             prv = self.private_slots();
         }
@@ -353,7 +353,7 @@ pub trait Language: Debug + Clone + Hash + Eq {
         instrument(name = "Lang::apply_slotmap_fresh", level = "trace", skip_all)
     )]
     fn apply_slotmap_fresh(&self, m: &SlotMap) -> Self {
-        let mut prv = Default::default();
+        let mut prv = vec![].into();
         if CHECKS {
             prv = self.private_slots();
         }
@@ -397,7 +397,7 @@ pub trait Language: Debug + Clone + Hash + Eq {
     #[cfg_attr(feature = "trace", instrument(level = "trace", skip_all))]
     fn refresh_private(&self) -> Self {
         let mut c = self.clone();
-        let prv: HashSet<Slot> = c.private_slot_occurrences().into_iter().collect();
+        let prv: SmallHashSet<Slot> = c.private_slot_occurrences().into_iter().collect();
         let fresh = SlotMap::bijection_from_fresh_to(&prv).inverse();
         for x in c.private_slot_occurrences_mut() {
             *x = fresh[*x];
@@ -407,7 +407,7 @@ pub trait Language: Debug + Clone + Hash + Eq {
 
     #[doc(hidden)]
     #[cfg_attr(feature = "trace", instrument(level = "trace", skip_all))]
-    fn refresh_slots(&self, set: HashSet<Slot>) -> Self {
+    fn refresh_slots(&self, set: SmallHashSet<Slot>) -> Self {
         let mut c = self.clone();
         let fresh = SlotMap::bijection_from_fresh_to(&set).inverse();
         for x in c.all_slot_occurrences_mut() {
@@ -422,9 +422,13 @@ pub trait Language: Debug + Clone + Hash + Eq {
     // The public slots are given by `public`.
     #[doc(hidden)]
     #[cfg_attr(feature = "trace", instrument(level = "trace", skip_all))]
-    fn refresh_internals(&self, public: HashSet<Slot>) -> Self {
+    fn refresh_internals(&self, public: SmallHashSet<Slot>) -> Self {
         let mut c = self.clone();
-        let internals = &c.all_slot_occurrences().into_iter().collect::<HashSet<_>>() - &public;
+        let internals = &c
+            .all_slot_occurrences()
+            .into_iter()
+            .collect::<SmallHashSet<_>>()
+            - &public;
         let fresh = SlotMap::bijection_from_fresh_to(&internals).inverse();
         for x in c.all_slot_occurrences_mut() {
             if internals.contains(x) {
