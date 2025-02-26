@@ -17,6 +17,7 @@ pub use check::*;
 
 mod analysis;
 pub use analysis::*;
+use vec_collections::AbstractVecSet;
 
 use std::cell::RefCell;
 
@@ -74,7 +75,7 @@ pub(crate) struct EClass<L: Language, N: Analysis<L>> {
 
     // All other slots are considered "redundant" (or they have to be qualified by a ENode::Lam).
     // Should not contain Slot(0).
-    slots: HashSet<Slot>,
+    slots: SmallHashSet<Slot>,
 
     // Shows which Shapes refer to this EClass.
     usages: HashSet<L>,
@@ -107,11 +108,11 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         }
     }
 
-    pub fn slots(&self, id: Id) -> HashSet<Slot> {
+    pub fn slots(&self, id: Id) -> SmallHashSet<Slot> {
         self.classes[&id].slots.clone()
     }
 
-    pub(crate) fn syn_slots(&self, id: Id) -> HashSet<Slot> {
+    pub(crate) fn syn_slots(&self, id: Id) -> SmallHashSet<Slot> {
         self.classes[&id].syn_enode.slots()
     }
 
@@ -143,13 +144,11 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         let mut out = HashSet::default();
         for x in self.enodes(i.id) {
             // This is necessary, as i.slots() might collide with the private/redundant slots of our e-nodes.
-            let set: HashSet<_> = x
+            let set: SmallHashSet<_> = x
                 .all_slot_occurrences()
                 .into_iter()
-                .collect::<HashSet<_>>()
-                .difference(&self.classes[&i.id].slots)
-                .copied()
-                .collect();
+                .collect::<SmallHashSet<_>>()
+                .difference(&self.classes[&i.id].slots);
             let x = x.refresh_slots(set);
 
             let red = &x.slots() - &i.m.keys();

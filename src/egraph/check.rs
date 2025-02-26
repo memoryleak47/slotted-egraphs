@@ -1,3 +1,5 @@
+use vec_collections::AbstractVecSet;
+
 use crate::*;
 
 impl<L: Language, N: Analysis<L>> EGraph<L, N> {

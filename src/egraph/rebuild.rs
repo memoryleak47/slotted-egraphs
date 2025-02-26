@@ -3,7 +3,7 @@ use crate::*;
 impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     // proof.l should be i.
     // proof.r should be missing a few slots.
-    fn record_redundancy_witness(&mut self, i: Id, cap: &HashSet<Slot>, proof: ProvenEq) {
+    fn record_redundancy_witness(&mut self, i: Id, cap: &SmallHashSet<Slot>, proof: ProvenEq) {
         if CHECKS {
             assert!(self.is_alive(i));
 
@@ -45,7 +45,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
 
     // We expect `from` to be on the lhs of this equation.
     #[cfg_attr(feature = "trace", instrument(level = "trace", skip_all))]
-    pub(crate) fn shrink_slots(&mut self, from: &AppliedId, cap: &HashSet<Slot>, proof: ProvenEq) {
+    pub(crate) fn shrink_slots(&mut self, from: &AppliedId, cap: &SmallHashSet<Slot>, proof: ProvenEq) {
         #[cfg(feature = "explanations")]
         if CHECKS {
             assert_eq!(from.id, proof.l.id);
@@ -62,7 +62,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
             let m_inv = from.m.inverse();
 
             // cap :: set slots(from.id)
-            let new_cap: HashSet<Slot> = cap.iter().map(|x| m_inv[*x]).collect();
+            let new_cap: SmallHashSet<Slot> = cap.iter().map(|x| m_inv[*x]).collect();
 
             (from.id, new_cap)
         };

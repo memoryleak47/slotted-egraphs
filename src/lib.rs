@@ -23,6 +23,9 @@ pub type HashMap<K, V> = fxhash::FxHashMap<K, V>;
 #[doc(hidden)]
 pub type HashSet<T> = fxhash::FxHashSet<T>;
 
+pub type SmallHashSet<T> = vec_collections::VecSet<[T; 5]>;
+pub use vec_collections::AbstractVecSet;
+
 pub use symbol_table::GlobalSymbol as Symbol;
 
 // Whether to enable invariant-checks.

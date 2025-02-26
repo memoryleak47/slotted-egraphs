@@ -231,7 +231,7 @@ impl CongruenceProof {
 }
 
 impl Equation {
-    pub fn slots(&self) -> HashSet<Slot> {
+    pub fn slots(&self) -> SmallHashSet<Slot> {
         &self.l.slots() | &self.r.slots()
     }
 
