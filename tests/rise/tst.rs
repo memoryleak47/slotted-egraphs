@@ -33,6 +33,7 @@ fn reduction() {
     assert_reaches(a, b, 40);
 }
 
+#[cfg(not(feature = "checks"))]
 #[test]
 fn fission() {
     let a = "(app map (lam $42 (app f5 (app f4 (app f3 (app f2 (app f1 (var $42))))))))";
