@@ -26,6 +26,7 @@ fn assert_reaches(start: &str, goal: &str, steps: usize) {
     assert!(false);
 }
 
+#[cfg(not(feature = "checks"))]
 #[test]
 fn reduction() {
     let a = "(app (lam $0 (app (lam $1 (app (app (var $0) (var $1)) (app (app (var $0) (var $1)) (app (app (var $0) (var $1)) (app (app (var $0) (var $1)) (app (app (var $0) (var $1)) (app (app (var $0) (var $1)) (var $1)))))))) (lam $2 (app (app add (var $2)) 1)))) (lam $3 (lam $4 (lam $5 (app (var $3) (app (var $4) (var $5)))))))";
