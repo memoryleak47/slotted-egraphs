@@ -33,5 +33,5 @@ rand = "0.8.5"
 # debug = true # for profiling. todo: is there a 
 
 [[bench]]
-name = "one"
+name = "sdql"
 harness = false
