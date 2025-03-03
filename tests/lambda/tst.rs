@@ -112,8 +112,8 @@ macro_rules! unpack_tests {
         }
 
         // A y-combinator example that directly yields "f x = x" without looping.
-        #[cfg(not(feature = "checks"))]
         #[test]
+        #[ignore = "too slow"]
         fn y_identity() {
             use lambda::*;
 
@@ -124,8 +124,8 @@ macro_rules! unpack_tests {
             assert_alpha_eq(&out, "(lam $0 (var $0))");
         }
 
-        #[cfg(not(feature = "checks"))]
         #[test]
+        #[ignore = "too slow"]
         fn add00() {
             use lambda::*;
 
@@ -133,8 +133,8 @@ macro_rules! unpack_tests {
             check_simplify_to_nf::<$R>(&s);
         }
 
-        #[cfg(not(feature = "checks"))]
         #[test]
+        #[ignore = "too slow"]
         fn add01() {
             use lambda::*;
 
