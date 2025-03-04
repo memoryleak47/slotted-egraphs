@@ -1,3 +1,5 @@
+use divan::black_box;
+
 use sdql::*;
 use slotted_egraphs::*;
 
@@ -6,7 +8,7 @@ fn main() {
 }
 
 #[divan::bench(sample_count = 10)]
-fn batax_v7_csr_dense_unfused_esat() {
+fn batax_v7_csr_dense_unfused_esat() -> slotted_egraphs::EGraph<Sdql, SdqlKind> {
     let prog = "
 (lambda $var_01
   (lambda $var_02
@@ -36,7 +38,8 @@ fn batax_v7_csr_dense_unfused_esat() {
     let mut eg = EGraph::<Sdql, SdqlKind>::new();
     let rewrites = sdql_rules();
     let id1 = eg.add_syn_expr(prog.clone());
-    let report = run_eqsat(&mut eg, rewrites, 30, 5, move |egraph| Ok(()));
+    let report = black_box(run_eqsat(&mut eg, rewrites, 30, 5, move |egraph| Ok(())));
+    eg
 }
 
 mod sdql {
