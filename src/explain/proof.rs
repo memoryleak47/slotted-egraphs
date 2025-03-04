@@ -179,7 +179,7 @@ impl TransitivityProof {
 pub(crate) fn alpha_normalize<L: Language>(n: &L) -> L {
     let (sh, bij) = n.weak_shape();
     if CHECKS {
-        let all_slots: HashSet<_> = sh.all_slot_occurrences().into_iter().collect();
+        let all_slots: SmallHashSet<_> = sh.all_slot_occurrences().into_iter().collect();
         assert!(&bij.values().is_disjoint(&all_slots));
     }
     sh.apply_slotmap(&bij)
