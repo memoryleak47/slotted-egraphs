@@ -1,27 +1,5 @@
 use crate::*;
 
-fn assert_reaches(start: &str, goal: &str, steps: usize) {
-    let start = RecExpr::parse(start).unwrap();
-    let goal = RecExpr::parse(goal).unwrap();
-
-    let mut eg = EGraph::new();
-    eg.add_expr(start.clone());
-    for _ in 0..steps {
-        rewrite_arith(&mut eg);
-        if let Some(i2) = lookup_rec_expr(&goal, &eg) {
-            let i1 = lookup_rec_expr(&start, &eg).unwrap();
-            if eg.eq(&i1, &i2) {
-                #[cfg(feature = "explanations")]
-                println!("{}", eg.explain_equivalence(start, goal).to_string(&eg));
-                return;
-            }
-        }
-    }
-
-    eg.dump();
-    assert!(false);
-}
-
 #[test]
 fn t1() {
     // x+y = y+x
@@ -30,7 +8,8 @@ fn t1() {
 
     let a = &format!("(add (var {x}) (var {y}))");
     let b = &format!("(add (var {y}) (var {x}))");
-    assert_reaches(a, b, 3);
+
+    assert_reaches(a, b, &get_all_rewrites()[..], 3);
 }
 
 #[test]
@@ -43,7 +22,7 @@ fn t2() {
     let a = &format!("(mul (add (var {x}) (var {y})) (add (var {x}) (var {y})))");
     let b = &format!("(mul (add (var {x}) (var {y})) (add (var {y}) (var {x})))");
 
-    assert_reaches(a, b, 3);
+    assert_reaches(a, b, &get_all_rewrites()[..], 3);
 }
 
 #[test]
@@ -55,7 +34,8 @@ fn t3() {
 
     let a = &format!("(mul (add (var {x}) (var {y})) (add (var {y}) (var {z})))");
     let b = &format!("(mul (add (var {z}) (var {y})) (add (var {y}) (var {x})))");
-    assert_reaches(a, b, 3);
+
+    assert_reaches(a, b, &get_all_rewrites()[..], 3);
 }
 
 #[test]
@@ -67,7 +47,7 @@ fn t4() {
              (add (mul (var $x) (var $y))
                   (mul (var $y) (var $y))
              )))";
-    assert_reaches(a, b, 10);
+    assert_reaches(a, b, &get_all_rewrites()[..], 10);
 }
 
 fn add_chain(it: impl Iterator<Item = usize>) -> String {
@@ -90,7 +70,7 @@ fn t5() {
     let a = &add_chain(0..=N);
     let b = &add_chain((0..=N).rev());
 
-    assert_reaches(a, b, 10);
+    assert_reaches(a, b, &get_all_rewrites()[..], 10);
 }
 
 #[test]
@@ -102,28 +82,5 @@ fn t6() {
 
     let a = &format!("(mul (var {z}) (add (var {x}) (var {y})))");
     let b = &format!("(mul (var {z}) (add (var {y}) (var {x})))");
-    assert_reaches2(a, b, 10);
-
-    // assert_reaches, but only using add_comm!
-    fn assert_reaches2(start: &str, goal: &str, steps: usize) {
-        let start = RecExpr::parse(start).unwrap();
-        let goal = RecExpr::parse(goal).unwrap();
-
-        let mut eg = EGraph::new();
-        eg.add_expr(start.clone());
-        for _ in 0..steps {
-            apply_rewrites(&mut eg, &[add_comm()]);
-            if let Some(i2) = lookup_rec_expr(&goal, &eg) {
-                let i1 = lookup_rec_expr(&start, &eg).unwrap();
-                if eg.eq(&i1, &i2) {
-                    #[cfg(feature = "explanations")]
-                    println!("{}", eg.explain_equivalence(start, goal).to_string(&eg));
-                    return;
-                }
-            }
-        }
-
-        eg.dump();
-        assert!(false);
-    }
+    assert_reaches(a, b, &[add_comm()], 10);
 }

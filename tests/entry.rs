@@ -62,3 +62,61 @@ pub fn explain<L: Language>(s1: &str, s2: &str, eg: &mut EGraph<L>) {
     println!("{}", eg.explain_equivalence(s1, s2).to_string(eg));
     eg.check();
 }
+
+fn reach_hook<'a, L, N, IterData>(
+    start: &'a RecExpr<L>,
+    goal: &'a RecExpr<L>,
+    steps: usize,
+) -> Box<dyn for<'b> FnMut(&'b mut Runner<L, N, IterData>) -> Result<(), String>>
+where
+    L: Language + 'static,
+    N: Analysis<L>,
+    IterData: IterationData<L, N>,
+{
+    let start = start.clone();
+    let goal = goal.clone();
+    return Box::new(move |runner: &mut Runner<L, N, IterData>| {
+        if let Some(i2) = lookup_rec_expr(&goal, &runner.egraph) {
+            let i1 = lookup_rec_expr(&start, &runner.egraph).unwrap();
+            if runner.egraph.eq(&i1, &i2) {
+                #[cfg(feature = "explanations")]
+                println!("{}", eg.explain_equivalence(start, goal).to_string(&eg));
+                return Ok(());
+            }
+        }
+        if runner.iterations.len() > steps {
+            let msg = format!(
+                "Start term {} did not reach goal term {} in {} steps",
+                start, goal, steps
+            );
+            return Err(msg.to_string());
+        }
+        Ok(())
+    });
+}
+
+fn assert_reaches<L, N>(start: &str, goal: &str, rewrites: &[Rewrite<L, N>], steps: usize)
+where
+    L: Language + 'static,
+    N: Analysis<L> + 'static,
+{
+    let start: RecExpr<L> = RecExpr::parse(start).unwrap();
+    let goal: RecExpr<L> = RecExpr::parse(goal).unwrap();
+
+    let mut eg: EGraph<L, N> = EGraph::new();
+    eg.add_expr(start.clone());
+
+    let report = Runner::<L, N, ()>::new()
+        .with_expr(&start)
+        .with_iter_limit(60)
+        .with_iter_limit(steps)
+        .with_hook(reach_hook(&start, &goal, steps))
+        .run(rewrites);
+
+    if let StopReason::Saturated = report.stop_reason {
+        return;
+    }
+
+    eg.dump();
+    assert!(false);
+}
