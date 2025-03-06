@@ -67,8 +67,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
 
         // redundancy-check for leaders.
         // TODO add a similar check for followers, using unionfind_get.
-        #[allow(unused)]
-        for (i, c) in &self.classes {
+        for (i, _) in &self.classes {
             if !self.is_alive(*i) {
                 continue;
             }
@@ -81,6 +80,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
 
             #[cfg(feature = "explanations")]
             {
+                let c = &self.classes[i];
                 let eq = self.proven_unionfind_get(*i).proof.equ();
                 // eq.l.m :: slots(i) -> X
                 // eq.r.m :: slots(i) -> X

@@ -325,7 +325,8 @@ mod sdql {
         Rewrite::new("sum-sum-vert-fuse-2", pat, outpat)
     }
 
-    fn _get_sum_vert_fuse_1() -> SdqlRewrite {
+    #[allow(unused)]
+    fn get_sum_vert_fuse_1() -> SdqlRewrite {
         let pat = "(get (sum $k $v ?R (sing (var $k) ?body1)) ?body2)";
         let outpat = "(let $k ?body2 (let $v (get ?R (var $k)) ?body1))";
         Rewrite::new("get-sum-vert-fuse-1", pat, outpat)
@@ -339,7 +340,8 @@ mod sdql {
         )
     }
 
-    fn _sum_range_2() -> SdqlRewrite {
+    #[allow(unused)]
+    fn sum_range_2() -> SdqlRewrite {
         Rewrite::new_if(
             "sum-range-2",
             "(sum $k $v (range ?st ?en) (ifthen (eq (var $k) ?key) ?body))",

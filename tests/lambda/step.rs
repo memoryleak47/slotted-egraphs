@@ -88,6 +88,7 @@ fn lam_subst(re: &RecExpr<Lambda>, x: Slot, t: &RecExpr<Lambda>) -> RecExpr<Lamb
                     };
 
                     b = lam_subst(&b, y, &y2_node);
+                    // TODO: this was in the original code, but it had no effect. Likely a logic error.
                     // y = y2;
                 }
                 RecExpr {
