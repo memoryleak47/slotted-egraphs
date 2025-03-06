@@ -160,29 +160,29 @@ where
 
         // if the runner has not started, start the timer
         self.limits.start_time.get_or_insert_with(Instant::now);
-
-        let mut result = self.check_limits();
         let mut hooks = std::mem::take(&mut self.hooks);
 
-        result = result.and_then(|_| {
-            hooks.iter_mut().try_for_each(|hook| {
-                hook(self).map_err(|err_msg| StopReason::Other(String::from(err_msg)))
+        let mut result = Ok(());
+
+        // Apply rewrites, then check hooks, then check limits, then check if saturated.
+        let progress = apply_rewrites(&mut self.egraph, rewrites);
+
+        result = result
+            .and_then(|_| {
+                hooks.iter_mut().try_for_each(|hook| {
+                    hook(self).map_err(|err_msg| StopReason::Other(String::from(err_msg)))
+                })
             })
-        });
+            .and_then(|_| self.check_limits());
+
+        if !progress {
+            result = result.and_then(|_| Err(StopReason::Saturated));
+        }
 
         if let Err(stop_reason) = result {
             self.stop_reason = Some(stop_reason);
-            return Iteration {
-                data: IterData::make(self),
-                num_nodes: self.egraph.total_number_of_nodes(),
-                finish_time: Some(Instant::now()),
-            };
         }
 
-        let progress = apply_rewrites(&mut self.egraph, rewrites);
-        if !progress {
-            self.stop_reason = self.stop_reason.clone().or(Some(StopReason::Saturated));
-        }
         Iteration {
             data: IterData::make(self),
             num_nodes: self.egraph.total_number_of_nodes(),

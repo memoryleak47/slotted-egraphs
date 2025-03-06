@@ -1,5 +1,6 @@
 pub use slotted_egraphs::*;
 pub use std::hash::Hash;
+use std::num::Saturating;
 
 pub type HashMap<K, V> = fxhash::FxHashMap<K, V>;
 pub type HashSet<T> = fxhash::FxHashSet<T>;
@@ -67,7 +68,7 @@ fn reach_hook<'a, L, N, IterData>(
     start: &'a RecExpr<L>,
     goal: &'a RecExpr<L>,
     steps: usize,
-) -> Box<dyn for<'b> FnMut(&'b mut Runner<L, N, IterData>) -> Result<(), String>>
+) -> Box<dyn FnMut(&mut Runner<L, N, IterData>) -> Result<(), String>>
 where
     L: Language + 'static,
     N: Analysis<L>,
@@ -84,7 +85,7 @@ where
                 return Ok(());
             }
         }
-        if runner.iterations.len() > steps {
+        if runner.iterations.len() >= steps - 1 {
             let msg = format!(
                 "Start term {} did not reach goal term {} in {} steps",
                 start, goal, steps
@@ -102,21 +103,19 @@ where
 {
     let start: RecExpr<L> = RecExpr::parse(start).unwrap();
     let goal: RecExpr<L> = RecExpr::parse(goal).unwrap();
-
+    let steps = steps;
     let mut eg: EGraph<L, N> = EGraph::new();
     eg.add_expr(start.clone());
 
-    let report = Runner::<L, N, ()>::new()
+    let mut runner = Runner::<L, N, ()>::new()
         .with_expr(&start)
         .with_iter_limit(60)
         .with_iter_limit(steps)
-        .with_hook(reach_hook(&start, &goal, steps))
-        .run(rewrites);
+        .with_hook(reach_hook(&start, &goal, steps));
+    let report = runner.run(rewrites);
 
-    if let StopReason::Saturated = report.stop_reason {
-        return;
+    if let StopReason::Other(_) = report.stop_reason {
+        eg.dump();
+        assert!(false);
     }
-
-    eg.dump();
-    assert!(false);
 }
