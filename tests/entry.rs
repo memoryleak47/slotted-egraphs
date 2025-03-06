@@ -1,6 +1,5 @@
 pub use slotted_egraphs::*;
 pub use std::hash::Hash;
-use std::num::Saturating;
 
 pub type HashMap<K, V> = fxhash::FxHashMap<K, V>;
 pub type HashSet<T> = fxhash::FxHashSet<T>;
