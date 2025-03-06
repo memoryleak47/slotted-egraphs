@@ -78,9 +78,15 @@ where
     return Box::new(move |runner: &mut Runner<L, N, IterData>| {
         if let Some(i2) = lookup_rec_expr(&goal, &runner.egraph) {
             let i1 = lookup_rec_expr(&start, &runner.egraph).unwrap();
+
             if runner.egraph.eq(&i1, &i2) {
                 #[cfg(feature = "explanations")]
-                println!("{}", eg.explain_equivalence(start, goal).to_string(&eg));
+                println!(
+                    "{}",
+                    &(runner.egraph)
+                        .explain_equivalence(start.clone(), goal.clone())
+                        .to_string(&runner.egraph)
+                );
                 return Ok(());
             }
         }
