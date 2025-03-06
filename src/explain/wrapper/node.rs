@@ -29,6 +29,7 @@ impl<L: Language> Hash for ProvenNode<L> {
 impl<L: Language> ProvenNode<L> {
     // checks that `proofs` brings us from `base` to `elem`.
     #[cfg(feature = "explanations")]
+    #[allow(unused)]
     pub(crate) fn check_base(&self, base: &L) {
         let l = base.applied_id_occurrences();
         let r = self.elem.applied_id_occurrences();
@@ -56,7 +57,7 @@ impl<L: Language> ProvenNode<L> {
 }
 
 impl<L: Language, N: Analysis<L>> EGraph<L, N> {
-    pub(crate) fn check_pn(&self, pn: &ProvenNode<L>) {
+    pub(crate) fn check_pn(&self, #[allow(unused)] pn: &ProvenNode<L>) {
         #[cfg(feature = "explanations")]
         {
             let a = &pn.proofs;
@@ -70,6 +71,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
 
     #[cfg(feature = "explanations")]
     // If we take the `proofs` to go backward from `elem`, where do we land?
+    #[allow(unused)]
     pub(crate) fn pn_source_node(&self, pn: &ProvenNode<L>) -> L {
         todo!()
     }
@@ -107,7 +109,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         let mut app_ids_mut: Vec<&mut AppliedId> = pn.elem.applied_id_occurrences_mut();
 
         #[cfg(feature = "explanations")]
-        let mut proofs_mut: &mut [ProvenEq] = &mut pn.proofs;
+        let proofs_mut: &mut [ProvenEq] = &mut pn.proofs;
 
         for i in 0..n {
             let old_app_id: &mut AppliedId = app_ids_mut[i];

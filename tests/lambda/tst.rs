@@ -1,5 +1,3 @@
-use crate::lambda::*;
-
 #[macro_export]
 macro_rules! unpack_tests {
     ($R:ty) => {

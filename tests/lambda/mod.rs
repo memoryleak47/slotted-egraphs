@@ -7,7 +7,6 @@ mod my_cost;
 pub use my_cost::*;
 
 mod tst;
-pub use tst::*;
 
 mod normalize;
 pub use normalize::*;

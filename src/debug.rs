@@ -35,7 +35,7 @@ impl Debug for AppliedId {
 }
 
 impl<L: Language, N: Analysis<L>> Debug for EGraph<L, N> {
-    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+    fn fmt(&self, _f: &mut Formatter<'_>) -> Result {
         todo!()
     }
 }

@@ -318,8 +318,6 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
             return out;
         }
 
-        let n = enode.elem.applied_id_occurrences().len();
-
         let groups: Vec<Vec<ProvenPerm>> = enode
             .elem
             .applied_id_occurrences()
@@ -395,6 +393,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         app
     }
 
+    #[cfg(feature = "explanations")]
     pub(crate) fn semify_enode(&self, enode: L) -> L {
         enode.map_applied_ids(|app| self.semify_app_id(app))
     }
