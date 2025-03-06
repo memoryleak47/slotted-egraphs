@@ -1,5 +1,3 @@
-use crate::lambda::*;
-
 // The Y combinator.
 pub fn y() -> String {
     let a = format!("(lam $0 (app (var $1) (app (var $0) (var $0))))");

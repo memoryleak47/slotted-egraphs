@@ -83,6 +83,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         out
     }
 
+    #[allow(unused)]
     pub(crate) fn chain_pc_eq(&self, start: &ProvenContains<L>, eq: ProvenEq) -> ProvenContains<L> {
         ProvenContains {
             node: start.node.clone(),
@@ -152,7 +153,6 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
             if CHECKS {
                 assert_eq!(prf_a.len(), prf_b.len());
             }
-            let n = prf_a.len();
 
             let mut vec = Vec::new();
             for (pa, pb) in prf_a.iter().zip(prf_b.iter()) {

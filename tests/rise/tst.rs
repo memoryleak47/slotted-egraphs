@@ -215,8 +215,8 @@ fn small3() {
     let eg: &mut EGraph<Rise> = &mut EGraph::new();
     let x1 = id("x1", eg);
     let x2 = id("x2", eg);
-    let x1x3 = term("(app x1 x3)", eg);
-    let x2x3 = term("(app x2 x3)", eg);
+    let x1x3: RecExpr<Rise> = term("(app x1 x3)");
+    let x2x3: RecExpr<Rise> = term("(app x2 x3)");
     eg.union(&x1, &x2);
     eg.dump();
     dbg!(&x1x3);

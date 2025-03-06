@@ -8,11 +8,6 @@ impl ProvenEqRaw {
         self.show_impl(&|i| eg.get_syn_expr(i).to_string())
     }
 
-    /// Prints the proof steps, using the internal [AppliedId]s to represent terms.
-    fn to_string_applied_ids(&self) -> String {
-        self.show_impl(&|i| format!("{i:?}"))
-    }
-
     // internals:
     pub(crate) fn show_impl(&self, f: &impl Fn(&AppliedId) -> String) -> String {
         let mut map = Default::default();
@@ -30,7 +25,7 @@ impl ProvenEqRaw {
 
     fn subproofs(&self) -> Vec<&ProvenEq> {
         match self.proof() {
-            Proof::Explicit(ExplicitProof(j)) => vec![],
+            Proof::Explicit(ExplicitProof(_)) => vec![],
             Proof::Reflexivity(ReflexivityProof) => vec![],
             Proof::Symmetry(SymmetryProof(x)) => vec![x],
             Proof::Transitivity(TransitivityProof(x1, x2)) => vec![x1, x2],
@@ -59,7 +54,7 @@ impl ProvenEqRaw {
                 Proof::Transitivity(TransitivityProof(_, _)) => {
                     format!("transitivity({}, {})", ids[0], ids[1])
                 }
-                Proof::Congruence(CongruenceProof(xs)) => {
+                Proof::Congruence(CongruenceProof(_)) => {
                     let s = ids.join(", ");
                     format!("congruence({s})")
                 }

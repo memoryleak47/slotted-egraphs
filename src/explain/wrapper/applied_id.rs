@@ -9,7 +9,7 @@ pub(crate) struct ProvenAppliedId {
 }
 
 impl<L: Language, N: Analysis<L>> EGraph<L, N> {
-    pub(crate) fn check_pai(&self, pai: &ProvenAppliedId) {
+    pub(crate) fn check_pai(&self, #[allow(unused)] pai: &ProvenAppliedId) {
         #[cfg(feature = "explanations")]
         {
             assert_eq!(pai.proof.r.id, pai.elem.id);
@@ -20,6 +20,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
 
     #[cfg(feature = "explanations")]
     // if we use the proof to go backwards from `elem`, where do we end up?
+    #[allow(unused)]
     pub(crate) fn pai_source_applied_id(&self, pai: &ProvenAppliedId) -> AppliedId {
         todo!()
     }
@@ -67,7 +68,11 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     }
 
     // doesn't do anything if explanations are off.
-    pub(crate) fn chain_pai_eq(&self, pai: &ProvenAppliedId, peq: ProvenEq) -> ProvenAppliedId {
+    pub(crate) fn chain_pai_eq(
+        &self,
+        pai: &ProvenAppliedId,
+        #[allow(unused)] peq: ProvenEq,
+    ) -> ProvenAppliedId {
         ProvenAppliedId {
             elem: pai.elem.clone(),
 

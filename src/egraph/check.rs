@@ -67,6 +67,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
 
         // redundancy-check for leaders.
         // TODO add a similar check for followers, using unionfind_get.
+        #[allow(unused)]
         for (i, c) in &self.classes {
             if !self.is_alive(*i) {
                 continue;
@@ -106,7 +107,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
             assert_eq!(usages[&i], c.usages);
         }
 
-        for (i, c) in &self.classes {
+        for (_, c) in &self.classes {
             for p in c.group.all_perms() {
                 p.check();
             }

@@ -7,7 +7,6 @@ mod rewrite;
 pub use rewrite::*;
 
 mod my_cost;
-pub use my_cost::*;
 
 define_language! {
     pub enum Rise {

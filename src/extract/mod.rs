@@ -86,7 +86,7 @@ impl<L: Language, CF: CostFunction<L>> Extractor<L, CF> {
         RecExpr { node: l, children }
     }
 
-    pub fn get_best_cost<N: Analysis<L>>(&self, i: &AppliedId, eg: &EGraph<L, N>) -> CF::Cost {
+    pub fn get_best_cost<N: Analysis<L>>(&self, i: &AppliedId, _eg: &EGraph<L, N>) -> CF::Cost {
         self.map[&i.id].1.clone()
     }
 }
