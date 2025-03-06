@@ -1,6 +1,5 @@
 use crate::*;
 
-
 #[test]
 #[cfg_attr(any(feature = "checks", feature = "explanations"), ignore = "too slow")]
 fn reduction() {
@@ -22,7 +21,7 @@ fn fission() {
 pub fn binomial() {
     let a = "(app (app map (app map (lam $0 (app (app (app reduce add) 0) (app (app map (lam $m1 (app (app mul (app fst (var $m1))) (app snd (var $m1))))) (app (app zip (app join weights2d)) (app join (var $0)))))))) (app (app map transpose) (app (app (app slide 3) 1) (app (app map (app (app slide 3) 1)) input))))";
     let b = "(app (app map (lam $0 (app (app map (lam $1 (app (app (app reduce add) 0) (app (app map (lam $m2 (app (app mul (app fst (var $m2))) (app snd (var $m2))))) (app (app zip weightsH) (var $1)))))) (app (app (app slide 3) 1) (app (app map (lam $2 (app (app (app reduce add) 0) (app (app map (lam $m3 (app (app mul (app fst (var $m3))) (app snd (var $m3))))) (app (app zip weightsV) (var $2)))))) (app transpose (var $0))))))) (app (app (app slide 3) 1) input))";
-    assert_reaches(a, b, &rise_rules(RiseSubstMethod::SmallStep)[..],40);
+    assert_reaches(a, b, &rise_rules(RiseSubstMethod::SmallStep)[..], 40);
 }
 
 #[test]
