@@ -1,7 +1,5 @@
 use crate::*;
 
-use std::cmp::Ordering;
-
 impl CostFunction<Rise> for AstSizeNoLet {
     type Cost = MyCost;
 

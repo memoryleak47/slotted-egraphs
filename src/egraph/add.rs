@@ -53,6 +53,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         }
     }
 
+    #[cfg(feature = "explanations")]
     fn lookup_syn(&self, enode: &L) -> Option<AppliedId> {
         let (sh, bij) = enode.weak_shape();
         let i = self.syn_hashcons.get(&sh)?;
@@ -153,8 +154,6 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         let syn_enode_fresh = syn_enode.apply_slotmap_fresh(&old_to_fresh);
         let i = self.alloc_eclass(&fresh_slots, syn_enode_fresh.clone());
 
-        let syn_app_id = AppliedId::new(i, SlotMap::identity(&syn_enode_fresh.slots()));
-
         // we use semantic_add so that the redundancy, symmetry and congruence checks run on it.
         let t = syn_enode_fresh.weak_shape();
         self.raw_add_to_class(i, t.clone(), i);
@@ -216,9 +215,8 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
 
 impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     // TODO make the public API auto "fresh" slots.
-    pub fn alloc_empty_eclass(&mut self, slots: &HashSet<Slot>) -> Id {
+    pub fn alloc_empty_eclass(&mut self, _slots: &HashSet<Slot>) -> Id {
         panic!("Can't use alloc_empty_eclass if explanations are enabled!");
-        self.alloc_eclass(slots, panic!())
     }
 
     #[cfg_attr(feature = "trace", instrument(level = "trace", skip_all))]
@@ -228,8 +226,6 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         let syn_slots = syn_enode.slots();
         let proven_perm =
             ProvenPerm::identity(c_id, &slots, &syn_slots, self.proof_registry.clone());
-
-        let app_id = AppliedId::new(c_id, SlotMap::identity(&syn_slots));
 
         let c = EClass {
             nodes: HashMap::default(),
@@ -253,7 +249,6 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
             self.syn_hashcons.insert(sh, app_id);
         }
 
-        let app_id = self.mk_sem_identity_applied_id(c_id);
         let syn_app_id = self.mk_syn_identity_applied_id(c_id);
         let pai = self.refl_pai(&syn_app_id);
         self.unionfind_set(c_id, pai);

@@ -37,7 +37,7 @@ pub fn id<L: Language>(s: &str, eg: &mut EGraph<L>) -> AppliedId {
     out
 }
 
-pub fn term<L: Language>(s: &str, eg: &mut EGraph<L>) -> RecExpr<L> {
+pub fn term<L: Language>(s: &str) -> RecExpr<L> {
     let re = RecExpr::parse(s).unwrap();
     re
 }
@@ -54,8 +54,10 @@ pub fn equate<L: Language>(s1: &str, s2: &str, eg: &mut EGraph<L>) {
 
 pub fn explain<L: Language>(s1: &str, s2: &str, eg: &mut EGraph<L>) {
     eg.check();
-    let s1 = term(s1, eg);
-    let s2 = term(s2, eg);
+    #[allow(unused)]
+    let s1: RecExpr<L> = term(s1);
+    #[allow(unused)]
+    let s2: RecExpr<L> = term(s2);
     #[cfg(feature = "explanations")]
     println!("{}", eg.explain_equivalence(s1, s2).to_string(eg));
     eg.check();

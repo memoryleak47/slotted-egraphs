@@ -265,7 +265,6 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
 
         // we want to prove l2_id = r_id.
         let l2_id = l_id.apply_slotmap_fresh(&map);
-        let l2_node = self.get_syn_node(&l2_id);
 
         self.lift_sem_congruence(l2_id, r_id, &child_proofs)
     }

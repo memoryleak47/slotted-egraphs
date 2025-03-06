@@ -6,7 +6,7 @@ fn main() {
 }
 
 #[divan::bench(sample_count = 10)]
-fn batax_v7_csr_dense_unfused_esat() {
+fn batax_v7_csr_dense_unfused_esat() -> Report {
     let prog = "
 (lambda $var_01
   (lambda $var_02
@@ -35,14 +35,13 @@ fn batax_v7_csr_dense_unfused_esat() {
     let prog: RecExpr<Sdql> = RecExpr::parse(&prog).unwrap();
     let mut eg = EGraph::<Sdql, SdqlKind>::new();
     let rewrites = sdql_rules();
-    let id1 = eg.add_syn_expr(prog.clone());
-    let report = run_eqsat(&mut eg, rewrites, 30, 5, move |egraph| Ok(()));
+    let _id1 = eg.add_syn_expr(prog.clone());
+    let report = run_eqsat(&mut eg, rewrites, 30, 5, move |_egraph| Ok(()));
+    report
 }
 
 mod sdql {
     use slotted_egraphs::*;
-
-    use crate::*;
 
     define_language! {
         pub enum Sdql {
@@ -87,7 +86,7 @@ mod sdql {
     }
 
     impl Analysis<Sdql> for SdqlKind {
-        fn make(eg: &slotted_egraphs::EGraph<Sdql, Self>, enode: &Sdql) -> Self {
+        fn make(_eg: &slotted_egraphs::EGraph<Sdql, Self>, enode: &Sdql) -> Self {
             let mut out = SdqlKind {
                 might_be_vector: false,
                 might_be_dict: false,
@@ -326,7 +325,7 @@ mod sdql {
         Rewrite::new("sum-sum-vert-fuse-2", pat, outpat)
     }
 
-    fn get_sum_vert_fuse_1() -> SdqlRewrite {
+    fn _get_sum_vert_fuse_1() -> SdqlRewrite {
         let pat = "(get (sum $k $v ?R (sing (var $k) ?body1)) ?body2)";
         let outpat = "(let $k ?body2 (let $v (get ?R (var $k)) ?body1))";
         Rewrite::new("get-sum-vert-fuse-1", pat, outpat)
@@ -340,7 +339,7 @@ mod sdql {
         )
     }
 
-    fn sum_range_2() -> SdqlRewrite {
+    fn _sum_range_2() -> SdqlRewrite {
         Rewrite::new_if(
             "sum-range-2",
             "(sum $k $v (range ?st ?en) (ifthen (eq (var $k) ?key) ?body))",

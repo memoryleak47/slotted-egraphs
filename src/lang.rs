@@ -20,7 +20,7 @@ pub trait LanguageChildren: Debug + Clone + Hash + Eq {
     fn to_syntax(&self) -> Vec<SyntaxElem>;
     fn from_syntax(_: &[SyntaxElem]) -> Option<Self>;
 
-    fn weak_shape_impl(&mut self, m: &mut (SlotMap, u32)) {
+    fn weak_shape_impl(&mut self, _m: &mut (SlotMap, u32)) {
         todo!()
     }
 }
@@ -136,7 +136,7 @@ macro_rules! bare_language_child {
                 }
             }
 
-            fn weak_shape_impl(&mut self, m: &mut (SlotMap, u32)) {}
+            fn weak_shape_impl(&mut self, _m: &mut (SlotMap, u32)) {}
         }
         )*
     }

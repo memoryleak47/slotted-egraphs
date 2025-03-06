@@ -102,6 +102,7 @@ impl<P: Permutation> Group<P> {
         }
     }
 
+    #[cfg(feature = "explanations")]
     pub fn proven_contains(&self, p: &Perm) -> Option<P> {
         match &self.next {
             None if p.iter().all(|(x, y)| x == y) => Some(self.identity.clone()),
