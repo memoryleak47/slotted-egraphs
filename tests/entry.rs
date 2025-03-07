@@ -1,8 +1,8 @@
 pub use slotted_egraphs::*;
 pub use std::hash::Hash;
 
-pub type HashMap<K, V> = fxhash::FxHashMap<K, V>;
-pub type HashSet<T> = fxhash::FxHashSet<T>;
+pub type HashMap<K, V> = indexmap::IndexMap<K, V, rustc_hash::FxBuildHasher>;
+pub type HashSet<K> = indexmap::IndexSet<K, rustc_hash::FxBuildHasher>;
 
 mod arith;
 pub use arith::*;

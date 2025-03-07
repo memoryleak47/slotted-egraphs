@@ -300,9 +300,9 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     pub(crate) fn pc_from_shape(&self, sh: &L) -> ProvenContains<L> {
         let i = self
             .hashcons
-            .get(&sh)
+            .get(sh)
             .expect("pc_from_shape should only be called if the shape exists in the e-graph!");
-        let c = self.classes[&i].nodes[&sh].src_id;
+        let c = self.classes[i].nodes[sh].src_id;
 
         // this shall change! Later on we want to deprecate the src-id.
         self.pc_from_src_id(c)

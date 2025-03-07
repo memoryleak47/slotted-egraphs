@@ -114,9 +114,9 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         &self,
         (shape, n_bij): &(L, Bijection),
     ) -> Option<AppliedId> {
-        let i = self.hashcons.get(&shape)?;
+        let i = self.hashcons.get(shape)?;
         let c = &self.classes[i];
-        let cn_bij = &c.nodes[&shape].elem;
+        let cn_bij = &c.nodes[shape].elem;
 
         // X = shape.slots()
         // Y = n.slots()
