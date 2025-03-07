@@ -1,37 +1,11 @@
 use crate::*;
 
-fn assert_reaches(start: &str, goal: &str, steps: usize) {
-    let start = RecExpr::parse(start).unwrap();
-    let goal = RecExpr::parse(goal).unwrap();
-
-    let rules = rise_rules(RiseSubstMethod::SmallStep);
-
-    let mut eg = EGraph::new();
-    let i1 = eg.add_expr(start.clone());
-    for _ in 0..steps {
-        apply_rewrites(&mut eg, &rules);
-        dbg!(eg.total_number_of_nodes());
-        if let Some(i2) = lookup_rec_expr(&goal, &eg) {
-            if eg.eq(&i1, &i2) {
-                dbg!(eg.total_number_of_nodes());
-                #[cfg(feature = "explanations")]
-                println!("{}", eg.explain_equivalence(start, goal).to_string(&eg));
-                return;
-            }
-        }
-    }
-
-    dbg!(extract::<_, _, AstSizeNoLet>(&i1, &eg));
-    dbg!(&goal);
-    assert!(false);
-}
-
 #[test]
 #[cfg_attr(any(feature = "checks", feature = "explanations"), ignore = "too slow")]
 fn reduction() {
     let a = "(app (lam $0 (app (lam $1 (app (app (var $0) (var $1)) (app (app (var $0) (var $1)) (app (app (var $0) (var $1)) (app (app (var $0) (var $1)) (app (app (var $0) (var $1)) (app (app (var $0) (var $1)) (var $1)))))))) (lam $2 (app (app add (var $2)) 1)))) (lam $3 (lam $4 (lam $5 (app (var $3) (app (var $4) (var $5)))))))";
     let b = "(lam $0 (app (app add (app (app add (app (app add (app (app add (app (app add (app (app add (app (app add (var $0)) 1)) 1)) 1)) 1)) 1)) 1)) 1))";
-    assert_reaches(a, b, 40);
+    assert_reaches(a, b, &rise_rules(RiseSubstMethod::SmallStep)[..], 40);
 }
 
 #[test]
@@ -39,7 +13,7 @@ fn reduction() {
 fn fission() {
     let a = "(app map (lam $42 (app f5 (app f4 (app f3 (app f2 (app f1 (var $42))))))))";
     let b = "(lam $1 (app (app map (lam $42 (app f5 (app f4 (app f3 (var $42)))))) (app (app map (lam $42 (app f2 (app f1 (var $42))))) (var $1))))";
-    assert_reaches(a, b, 40);
+    assert_reaches(a, b, &rise_rules(RiseSubstMethod::SmallStep)[..], 40);
 }
 
 #[test]
@@ -47,7 +21,7 @@ fn fission() {
 pub fn binomial() {
     let a = "(app (app map (app map (lam $0 (app (app (app reduce add) 0) (app (app map (lam $m1 (app (app mul (app fst (var $m1))) (app snd (var $m1))))) (app (app zip (app join weights2d)) (app join (var $0)))))))) (app (app map transpose) (app (app (app slide 3) 1) (app (app map (app (app slide 3) 1)) input))))";
     let b = "(app (app map (lam $0 (app (app map (lam $1 (app (app (app reduce add) 0) (app (app map (lam $m2 (app (app mul (app fst (var $m2))) (app snd (var $m2))))) (app (app zip weightsH) (var $1)))))) (app (app (app slide 3) 1) (app (app map (lam $2 (app (app (app reduce add) 0) (app (app map (lam $m3 (app (app mul (app fst (var $m3))) (app snd (var $m3))))) (app (app zip weightsV) (var $2)))))) (app transpose (var $0))))))) (app (app (app slide 3) 1) input))";
-    assert_reaches(a, b, 40);
+    assert_reaches(a, b, &rise_rules(RiseSubstMethod::SmallStep)[..], 40);
 }
 
 #[test]

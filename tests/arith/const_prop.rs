@@ -1,7 +1,7 @@
 use crate::*;
 
 #[derive(Clone, PartialEq, Eq, Debug)]
-struct ConstProp(Option<u32>);
+pub struct ConstProp(Option<u32>);
 
 impl Analysis<Arith> for ConstProp {
     fn merge(x: ConstProp, y: ConstProp) -> ConstProp {
