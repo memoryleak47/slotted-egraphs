@@ -25,7 +25,7 @@ pub use sdql::*;
 mod array;
 pub use array::*;
 
-pub fn singleton_set<T: Eq + Hash>(t: T) -> HashSet<T> {
+pub fn singleton_set<T: Eq + Hash + Ord>(t: T) -> SmallHashSet<T> {
     [t].into_iter().collect()
 }
 

@@ -168,9 +168,9 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         }
     }
 
-    fn assert_ty(&self, m: &SlotMap, keys: &HashSet<Slot>, values: &HashSet<Slot>) {
-        assert!(m.keys().is_subset(&keys));
-        assert!(m.values().is_subset(&values));
+    fn assert_ty(&self, m: &SlotMap, keys: &SmallHashSet<Slot>, values: &SmallHashSet<Slot>) {
+        assert!(m.keys().is_subset(keys));
+        assert!(m.values().is_subset(values));
     }
 
     // moves everything from `from` to `to`.

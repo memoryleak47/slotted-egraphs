@@ -62,7 +62,7 @@ impl AppliedId {
     }
 
     #[cfg_attr(feature = "trace", instrument(level = "trace", skip_all))]
-    pub fn slots(&self) -> HashSet<Slot> {
+    pub fn slots(&self) -> SmallHashSet<Slot> {
         self.m.values()
     }
 

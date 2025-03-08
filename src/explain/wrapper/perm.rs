@@ -106,8 +106,8 @@ impl Permutation for ProvenPerm {
 impl ProvenPerm {
     pub(crate) fn identity(
         #[allow(unused)] i: Id,
-        slots: &HashSet<Slot>,
-        #[allow(unused)] syn_slots: &HashSet<Slot>,
+        slots: &SmallHashSet<Slot>,
+        #[allow(unused)] syn_slots: &SmallHashSet<Slot>,
         #[allow(unused)] reg: ProofRegistry,
     ) -> Self {
         let map = Perm::identity(slots);
