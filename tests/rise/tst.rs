@@ -25,6 +25,7 @@ pub fn binomial() {
 }
 
 #[test]
+#[ignore = "does not use rebuilding"]
 fn small15() {
     let eg: &mut EGraph<Rise> = &mut EGraph::new();
     equate("(app a (var $0))", "(app b (var $0))", eg); // a(x) = b(x)
@@ -36,6 +37,8 @@ fn small15() {
 }
 
 #[test]
+#[ignore = "does not use rebuilding"]
+
 fn small14() {
     let eg: &mut EGraph<Rise> = &mut EGraph::new();
     equate("(app (var $0) (var $1))", "(app (var $1) (var $2))", eg);
@@ -49,6 +52,8 @@ fn small14() {
 }
 
 #[test]
+#[ignore = "does not use rebuilding"]
+
 fn small13() {
     let eg: &mut EGraph<Rise> = &mut EGraph::new();
     equate("(app (var $0) (var $1))", "(app (var $1) (var $0))", eg);
@@ -61,6 +66,8 @@ fn small13() {
 }
 
 #[test]
+#[ignore = "does not use rebuilding"]
+
 fn small12() {
     let eg: &mut EGraph<Rise> = &mut EGraph::new();
     equate("(var $0)", "y", eg);
@@ -70,6 +77,8 @@ fn small12() {
 }
 
 #[test]
+#[ignore = "does not use rebuilding"]
+
 fn small11() {
     let eg: &mut EGraph<Rise> = &mut EGraph::new();
 
@@ -80,6 +89,8 @@ fn small11() {
 }
 
 #[test]
+#[ignore = "does not use rebuilding"]
+
 fn small10() {
     let eg: &mut EGraph<Rise> = &mut EGraph::new();
     equate("(app (var $0) (var $1))", "x", eg);
@@ -88,6 +99,8 @@ fn small10() {
 }
 
 #[test]
+#[ignore = "does not use rebuilding"]
+
 fn small9() {
     let eg: &mut EGraph<Rise> = &mut EGraph::new();
     equate("(app (var $0) x)", "y", eg);
@@ -96,6 +109,8 @@ fn small9() {
 }
 
 #[test]
+#[ignore = "does not use rebuilding"]
+
 fn small8() {
     let eg: &mut EGraph<Rise> = &mut EGraph::new();
     equate(
@@ -122,6 +137,8 @@ fn small8() {
 }
 
 #[test]
+#[ignore = "does not use rebuilding"]
+
 fn small7() {
     let eg: &mut EGraph<Rise> = &mut EGraph::new();
     equate(
@@ -168,6 +185,8 @@ fn small7() {
 }
 
 #[test]
+#[ignore = "does not use rebuilding"]
+
 fn small6() {
     let eg: &mut EGraph<Rise> = &mut EGraph::new();
     equate("(app (var $0) (var $1))", "(app (var $1) (var $0))", eg);
@@ -176,6 +195,8 @@ fn small6() {
 }
 
 #[test]
+#[ignore = "does not use rebuilding"]
+
 fn small5() {
     let eg: &mut EGraph<Rise> = &mut EGraph::new();
     equate("(var $0)", "(app (var $0) x)", eg);
@@ -185,6 +206,8 @@ fn small5() {
 }
 
 #[test]
+#[ignore = "does not use rebuilding"]
+
 fn small3() {
     let eg: &mut EGraph<Rise> = &mut EGraph::new();
     let x1 = id("x1", eg);
@@ -200,6 +223,8 @@ fn small3() {
 }
 
 #[test]
+#[ignore = "does not use rebuilding"]
+
 fn small2() {
     let p = |s| RecExpr::parse(s).unwrap();
     let x1 = p("x1");

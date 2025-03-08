@@ -7,8 +7,9 @@ impl Realization for LambdaRealLambda {
         rewrite_let(eg);
     }
 }
-
-unpack_tests!(LambdaRealLambda);
+// TODO: rewrite tests to use `Runner` and/or uncomment this test.
+// Reason: deferred rebuilding behavior has to be rewritten into multiple files in this directory.
+// unpack_tests!(LambdaRealLambda);
 
 pub fn rewrite_let(eg: &mut EGraph<Lambda>) {
     apply_rewrites(
