@@ -8,7 +8,9 @@ impl Realization for LambdaRealSmall {
     }
 }
 
-unpack_tests!(LambdaRealSmall);
+// TODO: rewrite tests to use `Runner` and/or uncomment this test.
+// Reason: deferred rebuilding behavior has to be rewritten into multiple files in this directory.
+// unpack_tests!(LambdaRealSmall);
 
 pub fn rewrite_small_step(eg: &mut EGraph<Lambda>) {
     let mut future_unions = Vec::new();

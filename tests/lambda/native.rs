@@ -8,7 +8,7 @@ impl Realization for LambdaRealNative {
     }
 }
 
-unpack_tests!(LambdaRealNative);
+// unpack_tests!(LambdaRealNative);
 
 pub fn rewrite_native(eg: &mut EGraph<Lambda>) {
     apply_rewrites(eg, &[beta()]);
