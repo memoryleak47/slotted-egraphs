@@ -1,5 +1,3 @@
-use crate::lambda::*;
-
 #[macro_export]
 macro_rules! unpack_tests {
     ($R:ty) => {
@@ -113,6 +111,7 @@ macro_rules! unpack_tests {
 
         // A y-combinator example that directly yields "f x = x" without looping.
         #[test]
+        #[cfg_attr(any(feature = "checks", feature = "explanations"), ignore = "too slow")]
         fn y_identity() {
             use lambda::*;
 
@@ -124,6 +123,7 @@ macro_rules! unpack_tests {
         }
 
         #[test]
+        #[cfg_attr(feature = "checks", ignore = "too slow")]
         fn add00() {
             use lambda::*;
 
@@ -132,6 +132,7 @@ macro_rules! unpack_tests {
         }
 
         #[test]
+        #[cfg_attr(feature = "checks", ignore = "too slow")]
         fn add01() {
             use lambda::*;
 

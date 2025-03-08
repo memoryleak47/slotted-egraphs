@@ -3,7 +3,12 @@ use crate::*;
 impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     // proof.l should be i.
     // proof.r should be missing a few slots.
-    fn record_redundancy_witness(&mut self, i: Id, cap: &HashSet<Slot>, proof: ProvenEq) {
+    fn record_redundancy_witness(
+        &mut self,
+        i: Id,
+        cap: &HashSet<Slot>,
+        #[allow(unused)] proof: ProvenEq,
+    ) {
         if CHECKS {
             assert!(self.is_alive(i));
 
@@ -11,7 +16,8 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
             assert_eq!(proof.l.id, i);
         }
 
-        let prf = ghost!({
+        #[cfg(feature = "explanations")]
+        let prf = {
             let flipped = prove_symmetry(proof.clone(), &self.proof_registry);
             let new_prf = prove_transitivity(proof, flipped, &self.proof_registry);
 
@@ -19,7 +25,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
                 .proven_find_applied_id(&self.mk_syn_identity_applied_id(i))
                 .proof;
             prove_transitivity(new_prf, old_prf, &self.proof_registry)
-        });
+        };
 
         let elem = self
             .mk_syn_identity_applied_id(i)
@@ -167,7 +173,6 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         let mut i = self.find_applied_id(i_orig);
         // i.m :: slots(i) -> X
         // i_orig.m :: slots(i_orig) -> X
-        let theta = i_orig.m.compose(&i.m.inverse());
         if !i.slots().is_subset(&enode.slots()) {
             self.handle_shrink_in_upwards_merge(src_id);
 
@@ -234,7 +239,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
                 pai: pc1.pai.clone(),
                 node: pn2,
             };
-            let (weak2, bij2) = pc2.node.elem.weak_shape();
+            let (weak2, _) = pc2.node.elem.weak_shape();
             if weak == weak2 {
                 if CHECKS {
                     self.check_pc(&pc1);
@@ -245,6 +250,8 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
                 if CHECKS {
                     assert_eq!(pc1.target_id(), pc2.target_id());
                 }
+
+                #[allow(unused)]
                 let (a, b, proof) = self.pc_congruence(&pc1, &pc2);
 
                 // or is it the opposite direction? (flip a with b)

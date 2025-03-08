@@ -72,7 +72,7 @@ fn lam_subst(re: &RecExpr<Lambda>, x: Slot, t: &RecExpr<Lambda>) -> RecExpr<Lamb
             } else {
                 let f = lam_free_variables(t);
 
-                let mut y: Slot = *y;
+                let y: Slot = *y;
                 let mut b: RecExpr<Lambda> = b.clone();
 
                 if f.contains(&y) {
@@ -88,7 +88,8 @@ fn lam_subst(re: &RecExpr<Lambda>, x: Slot, t: &RecExpr<Lambda>) -> RecExpr<Lamb
                     };
 
                     b = lam_subst(&b, y, &y2_node);
-                    y = y2;
+                    // TODO: this was in the original code, but it had no effect. Likely a logic error.
+                    // y = y2;
                 }
                 RecExpr {
                     node: re.node.clone(),

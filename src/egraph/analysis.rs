@@ -7,6 +7,6 @@ pub trait Analysis<L: Language>: Eq + Clone {
 }
 
 impl<L: Language> Analysis<L> for () {
-    fn make(eg: &EGraph<L, Self>, _: &L) {}
-    fn merge(l: (), r: ()) -> () {}
+    fn make(_eg: &EGraph<L, Self>, _: &L) {}
+    fn merge(_l: (), _r: ()) -> () {}
 }

@@ -24,12 +24,14 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         from_pat: &Pattern<L>,
         to_pat: &Pattern<L>,
         subst: &Subst,
-        justification: Option<String>,
+        #[allow(unused)] justification: Option<String>,
     ) -> bool {
         let a = pattern_subst(self, from_pat, subst);
         let b = pattern_subst(self, to_pat, subst);
 
+        #[allow(unused)]
         let syn_a = self.synify_app_id(a.clone());
+        #[allow(unused)]
         let syn_b = self.synify_app_id(b.clone());
 
         let proof = ghost!(self.prove_explicit(&syn_a, &syn_b, justification));
@@ -43,7 +45,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         &mut self,
         l: &AppliedId,
         r: &AppliedId,
-        proof: ProvenEq,
+        #[allow(unused)] proof: ProvenEq,
     ) -> bool {
         // normalize inputs
         let pai_l = self.proven_find_applied_id(&l);
@@ -166,7 +168,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     }
 
     // moves everything from `from` to `to`.
-    fn move_to(&mut self, from: &AppliedId, to: &AppliedId, proof: ProvenEq) {
+    fn move_to(&mut self, from: &AppliedId, to: &AppliedId, #[allow(unused)] proof: ProvenEq) {
         if CHECKS {
             assert_eq!(from.slots(), to.slots());
             #[cfg(feature = "explanations")]
@@ -207,7 +209,6 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         // who updates the usages? raw_add_to_class & raw_remove_from_class do that.
 
         let from_nodes = self.classes.get(&from.id).unwrap().nodes.clone();
-        let from_id = self.mk_sem_identity_applied_id(from.id);
         for (sh, psn) in from_nodes {
             self.raw_remove_from_class(from.id, sh.clone());
             // if `sh` contains redundant slots, these won't be covered by 'map'.

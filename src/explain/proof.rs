@@ -43,17 +43,6 @@ pub struct ProvenEqRaw {
 }
 
 impl ProvenEqRaw {
-    pub(crate) fn null() -> ProvenEq {
-        let app_id = AppliedId::new(Id(0), Default::default());
-        Arc::new(ProvenEqRaw {
-            eq: Equation {
-                l: app_id.clone(),
-                r: app_id.clone(),
-            },
-            proof: Proof::Explicit(ExplicitProof(None)),
-        })
-    }
-
     pub fn equ(&self) -> Equation {
         (**self).clone()
     }
@@ -82,7 +71,7 @@ impl Hash for ProvenEqRaw {
 }
 
 impl ExplicitProof {
-    pub fn check(&self, eq: &Equation, reg: &ProofRegistry) -> ProvenEq {
+    pub(crate) fn check(&self, eq: &Equation, reg: &ProofRegistry) -> ProvenEq {
         let eq = eq.clone();
         let proof = Proof::Explicit(self.clone());
         reg.insert(Arc::new(ProvenEqRaw { eq, proof }))
@@ -90,7 +79,7 @@ impl ExplicitProof {
 }
 
 impl ReflexivityProof {
-    pub fn check(&self, eq: &Equation, reg: &ProofRegistry) -> ProvenEq {
+    pub(crate) fn check(&self, eq: &Equation, reg: &ProofRegistry) -> ProvenEq {
         assert_eq!(eq.l, eq.r);
 
         let eq = eq.clone();
@@ -100,7 +89,7 @@ impl ReflexivityProof {
 }
 
 impl SymmetryProof {
-    pub fn check(&self, eq: &Equation, reg: &ProofRegistry) -> ProvenEq {
+    pub(crate) fn check(&self, eq: &Equation, reg: &ProofRegistry) -> ProvenEq {
         let SymmetryProof(x) = self;
 
         let flipped = Equation {
@@ -116,7 +105,7 @@ impl SymmetryProof {
 }
 
 impl TransitivityProof {
-    pub fn check(&self, eq: &Equation, reg: &ProofRegistry) -> ProvenEq {
+    pub(crate) fn check(&self, eq: &Equation, reg: &ProofRegistry) -> ProvenEq {
         let TransitivityProof(eq1, eq2) = self;
 
         let mut theta1 = {

@@ -1,8 +1,9 @@
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum StopReason {
     Saturated,
     IterationLimit,
     TimeLimit,
+    NodeLimit,
     Other(String),
 }
 

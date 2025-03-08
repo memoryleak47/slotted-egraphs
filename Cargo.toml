@@ -9,7 +9,12 @@ repository = "https://github.com/memoryleak47/slotted-egraphs/"
 [features]
 checks = []
 explanations = []
-trace = ["tracing/max_level_trace", "tracing/release_max_level_trace", "tracing"]
+checks = []
+trace = [
+  "tracing/max_level_trace",
+  "tracing/release_max_level_trace",
+  "tracing",
+]
 
 [package.metadata.docs.rs]
 features = ["explanations"]
@@ -22,7 +27,12 @@ symbol_table = { version = "0.3", features = ["global"] }
 fxhash = "0.2.1"
 
 [dev-dependencies]
+divan = { version = "2.8.1", package = "codspeed-divan-compat" }
 rand = "0.8.5"
 
-[profile.release]
-debug = true
+# [profile.release]
+# debug = true # for profiling. todo: is there a 
+
+[[bench]]
+name = "sdql"
+harness = false

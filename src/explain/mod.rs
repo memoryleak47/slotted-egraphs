@@ -45,10 +45,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         }
 
         let pai1 = self.proven_find_applied_id(&i1);
-        let ProvenAppliedId {
-            elem: l1,
-            proof: prf1,
-        } = &pai1;
+        let ProvenAppliedId { elem: l1, proof: _ } = &pai1;
 
         let pai2 = self.proven_find_applied_id(&i2);
         let ProvenAppliedId {
@@ -64,7 +61,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         let bij = l2.m.compose(&l1.m.inverse());
         let symmetry_prf = &self.classes[&id].group.proven_contains(&bij).unwrap();
         let ProvenAppliedId {
-            elem: l1,
+            elem: _,
             proof: prf1,
         } = self.chain_pai_pp(&pai1, symmetry_prf);
 
