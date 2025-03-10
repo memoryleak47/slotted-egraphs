@@ -109,8 +109,6 @@ where
     let start: RecExpr<L> = RecExpr::parse(start).unwrap();
     let goal: RecExpr<L> = RecExpr::parse(goal).unwrap();
     let steps = steps;
-    let mut eg: EGraph<L, N> = EGraph::new();
-    eg.add_expr(start.clone());
 
     let mut runner = Runner::<L, N, ()>::new()
         .with_expr(&start)
@@ -120,7 +118,9 @@ where
     let report = runner.run(rewrites);
 
     if let StopReason::Other(_) = report.stop_reason {
-        eg.dump();
+        runner.egraph.dump();
         assert!(false);
     }
+    #[cfg(feature = "explanations")]
+    runner.egraph.explain_equivalence()
 }
