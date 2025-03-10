@@ -211,7 +211,7 @@ impl<L: LanguageChildren> LanguageChildren for Bind<L> {
 // TODO: add LanguageChildren definition for tuples.
 
 /// A trait to define your Language (i.e. your E-Node type).
-pub trait Language: Debug + Clone + Hash + Eq {
+pub trait Language: Debug + Clone + Hash + Eq + Send + Sync {
     /// List the mutable references of all child [Slot]s in your E-Node, in order of occurrence.
     fn all_slot_occurrences_mut(&mut self) -> Vec<&mut Slot>;
 

@@ -1,7 +1,7 @@
 use crate::*;
 
 /// E-Graph Analysis allows you to propagate information upwards through the E-Graph.
-pub trait Analysis<L: Language>: Eq + Clone {
+pub trait Analysis<L: Language>: Eq + Clone + Send + Sync {
     fn make(eg: &EGraph<L, Self>, enode: &L) -> Self;
     fn merge(l: Self, r: Self) -> Self;
 }

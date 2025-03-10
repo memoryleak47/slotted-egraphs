@@ -1,7 +1,7 @@
 use crate::*;
 
 /// Specifies a certain implementation of how substitution `b[x := t]` is implemented internally.
-pub trait SubstMethod<L: Language, N: Analysis<L>> {
+pub trait SubstMethod<L: Language, N: Analysis<L>>: Send + Sync {
     fn new_boxed() -> Box<dyn SubstMethod<L, N>>
     where
         Self: Sized;

@@ -10,9 +10,11 @@ pub use pattern::*;
 mod subst_method;
 pub use subst_method::*;
 
+use rayon::prelude::*;
+
 /// An equational rewrite rule.
 pub struct Rewrite<L: Language, N: Analysis<L> = ()> {
-    pub(crate) searcher: Box<dyn Fn(&EGraph<L, N>) -> Box<dyn Any>>,
+    pub(crate) searcher: Box<dyn Fn(&EGraph<L, N>) -> Box<dyn Any + Send + Sync> + Send + Sync>,
     pub(crate) applier: Box<dyn Fn(Box<dyn Any>, &mut EGraph<L, N>)>,
 }
 
@@ -21,12 +23,12 @@ pub struct Rewrite<L: Language, N: Analysis<L> = ()> {
 /// The type parameter `T` can be anything you want, as long as the `searcher` creates it, and the `applier` consumes it.
 ///
 /// In most cases, `T` is a [Subst].
-pub struct RewriteT<L: Language, N: Analysis<L>, T: Any> {
-    pub searcher: Box<dyn Fn(&EGraph<L, N>) -> T>,
+pub struct RewriteT<L: Language, N: Analysis<L>, T: Any + Send + Sync> {
+    pub searcher: Box<dyn Fn(&EGraph<L, N>) -> T + Send + Sync>,
     pub applier: Box<dyn Fn(T, &mut EGraph<L, N>)>,
 }
 
-impl<L: Language + 'static, N: Analysis<L> + 'static, T: 'static> RewriteT<L, N, T> {
+impl<L: Language + 'static, N: Analysis<L> + 'static, T: 'static + Send + Sync> RewriteT<L, N, T> {
     /// Use this function to convert it to an actual [Rewrite].
     pub fn into(self) -> Rewrite<L, N> {
         let searcher = self.searcher;
@@ -51,7 +53,9 @@ pub fn apply_rewrites<L: Language, N: Analysis<L>>(
 ) -> bool {
     let prog = eg.progress();
 
-    let ts: Vec<Box<dyn Any>> = rewrites.iter().map(|rw| (*rw.searcher)(eg)).collect();
+    let searchers: Vec<_> = rewrites.iter().map(|rw| &rw.searcher).collect();
+    let ts: Vec<_> = searchers.par_iter().map(|s| (*s)(eg)).collect();
+
     for (rw, t) in rewrites.iter().zip(ts.into_iter()) {
         (*rw.applier)(t, eg);
     }

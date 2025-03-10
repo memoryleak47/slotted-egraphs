@@ -27,7 +27,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
             assert_eq!(pai.elem.id, pai.proof.r.id);
         }
 
-        let mut lock = self.unionfind.borrow_mut();
+        let mut lock = self.unionfind.write().unwrap();
         if lock.len() == i.0 {
             lock.push(pai);
         } else {
@@ -36,7 +36,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     }
 
     pub(crate) fn proven_unionfind_get(&self, i: Id) -> ProvenAppliedId {
-        let mut map = self.unionfind.borrow_mut();
+        let mut map = self.unionfind.write().unwrap();
         self.unionfind_get_impl(i, &mut *map)
     }
 
@@ -46,12 +46,12 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
 
     /// Returns whether an id is still alive, or whether it was merged into another class.
     pub fn is_alive(&self, i: Id) -> bool {
-        let map = self.unionfind.borrow();
+        let map = self.unionfind.read().unwrap();
         map[i.0].elem.id == i
     }
 
     pub(crate) fn unionfind_iter(&self) -> impl Iterator<Item = (Id, AppliedId)> {
-        let mut map = self.unionfind.borrow_mut();
+        let mut map = self.unionfind.write().unwrap();
         let mut out = Vec::new();
 
         for x in (0..map.len()).map(Id) {
@@ -63,7 +63,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     }
 
     pub(crate) fn unionfind_len(&self) -> usize {
-        self.unionfind.borrow().len()
+        self.unionfind.read().unwrap().len()
     }
 
     pub(crate) fn find_enode(&self, enode: &L) -> L {
@@ -125,7 +125,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     }
 
     pub fn ids(&self) -> Vec<Id> {
-        let map = self.unionfind.borrow();
+        let map = self.unionfind.read().unwrap();
         (0..map.len())
             .map(Id)
             .filter(|x| map[x.0].elem.id == *x)

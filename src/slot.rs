@@ -18,7 +18,9 @@ struct SlotTable {
     named_map: HashMap<String, u32>,
 }
 
+// remove
 thread_local! {
+    // rwlock
     static SLOT_TABLE: RefCell<SlotTable> = RefCell::new(SlotTable {
         fresh_idx: 1,
         named_vec: Vec::default(),

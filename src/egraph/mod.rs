@@ -19,7 +19,10 @@ mod analysis;
 pub use analysis::*;
 use vec_collections::AbstractVecSet;
 
-use std::cell::RefCell;
+use std::{
+    cell::RefCell,
+    sync::{Mutex, RwLock},
+};
 
 // invariants:
 // 1. If two ENodes (that are in the EGraph) have equal .shape(), they have to be in the same eclass.
@@ -36,7 +39,7 @@ pub struct EGraph<L: Language, N: Analysis<L> = ()> {
     // Each Id i that is an output of the unionfind itself has unionfind[i] = (i, identity()).
 
     // We use RefCell to allow for inter mutability, so that find(&self) can do path compression.
-    unionfind: RefCell<Vec<ProvenAppliedId>>,
+    unionfind: RwLock<Vec<ProvenAppliedId>>,
 
     // if a class does't have unionfind[x].id = x, then it doesn't contain nodes / usages.
     // It's "shallow" if you will.
