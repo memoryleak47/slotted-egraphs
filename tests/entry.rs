@@ -126,16 +126,3 @@ where
     #[cfg(feature = "explanations")]
     runner.egraph.explain_equivalence(start, goal);
 }
-
-// change a function that operates on an egraph to take a runner instead.
-fn lift_to_hook<'a, F, L, N, IterData>(
-    f: &'a mut F,
-) -> Box<dyn FnMut(&mut Runner<L, N, IterData>) -> Result<(), String> + 'a>
-where
-    F: FnMut(&mut EGraph<L, N>) -> Result<(), String> + 'static,
-    L: Language + 'static,
-    N: Analysis<L>,
-    IterData: IterationData<L, N>,
-{
-    Box::new(move |runner: &mut Runner<L, N, IterData>| f(&mut runner.egraph))
-}
