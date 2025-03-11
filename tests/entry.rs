@@ -1,9 +1,6 @@
 pub use slotted_egraphs::*;
 pub use std::hash::Hash;
 
-pub type HashMap<K, V> = fxhash::FxHashMap<K, V>;
-pub type HashSet<T> = fxhash::FxHashSet<T>;
-
 mod arith;
 pub use arith::*;
 
@@ -24,6 +21,8 @@ pub use sdql::*;
 
 mod array;
 pub use array::*;
+
+mod misc;
 
 pub fn singleton_set<T: Eq + Hash>(t: T) -> HashSet<T> {
     [t].into_iter().collect()
