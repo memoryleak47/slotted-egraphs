@@ -122,8 +122,9 @@ where
             runner.egraph.explain_equivalence(start, goal);
             return;
         }
-        // `start` did not reach `goal` in `steps` steps.
-        runner.egraph.dump();
-        assert!(false);
     }
+    // `start` did not reach `goal` in `steps` steps.
+    // or it saturated before then
+    runner.egraph.dump();
+    assert!(false);
 }
