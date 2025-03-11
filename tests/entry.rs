@@ -101,6 +101,7 @@ where
     });
 }
 
+// assert that `start` is in the same e-class as `goal` in `steps` steps.
 fn assert_reaches<L, N>(start: &str, goal: &str, rewrites: &[Rewrite<L, N>], steps: usize)
 where
     L: Language + 'static,
@@ -118,6 +119,7 @@ where
     let report = runner.run(rewrites);
 
     if let StopReason::Other(_) = report.stop_reason {
+        // `start` did not reach `goal` in `steps` steps.
         runner.egraph.dump();
         assert!(false);
     }
