@@ -22,6 +22,8 @@ pub use sdql::*;
 mod array;
 pub use array::*;
 
+mod misc;
+
 pub fn singleton_set<T: Eq + Hash>(t: T) -> HashSet<T> {
     [t].into_iter().collect()
 }
