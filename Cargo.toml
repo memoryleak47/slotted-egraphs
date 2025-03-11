@@ -31,9 +31,6 @@ smallvec = "1.14.0"
 divan = { version = "2.8.1", package = "codspeed-divan-compat" }
 rand = "0.8.5"
 
-# [profile.release]
-# debug = true # for profiling. todo: is there a 
-
 [[bench]]
 name = "sdql"
 harness = false
