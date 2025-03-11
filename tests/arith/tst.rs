@@ -35,8 +35,7 @@ fn t3() {
     let a = &format!("(mul (add (var {x}) (var {y})) (add (var {y}) (var {z})))");
     let b = &format!("(mul (add (var {z}) (var {y})) (add (var {y}) (var {x})))");
 
-    // assert_reaches(a, b, &get_all_rewrites()[..], 3);
-    assert_reaches::<Arith, ()>(a, b, &get_all_rewrites()[..], 3);
+    assert_reaches(a, b, &get_all_rewrites()[..], 3);
 }
 
 #[test]
