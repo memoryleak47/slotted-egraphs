@@ -10,25 +10,22 @@ pub trait Realization {
 // stops when the desired output has been reached.
 pub fn simplify_to_nf<R: Realization>(s: &str) -> String {
     let orig_re = RecExpr::parse(s).unwrap();
-    // let mut re = orig_re.clone();
     let mut eg = EGraph::new();
     let i = eg.add_syn_expr(orig_re.clone());
-    let hook = Box::new(
-        move |runner: &mut Runner<Lambda, (), ()>, mut_flag: &mut bool| {
-            R::step(&mut runner.egraph);
-            let re = extract_ast(&runner.egraph, &i.clone());
-            if lam_step(&re).is_none() {
-                #[cfg(feature = "explanations")]
-                runner
-                    .egraph
-                    .explain_equivalence(orig_re.clone(), re.clone());
-                return Err(re.to_string());
-            };
-            *mut_flag = true;
-            Ok(())
-        },
-    );
-    let mut runner: Runner<Lambda, (), ()> = Runner::new()
+    let hook = Box::new(move |runner: &mut Runner<Lambda>, mut_flag: &mut bool| {
+        R::step(&mut runner.egraph);
+        let re = extract_ast(&runner.egraph, &i.clone());
+        if lam_step(&re).is_none() {
+            #[cfg(feature = "explanations")]
+            runner
+                .egraph
+                .explain_equivalence(orig_re.clone(), re.clone());
+            return Err(re.to_string());
+        };
+        *mut_flag = true;
+        Ok(())
+    });
+    let mut runner: Runner<Lambda> = Runner::new()
         .with_egraph(eg)
         .with_hook(hook)
         .with_iter_limit(NO_ITERS)
@@ -46,12 +43,12 @@ pub fn simplify<R: Realization>(s: &str) -> String {
     let re = RecExpr::parse(s).unwrap();
     let mut eg = EGraph::new();
     let i = eg.add_syn_expr(re.clone());
-    let hook = Box::new(|runner: &mut Runner<Lambda, (), ()>, mut_flag: &mut bool| {
+    let hook = Box::new(|runner: &mut Runner<Lambda>, mut_flag: &mut bool| {
         R::step(&mut runner.egraph);
         *mut_flag = true;
         Ok(())
     });
-    let mut runner: Runner<Lambda, (), ()> = Runner::new()
+    let mut runner: Runner<Lambda> = Runner::new()
         .with_egraph(eg)
         .with_hook(hook)
         .with_iter_limit(NO_ITERS)
@@ -95,20 +92,18 @@ pub fn check_eq<R: Realization>(s1: &str, s2: &str) {
     let i1 = eg.add_syn_expr(s1.clone());
     let i2 = eg.add_syn_expr(s2.clone());
 
-    let hook = Box::new(
-        move |runner: &mut Runner<Lambda, (), ()>, mut_flag: &mut bool| {
-            if runner.egraph.eq(&i1, &i2) {
-                #[cfg(feature = "explanations")]
-                runner.egraph.explain_equivalence(s1.clone(), s2.clone());
-                return Err("Quit successfully".to_string());
-            }
-            R::step(&mut runner.egraph);
-            *mut_flag = true;
-            Ok(())
-        },
-    );
+    let hook = Box::new(move |runner: &mut Runner<Lambda>, mut_flag: &mut bool| {
+        if runner.egraph.eq(&i1, &i2) {
+            #[cfg(feature = "explanations")]
+            runner.egraph.explain_equivalence(s1.clone(), s2.clone());
+            return Err("Quit successfully".to_string());
+        }
+        R::step(&mut runner.egraph);
+        *mut_flag = true;
+        Ok(())
+    });
 
-    let mut runner: Runner<Lambda, (), ()> = Runner::new()
+    let mut runner: Runner<Lambda> = Runner::new()
         .with_egraph(eg)
         .with_iter_limit(NO_ITERS)
         .with_node_limit(NO_ENODES)
