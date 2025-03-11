@@ -55,7 +55,7 @@ impl RunnerLimits {
     }
 }
 
-pub struct Runner<L: Language, N: Analysis<L>, IterData>
+pub struct Runner<L: Language, N: Analysis<L> = (), IterData = ()>
 where
     IterData: IterationData<L, N>,
 {
@@ -192,7 +192,7 @@ where
     }
 }
 
-impl<L, N> Default for Runner<L, N, ()>
+impl<L, N> Default for Runner<L, N>
 where
     L: Language,
     N: Analysis<L> + Default,
