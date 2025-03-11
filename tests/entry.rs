@@ -86,7 +86,7 @@ where
                         .explain_equivalence(start.clone(), goal.clone())
                         .to_string(&runner.egraph)
                 );
-                return Ok(());
+                return Err("reached".to_string());
             }
         }
         if runner.iterations.len() >= steps - 1 {
@@ -116,11 +116,14 @@ where
         .with_hook(reach_hook(&start, &goal, steps));
     let report = runner.run(rewrites);
 
-    if let StopReason::Other(_) = report.stop_reason {
+    if let StopReason::Other(s) = report.stop_reason {
+        if s == "reached" {
+            #[cfg(feature = "explanations")]
+            runner.egraph.explain_equivalence(start, goal);
+            return;
+        }
         // `start` did not reach `goal` in `steps` steps.
         runner.egraph.dump();
         assert!(false);
     }
-    #[cfg(feature = "explanations")]
-    runner.egraph.explain_equivalence(start, goal);
 }
