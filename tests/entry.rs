@@ -108,7 +108,6 @@ where
 {
     let start: RecExpr<L> = RecExpr::parse(start).unwrap();
     let goal: RecExpr<L> = RecExpr::parse(goal).unwrap();
-    let steps = steps;
 
     let mut runner = Runner::<L, N, ()>::new()
         .with_expr(&start)
