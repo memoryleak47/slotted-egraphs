@@ -16,10 +16,12 @@ pub fn simplify_to_nf<R: Realization>(s: &str) -> String {
     let hook = Box::new(
         move |runner: &mut Runner<Lambda, (), ()>, mut_flag: &mut bool| {
             R::step(&mut runner.egraph);
-            let re = extract_ast(&runner.egraph, &i);
+            let re = extract_ast(&runner.egraph, &i.clone());
             if lam_step(&re).is_none() {
                 #[cfg(feature = "explanations")]
-                eg.explain_equivalence(orig_re, re.clone());
+                runner
+                    .egraph
+                    .explain_equivalence(orig_re.clone(), re.clone());
                 return Err(re.to_string());
             };
             *mut_flag = true;
@@ -59,7 +61,7 @@ pub fn simplify<R: Realization>(s: &str) -> String {
     let out = extract_ast(&runner.egraph, &i);
 
     #[cfg(feature = "explanations")]
-    eg.explain_equivalence(re.clone(), out.clone());
+    runner.egraph.explain_equivalence(re.clone(), out.clone());
 
     let out = out.to_string();
 
