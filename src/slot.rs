@@ -6,16 +6,16 @@ use std::fmt::*;
 /// Slots represent Variable names.
 ///
 /// Internally, they are just a number.
-pub struct Slot(u64);
+pub struct Slot(u32);
 
 // %4 = 0 -> numeric
 // %4 = 1 -> fresh
 // %4 = 2 -> named
 // %4 = 3 -> <unused>
 struct SlotTable {
-    fresh_idx: u64,
+    fresh_idx: u32,
     named_vec: Vec<String>,
-    named_map: HashMap<String, u64>,
+    named_map: HashMap<String, u32>,
 }
 
 thread_local! {
@@ -40,18 +40,18 @@ impl Slot {
 
     /// Generates a numeric slot like `$42`
     pub fn numeric(u: u32) -> Slot {
-        Slot(u as u64 * 4)
+        Slot(u * 4)
     }
 
     /// Generates a named slot like `$xyz`
     pub fn named(s: &str) -> Slot {
-        if let Ok(x) = s.parse::<u64>() {
+        if let Ok(x) = s.parse::<u32>() {
             return Slot(x * 4); // numeric
         }
 
         SLOT_TABLE.with_borrow_mut(|tab| {
             if s.starts_with("f") {
-                if let Ok(x) = s[1..].parse::<u64>() {
+                if let Ok(x) = s[1..].parse::<u32>() {
                     let out = x * 4 + 1;
                     if tab.fresh_idx <= out {
                         tab.fresh_idx = out + 4;
@@ -64,7 +64,7 @@ impl Slot {
                 return Slot(*x); // cached named
             }
 
-            let i = tab.named_vec.len() as u64;
+            let i = tab.named_vec.len() as u32;
             let i = 4 * i + 2;
             tab.named_vec.push(s.to_string());
             tab.named_map.insert(s.to_string(), i);

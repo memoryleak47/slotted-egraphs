@@ -115,7 +115,7 @@ fn lam_subst(re: &RecExpr<Lambda>, x: Slot, t: &RecExpr<Lambda>) -> RecExpr<Lamb
     }
 }
 
-fn lam_free_variables(re: &RecExpr<Lambda>) -> HashSet<Slot> {
+fn lam_free_variables(re: &RecExpr<Lambda>) -> SmallHashSet<Slot> {
     match &re.node {
         Lambda::Lam(Bind { slot: x, .. }) => {
             let [b] = &*re.children else { panic!() };

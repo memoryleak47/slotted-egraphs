@@ -1,3 +1,5 @@
+use vec_collections::AbstractVecSet;
+
 use crate::*;
 
 // syntactic add:
@@ -215,12 +217,16 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
 
 impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     // TODO make the public API auto "fresh" slots.
-    pub fn alloc_empty_eclass(&mut self, _slots: &HashSet<Slot>) -> Id {
+    pub fn alloc_empty_eclass(&mut self, _slots: &SmallHashSet<Slot>) -> Id {
         panic!("Can't use alloc_empty_eclass if explanations are enabled!");
     }
 
     #[cfg_attr(feature = "trace", instrument(level = "trace", skip_all))]
-    pub(in crate::egraph) fn alloc_eclass(&mut self, slots: &HashSet<Slot>, syn_enode: L) -> Id {
+    pub(in crate::egraph) fn alloc_eclass(
+        &mut self,
+        slots: &SmallHashSet<Slot>,
+        syn_enode: L,
+    ) -> Id {
         let c_id = Id(self.unionfind_len()); // Pick the next unused Id.
 
         let syn_slots = syn_enode.slots();
