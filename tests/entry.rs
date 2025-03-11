@@ -109,7 +109,7 @@ where
     let start: RecExpr<L> = RecExpr::parse(start).unwrap();
     let goal: RecExpr<L> = RecExpr::parse(goal).unwrap();
 
-    let mut runner = Runner::<L, N, ()>::new()
+    let mut runner = Runner::<L, N>::new()
         .with_expr(&start)
         .with_iter_limit(60)
         .with_iter_limit(steps)
