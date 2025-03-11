@@ -122,5 +122,5 @@ where
         assert!(false);
     }
     #[cfg(feature = "explanations")]
-    runner.egraph.explain_equivalence()
+    runner.egraph.explain_equivalence(start, goal);
 }
