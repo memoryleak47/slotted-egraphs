@@ -73,7 +73,7 @@ fn reach_hook<'a, L, N, IterData>(
     start: &'a RecExpr<L>,
     goal: &'a RecExpr<L>,
     steps: usize,
-) -> Box<dyn FnMut(&mut Runner<L, N, IterData, ReachError>, &mut bool) -> Result<(), ReachError>>
+) -> Box<dyn FnMut(&mut Runner<L, N, IterData, ReachError>) -> Result<(), ReachError>>
 where
     L: Language + 'static,
     N: Analysis<L>,
@@ -82,7 +82,7 @@ where
     let start = start.clone();
     let goal = goal.clone();
     Box::new(
-        move |runner: &mut Runner<L, N, IterData, ReachError>, _: &mut bool| {
+        move |runner: &mut Runner<L, N, IterData, ReachError>| {
             if let Some(i2) = lookup_rec_expr(&goal, &runner.egraph) {
                 let i1 = lookup_rec_expr(&start, &runner.egraph).unwrap();
 

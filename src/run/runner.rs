@@ -85,7 +85,7 @@ where
     // Initial expressions in the EGraph
     pub limits: RunnerLimits,
     /// hooks
-    pub hooks: Vec<Box<dyn FnMut(&mut Self, &mut bool) -> Result<(), CustomErrorT> + 'static>>,
+    pub hooks: Vec<Box<dyn FnMut(&mut Self) -> Result<(), CustomErrorT> + 'static>>,
 }
 
 impl<L, N, IterData, CustomErrorT> Runner<L, N, IterData, CustomErrorT>
@@ -118,7 +118,7 @@ where
     }
     pub fn with_hook<F>(mut self, hook: F) -> Self
     where
-        F: FnMut(&mut Self, &mut bool) -> Result<(), CustomErrorT> + 'static,
+        F: FnMut(&mut Self) -> Result<(), CustomErrorT> + 'static,
     {
         self.hooks.push(Box::new(hook));
         self
@@ -179,16 +179,15 @@ where
 
         // Apply rewrites, then check hooks, then check limits, then check if saturated.
         let progress = apply_rewrites(&mut self.egraph, rewrites);
-        let mut mut_flag = false;
         result = result
             .and_then(|_| {
-                hooks.iter_mut().try_for_each(|hook| {
-                    hook(self, &mut mut_flag).map_err(|err_msg| StopReason::Other(err_msg))
-                })
+                hooks
+                    .iter_mut()
+                    .try_for_each(|hook| hook(self).map_err(|err| StopReason::Other(err)))
             })
             .and_then(|_| self.check_limits());
 
-        if !progress && !mut_flag {
+        if !progress {
             result = result.and_then(|_| Err(StopReason::Saturated));
         }
 
