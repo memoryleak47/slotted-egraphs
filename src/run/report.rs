@@ -1,16 +1,22 @@
 #[derive(Debug, Clone)]
-pub enum StopReason {
+pub enum StopReason<T = String>
+where
+    T: Clone,
+{
     Saturated,
     IterationLimit,
     TimeLimit,
     NodeLimit,
-    Other(String),
+    Other(T),
 }
 
-#[derive(Debug)]
-pub struct Report {
+#[derive(Debug, Clone)]
+pub struct Report<T = String>
+where
+    T: Clone,
+{
     pub iterations: usize,
-    pub stop_reason: StopReason,
+    pub stop_reason: StopReason<T>,
     pub egraph_nodes: usize,
     pub egraph_classes: usize,
     pub total_time: f64,
