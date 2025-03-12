@@ -63,11 +63,17 @@ pub fn explain<L: Language>(s1: &str, s2: &str, eg: &mut EGraph<L>) {
     eg.check();
 }
 
+#[derive(Clone, Debug)]
+enum ReachError {
+    Reached,
+    Failed,
+}
+
 fn reach_hook<'a, L, N, IterData>(
     start: &'a RecExpr<L>,
     goal: &'a RecExpr<L>,
     steps: usize,
-) -> Box<dyn FnMut(&mut Runner<L, N, IterData>, &mut bool) -> Result<(), String>>
+) -> Box<dyn FnMut(&mut Runner<L, N, IterData, ReachError>, &mut bool) -> Result<(), ReachError>>
 where
     L: Language + 'static,
     N: Analysis<L>,
@@ -75,30 +81,28 @@ where
 {
     let start = start.clone();
     let goal = goal.clone();
-    Box::new(move |runner: &mut Runner<L, N, IterData>, _: &mut bool| {
-        if let Some(i2) = lookup_rec_expr(&goal, &runner.egraph) {
-            let i1 = lookup_rec_expr(&start, &runner.egraph).unwrap();
+    Box::new(
+        move |runner: &mut Runner<L, N, IterData, ReachError>, _: &mut bool| {
+            if let Some(i2) = lookup_rec_expr(&goal, &runner.egraph) {
+                let i1 = lookup_rec_expr(&start, &runner.egraph).unwrap();
 
-            if runner.egraph.eq(&i1, &i2) {
-                #[cfg(feature = "explanations")]
-                println!(
-                    "{}",
-                    &(runner.egraph)
-                        .explain_equivalence(start.clone(), goal.clone())
-                        .to_string(&runner.egraph)
-                );
-                return Err("reached".to_string());
+                if runner.egraph.eq(&i1, &i2) {
+                    #[cfg(feature = "explanations")]
+                    println!(
+                        "{}",
+                        &(runner.egraph)
+                            .explain_equivalence(start.clone(), goal.clone())
+                            .to_string(&runner.egraph)
+                    );
+                    return Err(ReachError::Reached);
+                }
             }
-        }
-        if runner.iterations.len() >= steps - 1 {
-            let msg = format!(
-                "Start term {} did not reach goal term {} in {} steps",
-                start, goal, steps
-            );
-            return Err(msg.to_string());
-        }
-        Ok(())
-    })
+            if runner.iterations.len() >= steps - 1 {
+                return Err(ReachError::Failed);
+            }
+            Ok(())
+        },
+    )
 }
 
 // assert that `start` is in the same e-class as `goal` in `steps` steps.
@@ -110,20 +114,20 @@ where
     let start: RecExpr<L> = RecExpr::parse(start).unwrap();
     let goal: RecExpr<L> = RecExpr::parse(goal).unwrap();
 
-    let mut runner = Runner::<L, N>::new()
+    let mut runner: Runner<L, N, (), ReachError> = Runner::<L, N, (), ReachError>::new()
         .with_expr(&start)
         .with_iter_limit(60)
         .with_iter_limit(steps)
         .with_hook(reach_hook(&start, &goal, steps));
     let report = runner.run(rewrites);
 
-    if let StopReason::Other(s) = report.stop_reason {
-        if s == "reached" {
-            #[cfg(feature = "explanations")]
-            runner.egraph.explain_equivalence(start, goal);
-            return;
-        }
+    dbg!(&report.stop_reason);
+    if let StopReason::Other(ReachError::Reached) = report.stop_reason {
+        #[cfg(feature = "explanations")]
+        runner.egraph.explain_equivalence(start, goal);
+        return;
     }
+
     // `start` did not reach `goal` in `steps` steps.
     // or it saturated before then
     runner.egraph.dump();
