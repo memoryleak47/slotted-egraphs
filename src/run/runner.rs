@@ -16,7 +16,9 @@ where
 {
     /// Given the current [`Runner`], make the
     /// data to be put in this [`Iteration`].
-    fn make(runner: &Runner<L, N, Self>) -> Self;
+    fn make<CustomErrorT>(runner: &Runner<L, N, Self, CustomErrorT>) -> Self
+    where
+        CustomErrorT: Clone;
 }
 
 impl<L, N> IterationData<L, N> for ()
@@ -24,7 +26,11 @@ where
     L: Language,
     N: Analysis<L>,
 {
-    fn make(_: &Runner<L, N, Self>) -> Self {}
+    fn make<CustomErrorT>(_: &Runner<L, N, Self, CustomErrorT>) -> Self
+    where
+        CustomErrorT: Clone,
+    {
+    }
 }
 
 pub struct RunnerLimits {
@@ -34,13 +40,18 @@ pub struct RunnerLimits {
     time_limit: Duration,
 }
 /// Type alias for the result of a [`Runner`].
-pub type RunnerResult<T> = Result<T, StopReason>;
+pub type RunnerResult<T, CustomErrorT = String> = Result<T, StopReason<CustomErrorT>>;
 
 impl RunnerLimits {
-    fn check_limits<L, N>(&self, iteration: usize, eg: &EGraph<L, N>) -> RunnerResult<()>
+    fn check_limits<L, N, CustomErrorT>(
+        &self,
+        iteration: usize,
+        eg: &EGraph<L, N>,
+    ) -> RunnerResult<(), CustomErrorT>
     where
         L: Language,
         N: Analysis<L>,
+        CustomErrorT: Clone,
     {
         let elapsed = self.start_time.unwrap().elapsed();
         if iteration > self.iter_limit {
@@ -55,9 +66,10 @@ impl RunnerLimits {
     }
 }
 
-pub struct Runner<L: Language, N: Analysis<L> = (), IterData = ()>
+pub struct Runner<L: Language, N: Analysis<L> = (), IterData = (), CustomErrorT = String>
 where
     IterData: IterationData<L, N>,
+    CustomErrorT: Clone,
 {
     /// The [`EGraph`] used.
     pub egraph: EGraph<L, N>,
@@ -68,19 +80,20 @@ where
     pub roots: Vec<AppliedId>,
     /// Why the `Runner` stopped. This will be `None` if it hasn't
     /// stopped yet.
-    pub stop_reason: Option<StopReason>,
+    pub stop_reason: Option<StopReason<CustomErrorT>>,
 
     // Initial expressions in the EGraph
     pub limits: RunnerLimits,
     /// hooks
-    pub hooks: Vec<Box<dyn FnMut(&mut Self, &mut bool) -> Result<(), String> + 'static>>,
+    pub hooks: Vec<Box<dyn FnMut(&mut Self, &mut bool) -> Result<(), CustomErrorT> + 'static>>,
 }
 
-impl<L, N, IterData> Runner<L, N, IterData>
+impl<L, N, IterData, CustomErrorT> Runner<L, N, IterData, CustomErrorT>
 where
     L: Language,
     N: Analysis<L>,
     IterData: IterationData<L, N>,
+    CustomErrorT: Clone,
 {
     pub fn new() -> Self {
         Self {
@@ -105,7 +118,7 @@ where
     }
     pub fn with_hook<F>(mut self, hook: F) -> Self
     where
-        F: FnMut(&mut Self, &mut bool) -> Result<(), String> + 'static,
+        F: FnMut(&mut Self, &mut bool) -> Result<(), CustomErrorT> + 'static,
     {
         self.hooks.push(Box::new(hook));
         self
@@ -128,11 +141,11 @@ where
         self
     }
 
-    fn check_limits(&mut self) -> RunnerResult<()> {
+    fn check_limits(&mut self) -> RunnerResult<(), CustomErrorT> {
         self.limits
             .check_limits(self.iterations.len(), &self.egraph)
     }
-    pub fn run(&mut self, rewrites: &[Rewrite<L, N>]) -> Report {
+    pub fn run(&mut self, rewrites: &[Rewrite<L, N>]) -> Report<CustomErrorT> {
         loop {
             if let Some(_) = self.stop_reason {
                 break;
@@ -170,8 +183,7 @@ where
         result = result
             .and_then(|_| {
                 hooks.iter_mut().try_for_each(|hook| {
-                    hook(self, &mut mut_flag)
-                        .map_err(|err_msg| StopReason::Other(String::from(err_msg)))
+                    hook(self, &mut mut_flag).map_err(|err_msg| StopReason::Other(err_msg))
                 })
             })
             .and_then(|_| self.check_limits());
