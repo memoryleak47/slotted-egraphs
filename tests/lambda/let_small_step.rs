@@ -16,19 +16,6 @@ impl Realization for LambdaRealLambda {
 
 unpack_tests!(LambdaRealLambda);
 
-pub fn rewrite_let(eg: &mut EGraph<Lambda>) {
-    apply_rewrites(
-        eg,
-        &[
-            beta(),
-            my_let_unused(),
-            let_var_same(),
-            let_app(),
-            let_lam_diff(),
-        ],
-    );
-}
-
 fn beta() -> Rewrite<Lambda> {
     let pat = "(app (lam $1 ?b) ?t)";
     let outpat = "(let $1 ?b ?t)";

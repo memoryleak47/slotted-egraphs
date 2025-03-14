@@ -12,7 +12,6 @@ unpack_tests!(LambdaRealSmall);
 
 pub fn rewrite_small_step() -> Vec<Rewrite<Lambda>> {
     let searcher = Box::new(|eg: &EGraph<Lambda>| {
-        // let mut future_unions = Vec::new();
         let mut future_steps = Vec::new();
         for cand in crate::lambda::big_step::candidates(eg) {
             let app_id = eg.lookup(&cand.app).unwrap();
