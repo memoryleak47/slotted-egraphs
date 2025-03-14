@@ -80,28 +80,26 @@ where
 {
     let start = start.clone();
     let goal = goal.clone();
-    Box::new(
-        move |runner: &mut Runner<L, N, IterData, ReachError>| {
-            if let Some(i2) = lookup_rec_expr(&goal, &runner.egraph) {
-                let i1 = lookup_rec_expr(&start, &runner.egraph).unwrap();
+    Box::new(move |runner: &mut Runner<L, N, IterData, ReachError>| {
+        if let Some(i2) = lookup_rec_expr(&goal, &runner.egraph) {
+            let i1 = lookup_rec_expr(&start, &runner.egraph).unwrap();
 
-                if runner.egraph.eq(&i1, &i2) {
-                    #[cfg(feature = "explanations")]
-                    println!(
-                        "{}",
-                        &(runner.egraph)
-                            .explain_equivalence(start.clone(), goal.clone())
-                            .to_string(&runner.egraph)
-                    );
-                    return Err(ReachError::Reached);
-                }
+            if runner.egraph.eq(&i1, &i2) {
+                #[cfg(feature = "explanations")]
+                println!(
+                    "{}",
+                    &(runner.egraph)
+                        .explain_equivalence(start.clone(), goal.clone())
+                        .to_string(&runner.egraph)
+                );
+                return Err(ReachError::Reached);
             }
-            if runner.iterations.len() >= steps - 1 {
-                return Err(ReachError::Failed);
-            }
-            Ok(())
-        },
-    )
+        }
+        if runner.iterations.len() >= steps - 1 {
+            return Err(ReachError::Failed);
+        }
+        Ok(())
+    })
 }
 
 // assert that `start` is in the same e-class as `goal` in `steps` steps.
