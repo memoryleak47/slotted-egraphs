@@ -22,7 +22,7 @@ fn t2() {
     let a = &format!("(mul (add (var {x}) (var {y})) (add (var {x}) (var {y})))");
     let b = &format!("(mul (add (var {x}) (var {y})) (add (var {y}) (var {x})))");
 
-    assert_reaches(a, b, &get_all_rewrites()[..], 3);
+    assert_reaches(a, b, &get_all_rewrites()[..], 2);
 }
 
 #[test]

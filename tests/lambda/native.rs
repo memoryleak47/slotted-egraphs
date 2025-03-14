@@ -3,8 +3,8 @@ use crate::*;
 pub struct LambdaRealNative;
 
 impl Realization for LambdaRealNative {
-    fn step(eg: &mut EGraph<Lambda>) {
-        rewrite_native(eg);
+    fn get_rewrites() -> Vec<Rewrite<Lambda>> {
+        vec![beta()]
     }
 }
 
