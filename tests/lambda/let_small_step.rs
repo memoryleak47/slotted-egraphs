@@ -3,8 +3,14 @@ use crate::*;
 pub struct LambdaRealLambda;
 
 impl Realization for LambdaRealLambda {
-    fn step(eg: &mut EGraph<Lambda>) {
-        rewrite_let(eg);
+    fn get_rewrites() -> Vec<Rewrite<Lambda>> {
+        vec![
+            beta(),
+            my_let_unused(),
+            let_var_same(),
+            let_app(),
+            let_lam_diff(),
+        ]
     }
 }
 

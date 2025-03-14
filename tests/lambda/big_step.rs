@@ -3,8 +3,8 @@ use crate::*;
 pub struct LambdaRealBig;
 
 impl Realization for LambdaRealBig {
-    fn step(eg: &mut EGraph<Lambda>) {
-        rewrite_big_step(eg);
+    fn get_rewrites() -> Vec<Rewrite<Lambda>> {
+        rewrite_big_step()
     }
 }
 
@@ -19,35 +19,43 @@ pub struct Candidate {
 }
 
 // applies rewrites (only beta-reduction) for all applicable situations.
-pub fn rewrite_big_step(eg: &mut EGraph<Lambda>) {
-    for cand in candidates(eg) {
-        let app_id = eg.lookup(&cand.app).unwrap();
+pub fn rewrite_big_step() -> Vec<Rewrite<Lambda>> {
+    let searcher = Box::new(|eg: &EGraph<Lambda>| candidates(eg));
+    let applier = Box::new(|cands: Vec<Candidate>, eg: &mut EGraph<Lambda>| {
+        for cand in cands {
+            let app_id = eg.lookup(&cand.app).unwrap();
 
-        let Lambda::App(l, t) = cand.app.clone() else {
-            panic!()
-        };
-        let Lambda::Lam(Bind { slot: x, elem: b }) = cand.lam.clone() else {
-            panic!()
-        };
-        assert_eq!(x, Slot::numeric(0));
+            let Lambda::App(l, t) = cand.app.clone() else {
+                panic!()
+            };
+            let Lambda::Lam(Bind { slot: x, elem: b }) = cand.lam.clone() else {
+                panic!()
+            };
+            assert_eq!(x, Slot::numeric(0));
 
-        // l.m :: slots(lam) -> slots(app)
-        let mut m = l.m.clone();
+            // l.m :: slots(lam) -> slots(app)
+            let mut m = l.m.clone();
 
-        // if x is a public slot of "app", we'd need to rename. But as x should always be s0 this shouldn't come up.
-        assert!(!m.contains_key(x));
+            // if x is a public slot of "app", we'd need to rename. But as x should always be s0 this shouldn't come up.
+            assert!(!m.contains_key(x));
 
-        m.insert(x, x);
+            m.insert(x, x);
 
-        let b = b.apply_slotmap(&m);
+            let b = b.apply_slotmap(&m);
 
-        let new_id = subst(b, x, t, eg);
-        eg.union_justified(
-            &new_id,
-            &app_id,
-            Some("big-step-beta-reduction".to_string()),
-        );
+            let new_id = subst(b, x, t, eg);
+            eg.union_justified(
+                &new_id,
+                &app_id,
+                Some("big-step-beta-reduction".to_string()),
+            );
+        }
+    });
+    vec![RewriteT {
+        searcher: searcher,
+        applier: applier,
     }
+    .into()]
 }
 
 pub fn candidates(eg: &EGraph<Lambda>) -> Vec<Candidate> {
