@@ -4,7 +4,7 @@ const NO_ITERS: usize = 400;
 const NO_ENODES: usize = 10000;
 
 pub trait Realization {
-    fn step(eg: &mut EGraph<Lambda>);
+    fn get_rewrites() -> Vec<Rewrite<Lambda>>;
 }
 
 // stops when the desired output has been reached.
@@ -12,8 +12,8 @@ pub fn simplify_to_nf<R: Realization>(s: &str) -> String {
     let orig_re = RecExpr::parse(s).unwrap();
     let mut eg = EGraph::new();
     let i = eg.add_syn_expr(orig_re.clone());
-    let hook = Box::new(move |runner: &mut Runner<Lambda>, mut_flag: &mut bool| {
-        R::step(&mut runner.egraph);
+
+    let hook = Box::new(move |runner: &mut Runner<Lambda>| {
         let re = extract_ast(&runner.egraph, &i.clone());
         if lam_step(&re).is_none() {
             #[cfg(feature = "explanations")]
@@ -22,20 +22,20 @@ pub fn simplify_to_nf<R: Realization>(s: &str) -> String {
                 .explain_equivalence(orig_re.clone(), re.clone());
             return Err(re.to_string());
         };
-        *mut_flag = true;
         Ok(())
     });
-    let mut runner: Runner<Lambda> = Runner::new()
-        .with_egraph(eg)
-        .with_hook(hook)
-        .with_iter_limit(NO_ITERS)
-        .with_node_limit(NO_ENODES);
 
-    let report = runner.run(&[]);
-    if let StopReason::Other(re) = report.stop_reason {
-        return re;
+    let mut runner = Runner::new()
+        .with_egraph(eg)
+        .with_node_limit(NO_ENODES)
+        .with_iter_limit(NO_ITERS)
+        .with_hook(hook);
+
+    let report = runner.run(&R::get_rewrites()[..]);
+    if let StopReason::Other(s) = report.stop_reason {
+        return s;
     }
-    dbg!(report.stop_reason);
+
     panic!("failed to reach NF! Or the beta-NF is just AstSize-suboptimal!");
 }
 
@@ -43,18 +43,9 @@ pub fn simplify<R: Realization>(s: &str) -> String {
     let re = RecExpr::parse(s).unwrap();
     let mut eg = EGraph::new();
     let i = eg.add_syn_expr(re.clone());
-    let hook = Box::new(|runner: &mut Runner<Lambda>, mut_flag: &mut bool| {
-        R::step(&mut runner.egraph);
-        *mut_flag = true;
-        Ok(())
-    });
-    let mut runner: Runner<Lambda> = Runner::new()
-        .with_egraph(eg)
-        .with_hook(hook)
-        .with_iter_limit(NO_ITERS)
-        .with_node_limit(NO_ENODES);
 
-    runner.run(&[]);
+    let mut runner: Runner<Lambda> = Runner::new().with_egraph(eg).with_node_limit(NO_ENODES);
+    runner.run(&R::get_rewrites()[..]);
     let out = extract_ast(&runner.egraph, &i);
 
     #[cfg(feature = "explanations")]
@@ -92,24 +83,21 @@ pub fn check_eq<R: Realization>(s1: &str, s2: &str) {
     let i1 = eg.add_syn_expr(s1.clone());
     let i2 = eg.add_syn_expr(s2.clone());
 
-    let hook = Box::new(move |runner: &mut Runner<Lambda>, mut_flag: &mut bool| {
+    let hook = Box::new(move |runner: &mut Runner<Lambda, (), (), ()>| {
         if runner.egraph.eq(&i1, &i2) {
             #[cfg(feature = "explanations")]
             runner.egraph.explain_equivalence(s1.clone(), s2.clone());
-            return Err("Quit successfully".to_string());
+            return Err(());
         }
-        R::step(&mut runner.egraph);
-        *mut_flag = true;
         Ok(())
     });
-
-    let mut runner: Runner<Lambda> = Runner::new()
+    let mut runner = Runner::new()
         .with_egraph(eg)
-        .with_iter_limit(NO_ITERS)
         .with_node_limit(NO_ENODES)
+        .with_iter_limit(NO_ITERS)
         .with_hook(hook);
-    let report = runner.run(&[]);
-    if let StopReason::Other(_) = report.stop_reason {
+    let report = runner.run(&R::get_rewrites()[..]);
+    if let StopReason::Other(()) = report.stop_reason {
         return;
     }
     panic!("equality could not be found!");
