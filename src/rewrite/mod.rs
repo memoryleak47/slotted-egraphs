@@ -38,7 +38,7 @@ impl<L: Language + 'static, N: Analysis<L> + 'static, T: 'static> RewriteT<L, N,
     }
 }
 
-fn any_to_t<T: Any>(t: Box<dyn Any>) -> T {
+pub fn any_to_t<T: Any>(t: Box<dyn Any>) -> T {
     *t.downcast().unwrap()
 }
 
