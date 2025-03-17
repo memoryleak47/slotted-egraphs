@@ -18,10 +18,12 @@ use std::ops::Deref;
 use std::sync::Arc;
 
 #[doc(hidden)]
-pub type HashMap<K, V> = fxhash::FxHashMap<K, V>;
-
+pub type HashMap<K, V> = rustc_hash::FxHashMap<K, V>;
 #[doc(hidden)]
-pub type HashSet<T> = fxhash::FxHashSet<T>;
+pub type HashSet<T> = rustc_hash::FxHashSet<T>;
+
+pub type SmallHashSet<T> = vec_collections::VecSet<[T; 8]>;
+pub use vec_collections::AbstractVecSet;
 
 pub use symbol_table::GlobalSymbol as Symbol;
 

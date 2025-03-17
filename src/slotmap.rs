@@ -1,3 +1,5 @@
+use smallvec::SmallVec;
+
 use crate::*;
 use std::ops::Index;
 
@@ -15,7 +17,7 @@ pub(crate) type Bijection = SlotMap;
 pub struct SlotMap {
     // if (l, r) in map, then there is no (l, r') in map. Each key is uniquely contained.
     // Also: map is sorted by their keys.
-    map: Vec<(Slot, Slot)>,
+    map: SmallVec<[(Slot, Slot); 10]>,
 }
 
 impl SlotMap {
@@ -73,10 +75,10 @@ impl SlotMap {
         self.map.iter().map(|(_, y)| y)
     }
 
-    pub fn keys(&self) -> HashSet<Slot> {
+    pub fn keys(&self) -> SmallHashSet<Slot> {
         self.iter().map(|(x, _)| x).collect()
     }
-    pub fn values(&self) -> HashSet<Slot> {
+    pub fn values(&self) -> SmallHashSet<Slot> {
         self.iter().map(|(_, y)| y).collect()
     }
     pub fn keys_vec(&self) -> Vec<Slot> {
@@ -155,7 +157,7 @@ impl SlotMap {
         out
     }
 
-    pub fn identity(set: &HashSet<Slot>) -> SlotMap {
+    pub fn identity(set: &SmallHashSet<Slot>) -> SlotMap {
         let mut out = SlotMap::new();
         for &x in set {
             out.insert(x, x);
@@ -163,7 +165,7 @@ impl SlotMap {
         out
     }
 
-    pub fn bijection_from_fresh_to(set: &HashSet<Slot>) -> SlotMap {
+    pub fn bijection_from_fresh_to(set: &SmallHashSet<Slot>) -> SlotMap {
         let mut out = SlotMap::new();
         for &x in set {
             out.insert(Slot::fresh(), x);
