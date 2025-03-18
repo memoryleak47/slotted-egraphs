@@ -1,11 +1,21 @@
+use std::time::Duration;
+
+use criterion::{criterion_group, criterion_main, Criterion};
 use sdql::*;
 use slotted_egraphs::*;
 
-fn main() {
-    divan::main();
+fn criterion_benchmark(c: &mut Criterion) {
+    let mut group = c.benchmark_group("SDQL");
+    group.sample_size(10);
+    group.measurement_time(Duration::from_secs(20));
+    group.bench_function("batax_v7_csr_dense_unfused_esat", |b| {
+        b.iter(|| batax_v7_csr_dense_unfused_esat())
+    });
 }
 
-#[divan::bench(sample_count = 10)]
+criterion_group!(benches, criterion_benchmark);
+criterion_main!(benches);
+
 fn batax_v7_csr_dense_unfused_esat() -> Report {
     let prog = "
 (lambda $var_01
