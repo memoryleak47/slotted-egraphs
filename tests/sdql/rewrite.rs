@@ -24,7 +24,7 @@ fn t1() {
     let mut eg = EGraph::new();
 
     let id = eg.add_syn_expr(re.clone());
-    let mut runner = Runner::<Sdql, (), ()>::new().with_egraph(eg);
+    let mut runner = Runner::<Sdql>::new().with_egraph(eg);
     let report = runner.run(&sdql_rules()[..]);
     let term = extract::<_, _, AstSize>(&id, &runner.egraph);
     eprintln!("{}", re.to_string());

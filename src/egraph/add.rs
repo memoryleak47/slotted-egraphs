@@ -217,7 +217,8 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
 
 impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     // TODO make the public API auto "fresh" slots.
-    pub fn alloc_empty_eclass(&mut self, _slots: &SmallHashSet<Slot>) -> Id {
+    #[allow(unused_variables)]
+    pub fn alloc_empty_eclass(&mut self, slots: &SmallHashSet<Slot>) -> Id {
         panic!("Can't use alloc_empty_eclass if explanations are enabled!");
     }
 

@@ -21,7 +21,7 @@ pub struct Rewrite<L: Language, N: Analysis<L> = ()> {
 /// The type parameter `T` can be anything you want, as long as the `searcher` creates it, and the `applier` consumes it.
 ///
 /// In most cases, `T` is a [Subst].
-pub struct RewriteT<L: Language, N: Analysis<L>, T: Any> {
+pub struct RewriteT<L: Language, N: Analysis<L> = (), T: Any = ()> {
     pub searcher: Box<dyn Fn(&EGraph<L, N>) -> T>,
     pub applier: Box<dyn Fn(T, &mut EGraph<L, N>)>,
 }
@@ -38,7 +38,7 @@ impl<L: Language + 'static, N: Analysis<L> + 'static, T: 'static> RewriteT<L, N,
     }
 }
 
-fn any_to_t<T: Any>(t: Box<dyn Any>) -> T {
+pub fn any_to_t<T: Any>(t: Box<dyn Any>) -> T {
     *t.downcast().unwrap()
 }
 
