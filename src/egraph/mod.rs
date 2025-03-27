@@ -292,6 +292,23 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
             .unwrap()
     }
 
+    // We want to compute the shape of an e-node n := f(c[$x, $y], c[$y, $x]), where c[$x, $y] = c[$y, $x].
+    // The (strong) shape of f(c[$x, $y], c[$y, $x]) is f(c[$0, $1], c[$0, $1]), whereas the
+    //     weak     shape of f(...)                  is f(c[$0, $1], c[$1, $0]).
+    // Basically, the weak shape doesn't respect group symmetries, while the strong shape does.
+
+    // We first compute the set of e-nodes equivalent to n by group symmetries.
+    // This set would be
+    // {f(c[$x, $y], c[$y, $x]),
+    //  f(c[$y, $x], c[$y, $x]),
+    //  f(c[$x, $y], c[$x, $y]),
+    //  f(c[$y, $x], c[$x, $y])}
+    // This set is what the proven_proven_get_group_compatible_variants returns.
+    // Now: we want to compute the "weak shapes" of them, which means to replace names by numbers (by going through the slots left to right).
+    // When computing the weak shapes, we only have
+    // {f(c[$0, $1], c[$1, $0]),
+    //  f(c[$0, $1], c[$0, $1])}
+    // This is what get_group_compatible_weak_variants would return.
     #[cfg_attr(feature = "trace", instrument(level = "trace", skip_all))]
     pub(crate) fn proven_proven_get_group_compatible_variants(
         &self,
