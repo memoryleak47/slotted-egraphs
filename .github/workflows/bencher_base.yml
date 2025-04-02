@@ -25,7 +25,7 @@ jobs:
       - name: Track base branch benchmarks with Bencher
         run: |
           bencher run \
-          --project hylophile-s-project \
+          --project slotted-egraphs \
           --token '${{ secrets.BENCHER_API_TOKEN }}' \
           --branch main \
           --err \
