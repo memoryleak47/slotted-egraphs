@@ -44,7 +44,6 @@ pub fn any_to_t<T: Any>(t: Box<dyn Any>) -> T {
 
 /// Applies each given rewrite rule to the E-Graph once.
 /// Returns an indicator for whether the e-graph changed as a result.
-#[cfg_attr(feature = "trace", instrument(level = "trace", skip_all))]
 pub fn apply_rewrites<L: Language, N: Analysis<L>>(
     eg: &mut EGraph<L, N>,
     rewrites: &[Rewrite<L, N>],
@@ -85,7 +84,6 @@ impl<L: Language + 'static, N: Analysis<L> + 'static> Rewrite<L, N> {
         .into()
     }
 
-    #[cfg_attr(feature = "trace", instrument(level = "trace", skip_all))]
     fn apply_substs_cond(
         substs: Vec<Subst>,
         cond: &(impl Fn(&Subst, &EGraph<L, N>) -> bool + 'static),
@@ -120,7 +118,6 @@ pub struct ProgressMeasure {
 
 impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     /// Computes the [ProgressMeasure] of this E-Graph.
-    #[cfg_attr(feature = "trace", instrument(level = "trace", skip_all))]
     pub fn progress(&self) -> ProgressMeasure {
         let ids = self.ids();
         ProgressMeasure {

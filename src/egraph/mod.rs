@@ -283,7 +283,6 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         self.proven_proven_pre_shape(&e).weak_shape()
     }
 
-    #[cfg_attr(feature = "trace", instrument(level = "trace", skip_all))]
     pub(crate) fn proven_proven_pre_shape(&self, e: &ProvenNode<L>) -> ProvenNode<L> {
         let e = self.proven_proven_find_enode(e);
         self.proven_proven_get_group_compatible_variants(&e)
@@ -309,7 +308,6 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     // {f(c[$0, $1], c[$1, $0]),
     //  f(c[$0, $1], c[$0, $1])}
     // This is what get_group_compatible_weak_variants would return.
-    #[cfg_attr(feature = "trace", instrument(level = "trace", skip_all))]
     pub(crate) fn proven_proven_get_group_compatible_variants(
         &self,
         enode: &ProvenNode<L>,
@@ -365,7 +363,6 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
             .collect()
     }
 
-    #[cfg_attr(feature = "trace", instrument(level = "trace", skip_all))]
     pub(crate) fn get_group_compatible_weak_variants(&self, enode: &L) -> HashSet<L> {
         let set = self.get_group_compatible_variants(enode);
         let mut shapes = HashSet::default();
@@ -450,7 +447,6 @@ impl PendingType {
 // {1,2} x {3} x {4,5} -> (1,3,4), (1,3,5), (2,3,4), (2,3,5)
 // TODO re-enable use<...> when it's stabilized.
 // fn cartesian<'a, T>(input: &'a [Vec<T>]) -> impl Iterator<Item=Vec<&'a T>> /*+ use<'a, T>*/ + '_ {
-#[cfg_attr(feature = "trace", instrument(level = "trace", skip_all))]
 fn cartesian<T>(input: &[Vec<T>]) -> impl Iterator<Item = Vec<&T>> + '_ {
     let n = input.len();
     let mut indices = vec![0; n];

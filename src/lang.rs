@@ -271,7 +271,6 @@ pub trait Language: Debug + Clone + Hash + Eq {
     // generated methods:
 
     #[doc(hidden)]
-    #[cfg_attr(feature = "trace", instrument(level = "trace", skip_all))]
     fn private_slot_occurrences_mut(&mut self) -> Vec<&mut Slot> {
         let public = self.public_slot_occurrences();
         let mut out = self.all_slot_occurrences_mut();
@@ -280,7 +279,6 @@ pub trait Language: Debug + Clone + Hash + Eq {
     }
 
     #[doc(hidden)]
-    #[cfg_attr(feature = "trace", instrument(level = "trace", skip_all))]
     fn private_slot_occurrences(&self) -> Vec<Slot> {
         let public = self.public_slot_occurrences();
         let mut out = self.all_slot_occurrences();
@@ -289,13 +287,11 @@ pub trait Language: Debug + Clone + Hash + Eq {
     }
 
     #[doc(hidden)]
-    #[cfg_attr(feature = "trace", instrument(level = "trace", skip_all))]
     fn private_slots(&self) -> SmallHashSet<Slot> {
         self.private_slot_occurrences().into_iter().collect()
     }
 
     #[doc(hidden)]
-    #[cfg_attr(feature = "trace", instrument(level = "trace", skip_all))]
     fn map_applied_ids(&self, mut f: impl FnMut(AppliedId) -> AppliedId) -> Self {
         let mut c = self.clone();
         for x in c.applied_id_occurrences_mut() {
@@ -307,10 +303,6 @@ pub trait Language: Debug + Clone + Hash + Eq {
     // TODO m.values() might collide with your private slot names.
     // Should we rename our private slots to be safe?
     #[doc(hidden)]
-    #[cfg_attr(
-        feature = "trace",
-        instrument(name = "Lang::apply_slotmap_partial", level = "trace", skip_all)
-    )]
     fn apply_slotmap_partial(&self, m: &SlotMap) -> Self {
         let mut prv = vec![].into();
         if CHECKS {
@@ -333,10 +325,6 @@ pub trait Language: Debug + Clone + Hash + Eq {
 
     #[track_caller]
     #[doc(hidden)]
-    #[cfg_attr(
-        feature = "trace",
-        instrument(name = "Lang::apply_slotmap", level = "trace", skip_all)
-    )]
     fn apply_slotmap(&self, m: &SlotMap) -> Self {
         if CHECKS {
             assert!(
@@ -348,10 +336,6 @@ pub trait Language: Debug + Clone + Hash + Eq {
     }
 
     #[doc(hidden)]
-    #[cfg_attr(
-        feature = "trace",
-        instrument(name = "Lang::apply_slotmap_fresh", level = "trace", skip_all)
-    )]
     fn apply_slotmap_fresh(&self, m: &SlotMap) -> Self {
         let mut prv = vec![].into();
         if CHECKS {
@@ -373,7 +357,6 @@ pub trait Language: Debug + Clone + Hash + Eq {
     }
 
     #[doc(hidden)]
-    #[cfg_attr(feature = "trace", instrument(level = "trace", skip_all))]
     fn ids(&self) -> Vec<Id> {
         self.applied_id_occurrences()
             .into_iter()
@@ -386,7 +369,6 @@ pub trait Language: Debug + Clone + Hash + Eq {
     // - bij.slots() == n.slots(). Note that these would also include redundant slots.
     // - sh is the lexicographically lowest equivalent version of n, reachable by bijective renaming of slots (including redundant ones).
     #[doc(hidden)]
-    #[cfg_attr(feature = "trace", instrument(level = "trace", skip_all))]
     fn weak_shape(&self) -> (Self, Bijection) {
         let mut c = self.clone();
         let bij = c.weak_shape_inplace();
@@ -394,7 +376,6 @@ pub trait Language: Debug + Clone + Hash + Eq {
     }
 
     #[doc(hidden)]
-    #[cfg_attr(feature = "trace", instrument(level = "trace", skip_all))]
     fn refresh_private(&self) -> Self {
         let mut c = self.clone();
         let prv: SmallHashSet<Slot> = c.private_slot_occurrences().into_iter().collect();
@@ -406,7 +387,6 @@ pub trait Language: Debug + Clone + Hash + Eq {
     }
 
     #[doc(hidden)]
-    #[cfg_attr(feature = "trace", instrument(level = "trace", skip_all))]
     fn refresh_slots(&self, set: SmallHashSet<Slot>) -> Self {
         let mut c = self.clone();
         let fresh = SlotMap::bijection_from_fresh_to(&set).inverse();
@@ -421,7 +401,6 @@ pub trait Language: Debug + Clone + Hash + Eq {
     // refreshes private and redundant slots.
     // The public slots are given by `public`.
     #[doc(hidden)]
-    #[cfg_attr(feature = "trace", instrument(level = "trace", skip_all))]
     fn refresh_internals(&self, public: SmallHashSet<Slot>) -> Self {
         let mut c = self.clone();
         let internals = &c

@@ -9,11 +9,6 @@ repository = "https://github.com/memoryleak47/slotted-egraphs/"
 [features]
 explanations = []
 checks = []
-trace = [
-  "tracing/max_level_trace",
-  "tracing/release_max_level_trace",
-  "tracing",
-]
 
 [package.metadata.docs.rs]
 features = ["explanations"]
@@ -21,7 +16,6 @@ features = ["explanations"]
 [dependencies]
 #slotted-egraphs-derive = "=0.0.34"
 slotted-egraphs-derive = { path = "slotted-egraphs-derive" }
-tracing = { version = "0.1", features = ["attributes"], optional = true }
 symbol_table = { version = "0.3", features = ["global"] }
 rustc-hash = "2.1.1"
 vec-collections = "0.4.3"

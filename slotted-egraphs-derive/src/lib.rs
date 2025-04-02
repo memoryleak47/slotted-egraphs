@@ -85,21 +85,18 @@ pub fn define_language(input: TokenStream1) -> TokenStream1 {
 
         impl Language for #name {
             // mut:
-            #[cfg_attr(feature = "trace", tracing::instrument(level = "trace", skip_all))]
             fn all_slot_occurrences_mut(&mut self) -> Vec<&mut Slot> {
                 match self {
                     #(#all_slot_occurrences_mut_arms),*
                 }
             }
 
-            #[cfg_attr(feature = "trace", tracing::instrument(level = "trace", skip_all))]
             fn public_slot_occurrences_mut(&mut self) -> Vec<&mut Slot> {
                 match self {
                     #(#public_slot_occurrences_mut_arms),*
                 }
             }
 
-            #[cfg_attr(feature = "trace", tracing::instrument(level = "trace", skip_all))]
             fn applied_id_occurrences_mut(&mut self) -> Vec<&mut AppliedId> {
                 match self {
                     #(#applied_id_occurrences_mut_arms),*
@@ -108,21 +105,18 @@ pub fn define_language(input: TokenStream1) -> TokenStream1 {
 
 
             // immut:
-            #[cfg_attr(feature = "trace", tracing::instrument(level = "trace", skip_all))]
             fn all_slot_occurrences(&self) -> Vec<Slot> {
                 match self {
                     #(#all_slot_occurrences_arms),*
                 }
             }
 
-            #[cfg_attr(feature = "trace", tracing::instrument(level = "trace", skip_all))]
             fn public_slot_occurrences(&self) -> Vec<Slot> {
                 match self {
                     #(#public_slot_occurrences_arms),*
                 }
             }
 
-            #[cfg_attr(feature = "trace", tracing::instrument(level = "trace", skip_all))]
             fn applied_id_occurrences(&self) -> Vec<&AppliedId> {
                 match self {
                     #(#applied_id_occurrences_arms),*
@@ -148,14 +142,12 @@ pub fn define_language(input: TokenStream1) -> TokenStream1 {
                 }
             }
 
-            #[cfg_attr(feature = "trace", tracing::instrument(name = "Lang::slots", level = "trace", skip_all))]
             fn slots(&self) -> slotted_egraphs::SmallHashSet<Slot> {
                 match self {
                     #(#slots_arms),*
                 }
             }
 
-            #[cfg_attr(feature = "trace", tracing::instrument(name = "Lang::weak_shape_inplace", level = "trace", skip_all))]
             fn weak_shape_inplace(&mut self) -> slotted_egraphs::SlotMap {
                 let m = &mut (slotted_egraphs::SlotMap::new(), 0);
                 match self {
@@ -165,7 +157,9 @@ pub fn define_language(input: TokenStream1) -> TokenStream1 {
                 m.0.inverse()
             }
         }
-    }.to_token_stream().into()
+    }
+    .to_token_stream()
+    .into()
 }
 
 fn produce_all_slot_occurrences_mut(name: &Ident, v: &Variant) -> TokenStream2 {
