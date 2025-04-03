@@ -11,7 +11,6 @@ struct State {
     partial_slotmap: SlotMap,
 }
 
-#[cfg_attr(feature = "trace", instrument(level = "trace", skip_all))]
 pub fn ematch_all<L: Language, N: Analysis<L>>(
     eg: &EGraph<L, N>,
     pattern: &Pattern<L>,
@@ -29,7 +28,6 @@ pub fn ematch_all<L: Language, N: Analysis<L>>(
 }
 
 // `i` uses egraph slots instead of pattern slots.
-#[cfg_attr(feature = "trace", instrument(level = "trace", skip_all))]
 fn ematch_impl<L: Language, N: Analysis<L>>(
     pattern: &Pattern<L>,
     st: State,
@@ -65,7 +63,6 @@ fn ematch_impl<L: Language, N: Analysis<L>>(
     }
 }
 
-#[cfg_attr(feature = "trace", instrument(level = "trace", skip_all))]
 fn ematch_node<L: Language, N: Analysis<L>>(
     st: &State,
     eg: &EGraph<L, N>,
@@ -113,7 +110,6 @@ fn ematch_node<L: Language, N: Analysis<L>>(
     }
 }
 
-#[cfg_attr(feature = "trace", instrument(level = "trace", skip_all))]
 pub(crate) fn nullify_app_ids<L: Language>(l: &L) -> L {
     let mut l = l.clone();
     for x in l.applied_id_occurrences_mut() {
@@ -122,7 +118,6 @@ pub(crate) fn nullify_app_ids<L: Language>(l: &L) -> L {
     l
 }
 
-#[cfg_attr(feature = "trace", instrument(level = "trace", skip_all))]
 fn try_insert_compatible_slotmap_bij(k: Slot, v: Slot, map: &mut SlotMap) -> bool {
     if let Some(v_old) = map.get(k) {
         if v_old != v {
@@ -133,7 +128,6 @@ fn try_insert_compatible_slotmap_bij(k: Slot, v: Slot, map: &mut SlotMap) -> boo
     map.is_bijection()
 }
 
-#[cfg_attr(feature = "trace", instrument(level = "trace", skip_all))]
 fn final_subst(s: State) -> Subst {
     let State {
         partial_subst: mut subst,

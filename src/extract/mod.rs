@@ -17,7 +17,6 @@ pub struct Extractor<L: Language, CF: CostFunction<L>> {
 }
 
 impl<L: Language, CF: CostFunction<L>> Extractor<L, CF> {
-    #[cfg_attr(feature = "trace", instrument(level = "trace", skip_all))]
     pub fn new<N: Analysis<L>>(eg: &EGraph<L, N>, cost_fn: CF) -> Self {
         if CHECKS {
             eg.check();
@@ -70,7 +69,6 @@ impl<L: Language, CF: CostFunction<L>> Extractor<L, CF> {
         Self { map }
     }
 
-    #[cfg_attr(feature = "trace", instrument(level = "trace", skip_all))]
     pub fn extract<N: Analysis<L>>(&self, i: &AppliedId, eg: &EGraph<L, N>) -> RecExpr<L> {
         let i = eg.find_applied_id(i);
 

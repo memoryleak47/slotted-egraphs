@@ -18,7 +18,6 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         self.union_instantiations(&a, &b, &subst, j)
     }
 
-    #[cfg_attr(feature = "trace", instrument(level = "trace", skip_all))]
     pub fn union_instantiations(
         &mut self,
         from_pat: &Pattern<L>,
@@ -41,12 +40,10 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         out
     }
 
-    #[cfg_attr(feature = "trace", instrument(level = "trace", skip_all))]
     fn rebuild_called_from_union_instantiations(&mut self) {
         self.rebuild();
     }
 
-    #[cfg_attr(feature = "trace", instrument(level = "trace", skip_all))]
     pub(in crate::egraph) fn union_internal(
         &mut self,
         l: &AppliedId,

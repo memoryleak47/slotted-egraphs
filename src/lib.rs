@@ -69,6 +69,3 @@ use group::*;
 
 mod run;
 pub use run::*;
-
-#[cfg(feature = "trace")]
-pub(crate) use tracing::instrument;

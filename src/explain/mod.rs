@@ -35,7 +35,6 @@ pub use mock::*;
 
 #[cfg(feature = "explanations")]
 impl<L: Language, N: Analysis<L>> EGraph<L, N> {
-    #[cfg_attr(feature = "trace", instrument(level = "trace", skip_all))]
     pub fn explain_equivalence(&mut self, t1: RecExpr<L>, t2: RecExpr<L>) -> ProvenEq {
         let i1 = self.add_syn_expr(t1);
         let i2 = self.add_syn_expr(t2);

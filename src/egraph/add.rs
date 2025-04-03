@@ -16,7 +16,6 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         self.add_syn(n)
     }
 
-    #[cfg_attr(feature = "trace", instrument(level = "trace", skip_all))]
     pub fn add_syn(&mut self, enode: L) -> AppliedId {
         #[cfg(not(feature = "explanations"))]
         {
@@ -81,19 +80,16 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         self.add(n)
     }
 
-    #[cfg_attr(feature = "trace", instrument(level = "trace", skip_all))]
     pub fn add(&mut self, enode: L) -> AppliedId {
         self.add_internal(self.shape_called_from_add(enode))
     }
 
-    #[cfg_attr(feature = "trace", instrument(level = "trace", skip_all))]
     fn shape_called_from_add(&self, enode: L) -> (L, Bijection) {
         self.shape(&enode)
     }
 
     // self.add(x) = y implies that x.slots() is a superset of y.slots().
     // x.slots() - y.slots() are redundant slots.
-    #[cfg_attr(feature = "trace", instrument(level = "trace", skip_all))]
     pub(in crate::egraph) fn add_internal(&mut self, t: (L, SlotMap)) -> AppliedId {
         if let Some(x) = self.lookup_internal(&t) {
             return x;
@@ -144,7 +140,6 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
 
 impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     // returns a syn applied id.
-    #[cfg_attr(feature = "trace", instrument(level = "trace", skip_all))]
     fn mk_singleton_class(&mut self, syn_enode: L) -> AppliedId {
         let old_slots = syn_enode.slots();
 
@@ -165,14 +160,12 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         self.mk_syn_applied_id(i, fresh_to_old)
     }
 
-    #[cfg_attr(feature = "trace", instrument(level = "trace", skip_all))]
     fn rebuild_called_from_add(&mut self) {
         self.rebuild();
     }
 
     // adds (sh, bij) to the eclass `id`.
     // TODO src_id should be optional!
-    #[cfg_attr(feature = "trace", instrument(level = "trace", skip_all))]
     pub(in crate::egraph) fn raw_add_to_class(
         &mut self,
         id: Id,
@@ -198,7 +191,6 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         }
     }
 
-    #[cfg_attr(feature = "trace", instrument(level = "trace", skip_all))]
     pub(in crate::egraph) fn raw_remove_from_class(&mut self, id: Id, sh: L) -> ProvenSourceNode {
         let opt_psn = self.classes.get_mut(&id).unwrap().nodes.remove(&sh);
         let opt_id = self.hashcons.remove(&sh);
@@ -222,7 +214,6 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         panic!("Can't use alloc_empty_eclass if explanations are enabled!");
     }
 
-    #[cfg_attr(feature = "trace", instrument(level = "trace", skip_all))]
     pub(in crate::egraph) fn alloc_eclass(
         &mut self,
         slots: &SmallHashSet<Slot>,
