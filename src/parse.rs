@@ -89,7 +89,7 @@ fn tokenize(mut s: &str) -> Result<Vec<Token>, ParseError> {
 }
 
 // parse:
-impl<L: Language> Pattern<L> {
+impl<L: Language> PatternAst<L> {
     pub fn parse(s: &str) -> Result<Self, ParseError> {
         let tok = tokenize(s)?;
         let (re, rest) = parse_pattern(&tok)?;
@@ -104,12 +104,12 @@ impl<L: Language> Pattern<L> {
 
 impl<L: Language> RecExpr<L> {
     pub fn parse(s: &str) -> Result<Self, ParseError> {
-        let pat = Pattern::parse(s)?;
+        let pat = PatternAst::parse(s)?;
         Ok(pattern_to_re(&pat))
     }
 }
 
-fn parse_pattern<L: Language>(tok: &[Token]) -> Result<(Pattern<L>, &[Token]), ParseError> {
+fn parse_pattern<L: Language>(tok: &[Token]) -> Result<(PatternAst<L>, &[Token]), ParseError> {
     let (mut pat, mut tok) = parse_pattern_nosubst(tok)?;
     while let Some(Token::LBracket) = tok.get(0) {
         tok = &tok[1..];
@@ -129,16 +129,16 @@ fn parse_pattern<L: Language>(tok: &[Token]) -> Result<(Pattern<L>, &[Token]), P
         };
         tok = &tok[1..];
 
-        pat = Pattern::Subst(Box::new(pat), Box::new(l), Box::new(r));
+        pat = PatternAst::Subst(Box::new(pat), Box::new(l), Box::new(r));
     }
     Ok((pat, tok))
 }
 
 fn parse_pattern_nosubst<L: Language>(
     mut tok: &[Token],
-) -> Result<(Pattern<L>, &[Token]), ParseError> {
+) -> Result<(PatternAst<L>, &[Token]), ParseError> {
     if let Token::PVar(p) = &tok[0] {
-        let pat = Pattern::PVar(p.to_string());
+        let pat = PatternAst::PVar(p.to_string());
         return Ok((pat, &tok[1..]));
     }
 
@@ -180,7 +180,7 @@ fn parse_pattern_nosubst<L: Language>(
                 NestedSyntaxElem::Slot(_) => None,
             })
             .collect();
-        let re = Pattern::ENode(node, syntax_elems);
+        let re = PatternAst::ENode(node, syntax_elems);
         Ok((re, tok))
     } else {
         let Token::Ident(op) = &tok[0] else {
@@ -191,14 +191,14 @@ fn parse_pattern_nosubst<L: Language>(
         let elems = [SyntaxElem::String(op.to_string())];
         let node =
             L::from_syntax(&elems).ok_or_else(|| ParseError::FromSyntaxFailed(to_vec(&elems)))?;
-        let pat = Pattern::ENode(node, Vec::new());
+        let pat = PatternAst::ENode(node, Vec::new());
         Ok((pat, tok))
     }
 }
 
 // Like SyntaxElem, but contains Pattern instead of AppliedId.
 enum NestedSyntaxElem<L: Language> {
-    Pattern(Pattern<L>),
+    Pattern(PatternAst<L>),
     Slot(Slot),
     String(String),
 }
@@ -214,10 +214,10 @@ fn parse_nested_syntax_elem<L: Language>(
 }
 
 // print:
-impl<L: Language> std::fmt::Display for Pattern<L> {
+impl<L: Language> std::fmt::Display for PatternAst<L> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Pattern::ENode(node, syntax_elems) => {
+            PatternAst::ENode(node, syntax_elems) => {
                 let l = node.to_syntax();
                 let n = l.len();
 
@@ -247,13 +247,13 @@ impl<L: Language> std::fmt::Display for Pattern<L> {
                 }
                 Ok(())
             }
-            Pattern::PVar(p) => write!(f, "?{p}"),
-            Pattern::Subst(b, x, t) => write!(f, "{b}[{x} := {t}]"),
+            PatternAst::PVar(p) => write!(f, "?{p}"),
+            PatternAst::Subst(b, x, t) => write!(f, "{b}[{x} := {t}]"),
         }
     }
 }
 
-impl<L: Language> std::fmt::Debug for Pattern<L> {
+impl<L: Language> std::fmt::Debug for PatternAst<L> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self)
     }

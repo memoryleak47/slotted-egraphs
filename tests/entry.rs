@@ -31,6 +31,11 @@ pub fn singleton_set<T: Eq + Hash + Ord>(t: T) -> SmallHashSet<T> {
 pub fn id<L: Language>(s: &str, eg: &mut EGraph<L>) -> AppliedId {
     eg.check();
     let re = RecExpr::parse(s).unwrap();
+    // dbg!(&re);
+    // let new = pattern_ast_to_flat(&re_to_pattern(&re));
+    // dbg!(&new);
+    // panic!();
+
     let out = eg.add_syn_expr(re.clone());
     eg.check();
     out

@@ -13,7 +13,7 @@ struct State {
 
 pub fn ematch_all<L: Language, N: Analysis<L>>(
     eg: &EGraph<L, N>,
-    pattern: &Pattern<L>,
+    pattern: &PatternAst<L>,
 ) -> Vec<Subst> {
     let mut out = Vec::new();
     for i in eg.ids() {
@@ -29,13 +29,13 @@ pub fn ematch_all<L: Language, N: Analysis<L>>(
 
 // `i` uses egraph slots instead of pattern slots.
 fn ematch_impl<L: Language, N: Analysis<L>>(
-    pattern: &Pattern<L>,
+    pattern: &PatternAst<L>,
     st: State,
     i: AppliedId,
     eg: &EGraph<L, N>,
 ) -> Vec<State> {
     match &pattern {
-        Pattern::PVar(v) => {
+        PatternAst::PVar(v) => {
             let mut st = st;
             if let Some(j) = st.partial_subst.get(v) {
                 if !eg.eq(&i, j) {
@@ -46,7 +46,7 @@ fn ematch_impl<L: Language, N: Analysis<L>>(
             }
             vec![st]
         }
-        Pattern::ENode(n, children) => {
+        PatternAst::ENode(n, children) => {
             let mut out = Vec::new();
             for nn in eg.enodes_applied(&i) {
                 let d = std::mem::discriminant(n);
@@ -59,7 +59,7 @@ fn ematch_impl<L: Language, N: Analysis<L>>(
             }
             out
         }
-        Pattern::Subst(..) => panic!(),
+        PatternAst::Subst(..) => panic!(),
     }
 }
 
@@ -67,7 +67,7 @@ fn ematch_node<L: Language, N: Analysis<L>>(
     st: &State,
     eg: &EGraph<L, N>,
     n: &L,
-    children: &[Pattern<L>],
+    children: &[PatternAst<L>],
     out: &mut Vec<State>,
     nn: &L,
 ) {
