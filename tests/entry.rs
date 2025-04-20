@@ -32,9 +32,12 @@ pub fn id<L: Language>(s: &str, eg: &mut EGraph<L>) -> AppliedId {
     eg.check();
     let re = RecExpr::parse(s).unwrap();
     // dbg!(&re);
-    // let new = pattern_ast_to_flat(&re_to_pattern(&re));
+    let new = pattern_ast_to_flat(&re_to_pattern(&re));
     // dbg!(&new);
-    // panic!();
+    let x = Program::compile_from_pat(&new);
+    dbg!(x);
+    dbg!("???");
+    panic!();
 
     let out = eg.add_syn_expr(re.clone());
     eg.check();

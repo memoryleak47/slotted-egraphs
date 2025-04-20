@@ -423,7 +423,7 @@ pub trait Language: Debug + Clone + Hash + Eq {
 
     fn build_recexpr<F>(&self, mut get_node: F) -> RecExprFlat<Self>
     where
-        F: FnMut(Id) -> Self,
+        F: FnMut(AppliedId) -> Self,
     {
         self.try_build_recexpr::<_, std::convert::Infallible>(|id| Ok(get_node(id)))
             .unwrap()
@@ -432,26 +432,32 @@ pub trait Language: Debug + Clone + Hash + Eq {
     /// Same as [`Language::build_recexpr`], but fallible.
     fn try_build_recexpr<F, Err>(&self, mut get_node: F) -> Result<RecExprFlat<Self>, Err>
     where
-        F: FnMut(Id) -> Result<Self, Err>,
+        F: FnMut(AppliedId) -> Result<Self, Err>,
     {
         let mut set = indexmap::IndexSet::<Self>::default();
         let mut ids = HashMap::<Id, Id>::default();
-        let mut todo = self.applied_id_occurrences().to_vec();
+        let mut todo: Vec<AppliedId> = self
+            .applied_id_occurrences()
+            .to_vec()
+            .iter()
+            .map(|aid| aid.clone())
+            .cloned()
+            .collect();
 
-        while let Some(id) = todo.last().copied() {
+        while let Some(id) = todo.last().cloned() {
             if ids.contains_key(&id.id) {
                 todo.pop();
                 continue;
             }
 
-            let node = get_node(id.id)?;
+            let node = get_node(id.clone())?;
 
             // check to see if we can do this node yet
             let mut ids_has_all_children = true;
             for child in node.applied_id_occurrences() {
                 if !ids.contains_key(&child.id) {
                     ids_has_all_children = false;
-                    todo.push(child)
+                    todo.push(child.clone())
                 }
             }
 
@@ -460,7 +466,7 @@ pub trait Language: Debug + Clone + Hash + Eq {
                 // let node = node.map_children(|id| ids[&id]);
                 let mut n2 = node.clone();
                 n2.applied_id_occurrences_mut()
-                    .iter()
+                    .iter_mut()
                     .for_each(|id| id.id = ids[&id.id]);
                 let new_id = set.insert_full(n2).0;
                 ids.insert(id.id, Id(new_id));
@@ -469,9 +475,15 @@ pub trait Language: Debug + Clone + Hash + Eq {
         }
 
         // finally, create the expression and add the root node
-        let mut expr: Vec<_> = set.into_iter().collect();
+        let expr: Vec<_> = set.into_iter().collect();
         let mut expr = RecExprFlat { nodes: expr };
-        expr.add(self.clone().map_children(|id| ids[&id]));
+        let mut nexpr = self.clone();
+        nexpr
+            .applied_id_occurrences_mut()
+            .iter_mut()
+            .for_each(|aid| aid.id = ids[&aid.id]);
+        // .map_children(|id| ids[&id]);
+        expr.add(nexpr);
         Ok(expr)
     }
 }

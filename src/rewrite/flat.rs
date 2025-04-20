@@ -1,3 +1,5 @@
+use std::ops::Index;
+
 use crate::{Id, Language, PatternAst};
 
 use super::{AppliedId, SlotMap};
@@ -14,10 +16,57 @@ pub enum ENodeOrVar<L> {
 pub struct RecExprFlat<L> {
     pub nodes: Vec<L>,
 }
+impl<L: Language> Language for ENodeOrVar<L> {
+    fn all_slot_occurrences_mut(&mut self) -> Vec<&mut super::Slot> {
+        todo!()
+    }
+
+    fn public_slot_occurrences_mut(&mut self) -> Vec<&mut super::Slot> {
+        todo!()
+    }
+
+    fn applied_id_occurrences_mut(&mut self) -> Vec<&mut AppliedId> {
+        match self {
+            ENodeOrVar::ENode(l) => l.applied_id_occurrences_mut(),
+            ENodeOrVar::Var(_) => vec![],
+        }
+    }
+
+    fn all_slot_occurrences(&self) -> Vec<super::Slot> {
+        todo!()
+    }
+
+    fn public_slot_occurrences(&self) -> Vec<super::Slot> {
+        todo!()
+    }
+
+    fn applied_id_occurrences(&self) -> Vec<&AppliedId> {
+        match self {
+            ENodeOrVar::ENode(l) => l.applied_id_occurrences(),
+            ENodeOrVar::Var(_) => vec![],
+        }
+    }
+
+    fn to_syntax(&self) -> Vec<super::SyntaxElem> {
+        todo!()
+    }
+
+    fn from_syntax(_: &[super::SyntaxElem]) -> Option<Self> {
+        todo!()
+    }
+
+    fn slots(&self) -> super::SmallHashSet<super::Slot> {
+        todo!()
+    }
+
+    fn weak_shape_inplace(&mut self) -> super::Bijection {
+        todo!()
+    }
+}
 
 pub type PatternAstFlat<L> = RecExprFlat<ENodeOrVar<L>>;
 
-impl<L: Language> PatternAstFlat<L> {
+impl<L: Language> RecExprFlat<L> {
     /// Creates a new, empty RecExprFlat
     ///
     pub fn new() -> Self {
@@ -32,7 +81,7 @@ impl<L: Language> PatternAstFlat<L> {
     /// Adds a node to the RecExprFlat
     /// and returns its Id
     /// This method enforces the invariant that children must come before parents
-    pub fn add(&mut self, node: ENodeOrVar<L>, child_ids: Option<Vec<AppliedId>>) -> AppliedId {
+    pub fn add(&mut self, node: L) -> AppliedId {
         // For ENodeOrVar, we need to validate child IDs if it's an ENode
         //
         // if let Some(children) = node_children(&node) {
@@ -49,21 +98,17 @@ impl<L: Language> PatternAstFlat<L> {
         // }
         let id = AppliedId::new(Id(self.nodes.len()), SlotMap::new());
 
-        match node {
-            ENodeOrVar::ENode(n) => {
-                let mut new_node = n.clone();
-                new_node
-                    .applied_id_occurrences_mut()
-                    .iter_mut()
-                    .zip(child_ids.unwrap())
-                    .for_each(|(aid, cid)| aid.id = cid.id);
-                self.nodes.push(ENodeOrVar::ENode(new_node));
-                //
-            }
-            n @ ENodeOrVar::Var(_) => {
-                self.nodes.push(n);
-            }
-        }
+        debug_assert!(
+            node.applied_id_occurrences()
+                .iter()
+                .all(|id| id <= &&self.root()),
+            "node {:?} has children not in this expr: {:?}",
+            node,
+            self
+        );
+
+        self.nodes.push(node);
+        // }
         // if let ENodeOrVar::ENode(elem) = node {
         //     panic!()
         // };
@@ -71,6 +116,10 @@ impl<L: Language> PatternAstFlat<L> {
         // // Add the node and return its ID
         // self.nodes.push(node);
         id
+    }
+
+    pub(crate) fn extract(&self, new_root: AppliedId) -> Self {
+        self[new_root].build_recexpr(|id| self[id].clone())
     }
 
     // Additional helper methods
@@ -90,16 +139,32 @@ impl<L: Language> PatternAstFlat<L> {
     }
 }
 
-// Implement indexing for RecExprFlat
-//
-impl<L> std::ops::Index<AppliedId> for PatternAstFlat<L> {
-    type Output = ENodeOrVar<L>;
+impl<L> IntoIterator for RecExprFlat<L> {
+    type Item = L;
+    type IntoIter = std::vec::IntoIter<L>;
 
-    fn index(&self, id: AppliedId) -> &Self::Output {
-        let idx: usize = id.id.0;
-        &self.nodes[idx]
+    fn into_iter(self) -> Self::IntoIter {
+        self.nodes.into_iter()
     }
 }
+
+impl<L: Language> Index<AppliedId> for RecExprFlat<L> {
+    type Output = L;
+    fn index(&self, id: AppliedId) -> &L {
+        &self.nodes[id.id.0]
+    }
+}
+
+// Implement indexing for RecExprFlat
+//
+// impl<L> std::ops::Index<AppliedId> for PatternAstFlat<L> {
+//     type Output = ENodeOrVar<L>;
+
+//     fn index(&self, id: AppliedId) -> &Self::Output {
+//         let idx: usize = id.id.0;
+//         &self.nodes[idx]
+//     }
+// }
 
 /// Converts a PatternAst to the flattened PatternAstFlat representation
 pub fn pattern_ast_to_flat<L: Language + Clone>(pattern: &PatternAst<L>) -> PatternAstFlat<L> {
@@ -114,7 +179,7 @@ pub fn pattern_ast_to_flat<L: Language + Clone>(pattern: &PatternAst<L>) -> Patt
             PatternAst::PVar(name) => {
                 // Create a variable node
                 let var = name.clone();
-                expr.add(ENodeOrVar::Var(var), None)
+                expr.add(ENodeOrVar::Var(var))
             }
             PatternAst::ENode(op, children) => {
                 // Convert children first
@@ -123,8 +188,15 @@ pub fn pattern_ast_to_flat<L: Language + Clone>(pattern: &PatternAst<L>) -> Patt
                     .map(|child| build_flat(child, expr))
                     .collect();
 
+                let mut new_op = op.clone();
+                new_op
+                    .applied_id_occurrences_mut()
+                    .iter_mut()
+                    .zip(child_ids)
+                    .for_each(|(aid, cid)| aid.id = cid.id);
+                // self.nodes.push(ENodeOrVar::ENode(new_node));
                 // Then add this node
-                expr.add(ENodeOrVar::ENode(op.clone()), Some(child_ids))
+                expr.add(ENodeOrVar::ENode(new_op))
             }
             PatternAst::Subst(_body, _varr, _replacementnt) => {
                 // // For substitution, we need to flatten the components in order
