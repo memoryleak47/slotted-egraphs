@@ -87,7 +87,7 @@ fn ematch_node<L: Language, N: Analysis<L>>(
 
         let mut st = st.clone();
 
-        for (x, y) in clear_n2
+        for (x, y) in n2
             .all_slot_occurrences()
             .into_iter()
             .zip(n.all_slot_occurrences().into_iter())
@@ -121,6 +121,8 @@ pub(crate) fn nullify_app_ids<L: Language>(l: &L) -> L {
 fn try_insert_compatible_slotmap_bij(k: Slot, v: Slot, map: &mut SlotMap) -> bool {
     if let Some(v_old) = map.get(k) {
         if v_old != v {
+            // dbg!(k, v, false);
+
             return false;
         }
     }

@@ -1,4 +1,5 @@
 use crate::*;
+
 use std::result;
 
 type Result = result::Result<(), ()>;
@@ -10,6 +11,7 @@ struct Machine {
     reg: Vec<AppliedId>,
     // a buffer to re-use for lookups
     lookup: Vec<AppliedId>,
+    slotmap: SlotMap,
 }
 
 #[derive(Debug, Default, Copy, Clone, PartialEq, Eq, Hash, PartialOrd, Ord)]
@@ -53,11 +55,12 @@ impl Machine {
         N: Analysis<L>,
     {
         let mut instructions = instructions.iter();
+        //     dbg!(&instructions);
         while let Some(instruction) = instructions.next() {
             match instruction {
                 Instruction::Bind { i, out, node } => {
                     let remaining_instructions = instructions.as_slice();
-                    // dbg!(self.reg(*i));
+                    //                 // dbg!(self.reg(*i));
                     // panic!()
                     // let eclass = egraph[self.reg(*i)];
                     // let eclass = egraph.classes.get(&self.reg(*i).id);
@@ -68,7 +71,7 @@ impl Machine {
                         };
                         // egraph.get_group_compatible_variants(&n).iter().for_each(|id|);
 
-                        // dbg!(n.applied_id_occurrences());
+                        //                     // dbg!(n.applied_id_occurrences());
                         // self.reg.extend(n.applied_id_occurrences());
                         // n.applied_id_occurrences()
                         //     .iter()
@@ -76,6 +79,22 @@ impl Machine {
                         self.reg.truncate(out.0 as usize);
                         for aid in n.applied_id_occurrences() {
                             self.reg.push(aid.clone());
+                            //                         // dbg!(egraph
+                            //     .get_group_compatible_variants(&node)
+                            //     .iter()
+                            //     .map(|a| a.all_slot_occurrences())
+                            //     .collect::<Vec<_>>());
+                            //                         // dbg!(egraph
+                            //     .get_group_compatible_variants(&n)
+                            //     .iter()
+                            //     .map(|a| a.all_slot_occurrences())
+                            //     .collect::<Vec<_>>());
+                            //                         dbg!(node
+                            // .all_slot_occurrences()
+                            // .iter()
+                            // .zip(n.all_slot_occurrences().iter())
+                            // .collect::<Vec<_>>());
+                            //                         dbg!(egraph.dump());
                         }
                         self.run(egraph, remaining_instructions, subst, yield_fn)?;
 
@@ -100,10 +119,13 @@ impl Machine {
                     // return Ok(());
                 }
                 Instruction::Compare { i, j } => {
-                    panic!();
-                    // if egraph.find(self.reg(*i)) != egraph.find(self.reg(*j)) {
-                    //     return Ok(());
-                    // }
+                    //                 // dbg!(self.reg(*i), self.reg(*j));
+                    // panic!();
+                    if egraph.find_applied_id(&self.reg(*i))
+                        != egraph.find_applied_id(&self.reg(*j))
+                    {
+                        return Ok(());
+                    }
                 }
                 // verify that a specific pattern described by term exists in the e-graph and is equivalent to the e-class represented by register i.
                 Instruction::Lookup { term, i } => {
@@ -111,24 +133,33 @@ impl Machine {
                     for node in term {
                         match node {
                             ENodeOrReg::ENode(node) => {
-                                // let look = |i| self.lookup[usize::from(i)];
-                                panic!()
+                                let look = |i: &mut AppliedId| self.lookup[i.id.0 as usize].clone();
+                                // panic!()
+                                //
+                                let mut b = node.clone();
+                                b.applied_id_occurrences_mut()
+                                    .into_iter()
+                                    .for_each(|aid| *aid = look(aid));
+                                match egraph.lookup(&b) {
+                                    Some(i) => self.lookup.push(i),
+                                    None => return Ok(()),
+                                }
                                 // match egraph.lookup(node.clone().map_children(look)) {
                                 //     Some(id) => self.lookup.push(id),
                                 //     None => return Ok(()),
                                 // }
                             }
                             ENodeOrReg::Reg(r) => {
-                                // self.lookup.push(egraph.find(self.reg(*r)));
-                                panic!()
+                                self.lookup.push(egraph.find_applied_id(&self.reg(*r)));
+                                // panic!()
                             }
                         }
                     }
 
-                    // let id = egraph.find(self.reg(*i));
-                    // if self.lookup.last().copied() != Some(id) {
-                    //     return Ok(());
-                    // }
+                    let id = egraph.find_applied_id(&self.reg(*i));
+                    if self.lookup.last().cloned() != Some(id) {
+                        return Ok(());
+                    }
                     panic!()
                 }
             }
@@ -370,7 +401,7 @@ impl<L: Language> Program<L> {
                     //         }
                     //     }
                     // }
-                    dbg!(subst);
+                    //                 dbg!(subst);
                     // panic!();
 
                     // let subst_vec = subst
@@ -385,8 +416,8 @@ impl<L: Language> Program<L> {
                         .map(|(s, aid)| (s.clone(), machine.reg(Reg(aid.id.0 as u32))))
                         .collect();
 
-                    dbg!(subst);
-                    panic!();
+                    //                 dbg!(&subst);
+                    // panic!();
 
                     // matches.push(Subst { vec: subst_vec });
                     matches.push(subst);
@@ -412,6 +443,7 @@ pub fn machine_ematch_all<L: Language, N: Analysis<L>>(
 ) -> Vec<Subst> {
     let pattern_flat = pattern_ast_to_flat(pattern);
     let program = Program::compile_from_pat(&pattern_flat);
+    // dbg!("COMPILED", &program);
     let mut out = Vec::new();
     for i in eg.ids() {
         let i = eg.mk_sem_identity_applied_id(i);
@@ -420,4 +452,14 @@ pub fn machine_ematch_all<L: Language, N: Analysis<L>>(
         );
     }
     out
+}
+
+fn try_insert_compatible_slotmap_bij(k: Slot, v: Slot, map: &mut SlotMap) -> bool {
+    if let Some(v_old) = map.get(k) {
+        if v_old != v {
+            return false;
+        }
+    }
+    map.insert(k, v);
+    map.is_bijection()
 }
