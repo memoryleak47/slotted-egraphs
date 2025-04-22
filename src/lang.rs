@@ -421,6 +421,14 @@ pub trait Language: Debug + Clone + Hash + Eq {
         c
     }
 
+    // fn map_children<F: FnMut(AppliedId) -> AppliedId>(mut self, f: F) -> Self {
+    //     // self.update_children(f);
+    //     self.applied_id_occurrences_mut()
+    //         .into_iter()
+    //         .for_each(|aid| *aid = f(*aid));
+    //     self
+    // }
+
     fn build_recexpr<F>(&self, mut get_node: F) -> RecExprFlat<Self>
     where
         F: FnMut(AppliedId) -> Self,
