@@ -16,6 +16,7 @@ pub enum ENodeOrVar<L> {
 pub struct RecExprFlat<L> {
     pub nodes: Vec<L>,
 }
+
 impl<L: Language> Language for ENodeOrVar<L> {
     fn all_slot_occurrences_mut(&mut self) -> Vec<&mut super::Slot> {
         todo!()

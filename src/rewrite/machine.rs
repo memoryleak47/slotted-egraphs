@@ -1,6 +1,6 @@
 use crate::*;
 
-use std::result;
+use std::{collections::HashMap, result};
 
 type Result = result::Result<(), ()>;
 
@@ -55,57 +55,48 @@ impl Machine {
         N: Analysis<L>,
     {
         let mut instructions = instructions.iter();
-        //     dbg!(&instructions);
+        //     //     dbg!(&instructions);
         while let Some(instruction) = instructions.next() {
             match instruction {
-                Instruction::Bind { i, out, node } => {
+                Instruction::Bind {
+                    i,
+                    out,
+                    node: pattern_node,
+                } => {
                     let remaining_instructions = instructions.as_slice();
-                    //                 // dbg!(self.reg(*i));
-                    // panic!()
-                    // let eclass = egraph[self.reg(*i)];
-                    // let eclass = egraph.classes.get(&self.reg(*i).id);
-                    // let mut out = Vec::new();
-                    for n in egraph.enodes_applied(&self.reg(*i)) {
-                        if std::mem::discriminant(node) != std::mem::discriminant(&n) {
+                    'nl: for n in egraph.enodes_applied(&self.reg(*i)) {
+                        if std::mem::discriminant(pattern_node) != std::mem::discriminant(&n) {
                             continue;
                         };
 
-                        // let clear_n2 = nullify_app_ids(node);
-                        // // We can use weak_shape here, as the inputs are nullified
-                        // // i.e. they only have id0() without slot args, so there are no permutations possible.
-                        // let (n_sh, _) = n.weak_shape();
-                        // let (clear_n2_sh, _) = clear_n2.weak_shape();
-                        // if n_sh != clear_n2_sh {
-                        //     // dbg!(n_sh, clear_n2_sh);
-                        //     continue;
-                        // }
-
-                        // egraph.get_group_compatible_variants(&n).iter().for_each(|id|);
-
-                        //                     // dbg!(n.applied_id_occurrences());
-                        // self.reg.extend(n.applied_id_occurrences());
-                        // n.applied_id_occurrences()
-                        //     .iter()
-                        //     .for_each(|aid| self.reg.push(aid.clone()));
                         self.reg.truncate(out.0 as usize);
-                        for aid in n.applied_id_occurrences() {
-                            self.reg.push(aid.clone());
-                            //                         // dbg!(egraph
-                            //     .get_group_compatible_variants(&node)
-                            //     .iter()
-                            //     .map(|a| a.all_slot_occurrences())
-                            //     .collect::<Vec<_>>());
-                            //                         // dbg!(egraph
-                            //     .get_group_compatible_variants(&n)
-                            //     .iter()
-                            //     .map(|a| a.all_slot_occurrences())
-                            //     .collect::<Vec<_>>());
-                            //                         dbg!(node
-                            // .all_slot_occurrences()
-                            // .iter()
-                            // .zip(n.all_slot_occurrences().iter())
-                            // .collect::<Vec<_>>());
-                            //                         dbg!(egraph.dump());
+                        for n2 in egraph.get_group_compatible_weak_variants(&n) {
+                            let clear_n2 = nullify_app_ids(&n2);
+                            // We can use weak_shape here, as the inputs are nullified
+                            // i.e. they only have id0() without slot args, so there are no permutations possible.
+                            let (n_sh, _) = pattern_node.weak_shape();
+                            let (clear_n2_sh, _) = clear_n2.weak_shape();
+                            if n_sh != clear_n2_sh {
+                                continue 'nl;
+                            }
+                            for (x, y) in clear_n2
+                                .all_slot_occurrences()
+                                .into_iter()
+                                .zip(pattern_node.all_slot_occurrences().into_iter())
+                            {
+                                // dbg!(x, y);
+                                if !try_insert_compatible_slotmap_bij(x, y, &mut self.slotmap) {
+                                    //                             //     // dbg!(x, y, &st.partial_slotmap);
+                                    //                             //     dbg!(x,y)
+                                    continue 'nl;
+                                }
+                                //                             // dbg!(x, y, &st.partial_slotmap);
+                                //                             dbg!(x, y);
+                            }
+
+                            for sid in n2.applied_id_occurrences().into_iter() {
+                                self.reg.push(sid.clone());
+                            }
                         }
                         self.run(egraph, remaining_instructions, subst, yield_fn)?;
 
@@ -130,13 +121,17 @@ impl Machine {
                     // return Ok(());
                 }
                 Instruction::Compare { i, j } => {
-                    //                 // dbg!(self.reg(*i), self.reg(*j));
+                    //                 //                 // dbg!(self.reg(*i), self.reg(*j));
                     // panic!();
-                    if egraph.find_applied_id(&self.reg(*i))
-                        != egraph.find_applied_id(&self.reg(*j))
-                    {
+                    // egraph.
+                    if egraph.eq(&self.reg(*i), &self.reg(*j)) {
                         return Ok(());
                     }
+                    // if egraph.find_applied_id(&self.reg(*i))
+                    //     != egraph.find_applied_id(&self.reg(*j))
+                    // {
+                    //     return Ok(());
+                    // }
                 }
                 // verify that a specific pattern described by term exists in the e-graph and is equivalent to the e-class represented by register i.
                 Instruction::Lookup { term, i } => {
@@ -412,7 +407,7 @@ impl<L: Language> Program<L> {
                     //         }
                     //     }
                     // }
-                    //                 dbg!(subst);
+                    //                 //                 dbg!(subst);
                     // panic!();
 
                     // let subst_vec = subst
@@ -426,8 +421,9 @@ impl<L: Language> Program<L> {
                         .iter()
                         .map(|(s, aid)| (s.clone(), machine.reg(Reg(aid.id.0 as u32))))
                         .collect();
+                    let subst = final_subst(subst, machine.slotmap.clone());
 
-                    //                 dbg!(&subst);
+                    //                 //                 dbg!(&subst);
                     // panic!();
 
                     // matches.push(Subst { vec: subst_vec });
@@ -447,6 +443,34 @@ impl<L: Language> Program<L> {
         matches
     }
 }
+fn final_subst(subst: Subst, mut slotmap: SlotMap) -> Subst {
+    // let State {
+    //     partial_subst: mut subst,
+    //     partial_slotmap: mut slotmap,
+    // } = s;
+
+    // let mut slotmap = SlotMap::new();
+    // // dbg!("BEFORE", &subst);
+    // // dbg!(&slotmap);
+    // panic!();
+
+    let mut subst = subst.clone();
+    // Previously, the subst uses `egraph`-based slot names.
+    // Afterwards, the subst uses `pattern`-based slot names.
+    for (_, v) in subst.iter_mut() {
+        // All slots that are not covered by the pattern, need a fresh new name.
+        for s in v.slots() {
+            if !slotmap.contains_key(s) {
+                slotmap.insert(s, Slot::fresh());
+            }
+        }
+
+        *v = v.apply_slotmap(&slotmap);
+    }
+    // dbg!("AFTER", &subst);
+
+    subst
+}
 
 pub fn machine_ematch_all<L: Language, N: Analysis<L>>(
     eg: &EGraph<L, N>,
@@ -454,15 +478,13 @@ pub fn machine_ematch_all<L: Language, N: Analysis<L>>(
 ) -> Vec<Subst> {
     let pattern_flat = pattern_ast_to_flat(pattern);
     let program = Program::compile_from_pat(&pattern_flat);
-    // dbg!("COMPILED", &program);
+    // // dbg!("COMPILED", &program);
     let mut out = Vec::new();
     for i in eg.ids() {
         let i = eg.mk_sem_identity_applied_id(i);
-        out.extend(
-            program.run_with_limit(eg, i, 1000).into_iter(), // .map(final_subst),
-        );
+        out.extend(program.run_with_limit(eg, i, 1000).into_iter());
     }
-    dbg!(&out);
+    // dbg!(&out);
     out
 }
 
