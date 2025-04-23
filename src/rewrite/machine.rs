@@ -69,6 +69,17 @@ impl Machine {
                         if std::mem::discriminant(node) != std::mem::discriminant(&n) {
                             continue;
                         };
+
+                        // let clear_n2 = nullify_app_ids(node);
+                        // // We can use weak_shape here, as the inputs are nullified
+                        // // i.e. they only have id0() without slot args, so there are no permutations possible.
+                        // let (n_sh, _) = n.weak_shape();
+                        // let (clear_n2_sh, _) = clear_n2.weak_shape();
+                        // if n_sh != clear_n2_sh {
+                        //     // dbg!(n_sh, clear_n2_sh);
+                        //     continue;
+                        // }
+
                         // egraph.get_group_compatible_variants(&n).iter().for_each(|id|);
 
                         //                     // dbg!(n.applied_id_occurrences());
@@ -108,7 +119,7 @@ impl Machine {
                     //     self.run(egraph, remaining_instructions, subst, yield_fn)
                     // });
                 }
-                Instruction::Scan { out } => {
+                Instruction::Scan { out: _ } => {
                     panic!("only necessary for multipatterns which we don't have?");
                     // let remaining_instructions = instructions.as_slice();
                     // for class in egraph.classes() {
@@ -451,6 +462,7 @@ pub fn machine_ematch_all<L: Language, N: Analysis<L>>(
             program.run_with_limit(eg, i, 1000).into_iter(), // .map(final_subst),
         );
     }
+    dbg!(&out);
     out
 }
 
