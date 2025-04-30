@@ -446,10 +446,8 @@ pub trait Language: Debug + Clone + Hash + Eq {
         let mut ids = HashMap::<Id, Id>::default();
         let mut todo: Vec<AppliedId> = self
             .applied_id_occurrences()
-            .to_vec()
             .iter()
-            .map(|aid| aid.clone())
-            .cloned()
+            .map(|&aid| aid.clone())
             .collect();
 
         while let Some(id) = todo.last().cloned() {

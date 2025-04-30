@@ -15,9 +15,11 @@ fn criterion_benchmark(c: &mut Criterion) {
 
 criterion_group!(benches, criterion_benchmark);
 fn main() {
-    // benches();
-    // criterion::Criterion::default().configure_from_args().final_summary();
-    batax_v7_csr_dense_unfused_esat();
+    benches();
+    criterion::Criterion::default()
+        .configure_from_args()
+        .final_summary();
+    // batax_v7_csr_dense_unfused_esat();
 }
 
 fn batax_v7_csr_dense_unfused_esat() -> Report {

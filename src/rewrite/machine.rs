@@ -1,5 +1,8 @@
 use crate::*;
 
+// TODO --> Reg
+// pub type Subst = HashMap<Var, Reg>;
+
 use std::{collections::HashMap, result};
 
 type Result = result::Result<(), ()>;
@@ -11,7 +14,7 @@ struct Machine {
     reg: Vec<AppliedId>,
     // a buffer to re-use for lookups
     lookup: Vec<AppliedId>,
-    slotmap: SlotMap,
+    // slotmap: SlotMap, // TODO do we need multiple here?
 }
 
 #[derive(Debug, Default, Copy, Clone, PartialEq, Eq, Hash, PartialOrd, Ord)]
@@ -48,7 +51,9 @@ impl Machine {
         egraph: &EGraph<L, N>,
         instructions: &[Instruction<L>],
         subst: &Subst,
-        yield_fn: &mut impl FnMut(&Self, &Subst) -> Result,
+        yield_fn: &mut impl FnMut(&Self, &Subst, &SlotMap) -> Result,
+        // maybe use old slotmap?
+        old_slotmap: &SlotMap,
     ) -> Result
     where
         L: Language,
@@ -65,12 +70,13 @@ impl Machine {
                 } => {
                     let remaining_instructions = instructions.as_slice();
                     'nl: for n in egraph.enodes_applied(&self.reg(*i)) {
+                        let mut slotmap = old_slotmap.clone();
                         if std::mem::discriminant(pattern_node) != std::mem::discriminant(&n) {
                             continue;
                         };
 
-                        self.reg.truncate(out.0 as usize);
                         for n2 in egraph.get_group_compatible_weak_variants(&n) {
+                            self.reg.truncate(out.0 as usize);
                             let clear_n2 = nullify_app_ids(&n2);
                             // We can use weak_shape here, as the inputs are nullified
                             // i.e. they only have id0() without slot args, so there are no permutations possible.
@@ -85,7 +91,7 @@ impl Machine {
                                 .zip(pattern_node.all_slot_occurrences().into_iter())
                             {
                                 // dbg!(x, y);
-                                if !try_insert_compatible_slotmap_bij(x, y, &mut self.slotmap) {
+                                if !try_insert_compatible_slotmap_bij(x, y, &mut slotmap) {
                                     //                             //     // dbg!(x, y, &st.partial_slotmap);
                                     //                             //     dbg!(x,y)
                                     continue 'nl;
@@ -97,8 +103,8 @@ impl Machine {
                             for sid in n2.applied_id_occurrences().into_iter() {
                                 self.reg.push(sid.clone());
                             }
+                            self.run(egraph, remaining_instructions, subst, yield_fn, &slotmap)?;
                         }
-                        self.run(egraph, remaining_instructions, subst, yield_fn)?;
 
                         // ematch_node(&st, eg, &n, children, &mut out, &nn);
                     }
@@ -124,7 +130,7 @@ impl Machine {
                     //                 //                 // dbg!(self.reg(*i), self.reg(*j));
                     // panic!();
                     // egraph.
-                    if egraph.eq(&self.reg(*i), &self.reg(*j)) {
+                    if !egraph.eq(&self.reg(*i), &self.reg(*j)) {
                         return Ok(());
                     }
                     // if egraph.find_applied_id(&self.reg(*i))
@@ -163,15 +169,21 @@ impl Machine {
                     }
 
                     let id = egraph.find_applied_id(&self.reg(*i));
-                    if self.lookup.last().cloned() != Some(id) {
-                        return Ok(());
+                    // TODO use egraph.eq()
+                    if let Some(id2) = self.lookup.last().cloned() {
+                        if !egraph.eq(&id2, &id) {
+                            return Ok(());
+                        }
                     }
+                    // if self.lookup.last().cloned() != Some(id) {
+                    //     return Ok(());
+                    // }
                     panic!()
                 }
             }
         }
 
-        yield_fn(self, subst)
+        yield_fn(self, subst, old_slotmap)
     }
 }
 
@@ -392,6 +404,7 @@ impl<L: Language> Program<L> {
         let mut machine = Machine::default();
         assert_eq!(machine.reg.len(), 0);
         machine.reg.push(eclass);
+        let slotmap = SlotMap::new();
 
         let mut matches = Vec::new();
         machine
@@ -399,7 +412,7 @@ impl<L: Language> Program<L> {
                 egraph,
                 &self.instructions,
                 &self.subst,
-                &mut |machine, subst| {
+                &mut |machine, subst, slotmap| {
                     // if !egraph.analysis.allow_ematching_cycles() {
                     //     if let Some((first, rest)) = machine.reg.split_first() {
                     //         if rest.contains(first) {
@@ -421,7 +434,7 @@ impl<L: Language> Program<L> {
                         .iter()
                         .map(|(s, aid)| (s.clone(), machine.reg(Reg(aid.id.0 as u32))))
                         .collect();
-                    let subst = final_subst(subst, machine.slotmap.clone());
+                    let subst = final_subst(subst, slotmap.clone());
 
                     //                 //                 dbg!(&subst);
                     // panic!();
@@ -436,6 +449,7 @@ impl<L: Language> Program<L> {
                         Err(())
                     }
                 },
+                &slotmap,
             )
             .unwrap_or_default();
 

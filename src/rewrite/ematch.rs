@@ -1,5 +1,6 @@
 use crate::*;
 
+// TODO --> Reg
 pub type Subst = HashMap<String, AppliedId>;
 
 #[derive(Default, Clone)]
