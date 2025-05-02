@@ -339,6 +339,15 @@ pub trait Language: Debug + Clone + Hash + Eq {
         self.apply_slotmap_partial(m)
     }
 
+    fn apply_slotmap_inplace(mut self, m: &SlotMap) -> Self {
+        for x in self.public_slot_occurrences_mut() {
+            let y = m[*x];
+
+            *x = y;
+        }
+        self
+    }
+
     #[doc(hidden)]
     fn apply_slotmap_fresh(&self, m: &SlotMap) -> Self {
         let mut prv = vec![].into();
