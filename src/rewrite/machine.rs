@@ -9,6 +9,9 @@ type Result = result::Result<(), ()>;
 
 type Var = String;
 
+// TODO --> Reg
+pub type Subst = HashMap<String, AppliedId>;
+
 #[derive(Default)]
 struct Machine {
     reg: Vec<AppliedId>,
@@ -486,7 +489,7 @@ fn final_subst(subst: Subst, mut slotmap: SlotMap) -> Subst {
     subst
 }
 
-pub fn machine_ematch_all<L: Language, N: Analysis<L>>(
+pub fn ematch_all<L: Language, N: Analysis<L>>(
     eg: &EGraph<L, N>,
     pattern: &PatternAst<L>,
 ) -> Vec<Subst> {
@@ -510,4 +513,12 @@ fn try_insert_compatible_slotmap_bij(k: Slot, v: Slot, map: &mut SlotMap) -> boo
     }
     map.insert(k, v);
     map.is_bijection()
+}
+
+pub(crate) fn nullify_app_ids<L: Language>(l: &L) -> L {
+    let mut l = l.clone();
+    for x in l.applied_id_occurrences_mut() {
+        *x = AppliedId::null();
+    }
+    l
 }

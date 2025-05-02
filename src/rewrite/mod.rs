@@ -1,9 +1,6 @@
 use crate::*;
 use std::any::Any;
 
-mod ematch;
-pub use ematch::*;
-
 mod pattern;
 pub use pattern::*;
 
@@ -82,7 +79,7 @@ impl<L: Language + 'static, N: Analysis<L> + 'static> Rewrite<L, N> {
         let rule = rule.to_string();
         let a2 = a.clone();
         RewriteT {
-            searcher: Box::new(move |eg| machine_ematch_all(eg, &a)),
+            searcher: Box::new(move |eg| ematch_all(eg, &a)),
             // eg
             applier: Box::new(move |substs, eg| {
                 Self::apply_substs_cond(substs, &cond, &a2, &b, &rule, eg)
