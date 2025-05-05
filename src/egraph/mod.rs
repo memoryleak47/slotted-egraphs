@@ -188,27 +188,16 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
                 }
             }
 
-            let mut red = SmallHashSet::empty();
+            let mut m = SlotMap::new();
             for slot in x.slots() {
                 if !i.m.contains_key(slot) {
-                    red.insert(slot);
+                    m.insert(slot, Slot::fresh());
                 }
             }
 
-            let m = {
-                let set: &SmallHashSet<Slot> = &red;
-                let mut out = SlotMap::new();
-                for &x in set {
-                    out.insert(x, Slot::fresh());
-                }
-                let other: &SlotMap = &i.m;
-
-                for (x, y) in other.iter() {
-                    out.insert(x, y);
-                }
-
-                out
-            };
+            for (x, y) in i.m.iter() {
+                m.insert(x, y);
+            }
 
             x = x.apply_slotmap_inplace(&m);
             result.push(x);
