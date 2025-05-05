@@ -27,6 +27,9 @@ indexmap = "2.9.0"
 criterion = { version = "0.5", features = ["html_reports"] }
 rand = "0.8.5"
 
+[profile.bench]
+debug = true
+
 [[bench]]
 name = "sdql"
 harness = false
