@@ -104,9 +104,9 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         f: impl Fn(usize, ProvenAppliedId) -> ProvenAppliedId,
     ) -> ProvenNode<L> {
         let mut pn = start.clone();
-        let n = pn.elem.applied_id_occurrences().len();
 
         let mut app_ids_mut: Vec<&mut AppliedId> = pn.elem.applied_id_occurrences_mut();
+        let n = app_ids_mut.len();
 
         #[cfg(feature = "explanations")]
         let proofs_mut: &mut [ProvenEq] = &mut pn.proofs;

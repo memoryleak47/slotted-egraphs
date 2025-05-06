@@ -379,7 +379,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     pub(crate) fn proven_proven_get_group_compatible_variants(
         &self,
         enode: &ProvenNode<L>,
-    ) -> HashSet<ProvenNode<L>> {
+    ) -> Vec<ProvenNode<L>> {
         // should only be called with an up-to-date e-node.
         if CHECKS {
             for x in enode.elem.applied_id_occurrences() {
@@ -387,7 +387,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
             }
         }
 
-        let mut out = HashSet::default();
+        let mut out = Vec::new();
 
         // early-return, if groups are all trivial.
         if enode
@@ -396,7 +396,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
             .iter()
             .all(|i| self.classes[i].group.is_trivial())
         {
-            out.insert(enode.clone());
+            out.push(enode.clone());
             return out;
         }
 
@@ -412,7 +412,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
             let pn = self.chain_pn_map(&pn, |i, pai| self.chain_pai_pp(&pai, l[i]));
             // TODO fix check.
             // if CHECKS { pn.check_base(enode.base()); }
-            out.insert(pn);
+            out.push(pn);
         }
 
         out
@@ -420,21 +420,21 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
 
     // for all AppliedIds that are contained in `enode`, permute their arguments as their groups allow.
     // TODO every usage of this function hurts performance drastically. Which of them can I eliminate?
-    pub(crate) fn proven_get_group_compatible_variants(&self, enode: &L) -> HashSet<ProvenNode<L>> {
+    pub(crate) fn proven_get_group_compatible_variants(&self, enode: &L) -> Vec<ProvenNode<L>> {
         self.proven_proven_get_group_compatible_variants(&self.refl_pn(enode))
     }
 
-    pub(crate) fn get_group_compatible_variants(&self, enode: &L) -> HashSet<L> {
+    pub(crate) fn get_group_compatible_variants(&self, enode: &L) -> Vec<L> {
         self.proven_get_group_compatible_variants(enode)
             .into_iter()
             .map(|pnode| pnode.elem)
             .collect()
     }
 
-    pub(crate) fn get_group_compatible_weak_variants(&self, enode: &L) -> HashSet<L> {
+    pub(crate) fn get_group_compatible_weak_variants(&self, enode: &L) -> Vec<L> {
         let set = self.get_group_compatible_variants(enode);
-        let mut shapes = HashSet::default();
-        let mut out = HashSet::default();
+        let mut shapes = SmallHashSet::empty();
+        let mut out = Vec::new();
 
         for x in set {
             let (sh, _) = x.weak_shape();
@@ -442,7 +442,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
                 continue;
             }
             shapes.insert(sh);
-            out.insert(x);
+            out.push(x);
         }
 
         out
@@ -513,9 +513,7 @@ impl PendingType {
 }
 
 // {1,2} x {3} x {4,5} -> (1,3,4), (1,3,5), (2,3,4), (2,3,5)
-// TODO re-enable use<...> when it's stabilized.
-// fn cartesian<'a, T>(input: &'a [Vec<T>]) -> impl Iterator<Item=Vec<&'a T>> /*+ use<'a, T>*/ + '_ {
-fn cartesian<T>(input: &[Vec<T>]) -> impl Iterator<Item = Vec<&T>> + '_ {
+fn cartesian<'a, T>(input: &'a [Vec<T>]) -> impl Iterator<Item = Vec<&'a T>> + use<'a, T> {
     let n = input.len();
     let mut indices = vec![0; n];
     let mut done = false;

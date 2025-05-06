@@ -146,7 +146,7 @@ bare_language_child!(
     u128, u64, u32, u16, u8, i128, i64, i32, i16, i8, usize, isize, bool, char, Symbol
 );
 
-#[derive(Hash, PartialEq, Eq, Debug, Clone)]
+#[derive(Hash, PartialEq, Eq, Debug, Clone, PartialOrd, Ord)]
 pub struct Bind<T> {
     pub slot: Slot,
     pub elem: T,
@@ -211,7 +211,7 @@ impl<L: LanguageChildren> LanguageChildren for Bind<L> {
 // TODO: add LanguageChildren definition for tuples.
 
 /// A trait to define your Language (i.e. your E-Node type).
-pub trait Language: Debug + Clone + Hash + Eq {
+pub trait Language: Debug + Clone + Hash + Eq + Ord {
     /// List the mutable references of all child [Slot]s in your E-Node, in order of occurrence.
     fn all_slot_occurrences_mut(&mut self) -> Vec<&mut Slot>;
 

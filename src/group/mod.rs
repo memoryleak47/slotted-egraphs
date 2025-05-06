@@ -65,19 +65,16 @@ impl<P: Permutation> Group<P> {
     }
 
     // Should be very rarely called.
-    pub fn all_perms(&self) -> HashSet<P> {
+    pub fn all_perms(&self) -> Vec<P> {
         match &self.next {
             None => [self.identity.clone()].into_iter().collect(),
             Some(n) => {
-                let mut out = HashSet::default();
-
-                let left = n.ot.values().cloned().collect::<HashSet<_>>();
+                let left = n.ot.values().collect::<Vec<_>>();
                 let right = n.g.all_perms();
+                let mut out = Vec::with_capacity(left.len() * right.len());
 
-                for l in &left {
-                    for r in &right {
-                        out.insert(r.compose(l));
-                    }
+                for l in left {
+                    out.extend(right.iter().map(|r| r.compose(l)));
                 }
 
                 if CHECKS {
@@ -88,6 +85,37 @@ impl<P: Permutation> Group<P> {
             }
         }
     }
+
+    // pub fn all_perms2(&self) -> impl Iterator<Item = P> + '_ {
+    //     let mut ia = None;
+    //     let mut ib = None;
+    //     match &self.next {
+    //         None => {
+    //             ia = Some(std::iter::once(self.identity.clone()));
+    //         }
+    //         Some(n) => {
+    //             let left = n.ot.values().cloned().collect::<Vec<_>>();
+    //             ib = Some(
+    //                 left.into_iter()
+    //                     .flat_map(move |l| n.g.all_perms2().map(move |r| r.compose(&l))),
+    //             );
+    //         }
+    //     }
+    //     ia.into_iter().flatten().chain(ib.into_iter().flatten())
+    // }
+
+    // pub fn all_perms_new(&self) -> Box<dyn Iterator<Item = P> + '_> {
+    //     match &self.next {
+    //         None => Box::new(std::iter::once(self.identity.clone())),
+    //         Some(n) => {
+    //             let left = n.ot.values().cloned().collect::<Vec<_>>();
+    //             Box::new(
+    //                 left.into_iter()
+    //                     .flat_map(move |l| n.g.all_perms_new().map(move |r| r.compose(&l))),
+    //             )
+    //         }
+    //     }
+    // }
 
     pub fn contains(&self, p: &Perm) -> bool {
         match &self.next {
