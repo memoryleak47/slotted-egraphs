@@ -360,12 +360,11 @@ mod sdql {
         )
     }
 
-    #[allow(unused)]
     fn sum_range_2() -> SdqlRewrite {
         Rewrite::new_if(
             "sum-range-2",
-            "(sum $k $v (range ?st ?en) (ifthen (eq (var $k) ?key) ?body))",
-            "(let $k ?key (let $v (+ (var $k) (- ?st 1)) ?body))",
+            "(sum (range ?st ?en) $k $v (ifthen (eq (var $k) ?key) ?body))",
+            "(let ?key $k (let (+ (var $k) (- ?st 1)) $v ?body))",
             |subst, _| {
                 !subst["key"].slots().contains(&Slot::named("k"))
                     && !subst["key"].slots().contains(&Slot::named("v"))
@@ -461,6 +460,7 @@ mod sdql {
             sum_sum_vert_fuse_1(),
             sum_sum_vert_fuse_2(),
             sum_range_1(),
+            sum_range_2(),
             sum_merge(),
             get_to_sum(),
             sum_to_get(),
