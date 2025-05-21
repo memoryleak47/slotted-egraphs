@@ -460,7 +460,6 @@ mod sdql {
             sum_sum_vert_fuse_1(),
             sum_sum_vert_fuse_2(),
             sum_range_1(),
-            sum_range_2(),
             sum_merge(),
             get_to_sum(),
             sum_to_get(),

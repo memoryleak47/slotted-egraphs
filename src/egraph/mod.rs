@@ -139,29 +139,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
             .collect()
     }
 
-    // pub fn enodes_applied2(&self, i: &AppliedId) -> impl Iterator<Item = L> {
-    pub fn enodes_applied2(&self, i: &AppliedId) -> Vec<L> {
-        self.classes[&i.id]
-            .nodes
-            .iter()
-            .map(|(x, psn)| {
-                let mut x = x.clone().apply_slotmap_inplace(&psn.elem);
-                // This is necessary, as i.slots() might collide with the private/redundant slots of our e-nodes.
-                let set: SmallHashSet<_> = x
-                    .all_slot_occurrences()
-                    .into_iter()
-                    .collect::<SmallHashSet<_>>()
-                    .difference(&self.classes[&i.id].slots);
-                x = x.refresh_slots(set);
-
-                let red = &x.slots() - &i.m.keys();
-                let fbij = SlotMap::bijection_from_fresh_to(&red);
-                let m = fbij.inverse().union(&i.m);
-                x.apply_slotmap_inplace(&m)
-            })
-            .collect()
-    }
-
+    // Generates fresh slots for redundant slots.
     pub fn enodes_applied(&self, i: &AppliedId) -> Vec<L> {
         let class = &self.classes[&i.id];
         let class_slots = &class.slots;
@@ -171,11 +149,8 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         for (x, psn) in &class.nodes {
             let mut x = x.clone().apply_slotmap_inplace(&psn.elem);
 
-            let mut map: SmallHashMap<Slot> = SmallHashMap::default();
-            for slot in x.all_slot_occurrences_mut()
-            // .into_iter()
-            // .filter(|s| !class_slots.contains(s))
-            {
+            let mut map: SmallHashMap<Slot, Slot> = SmallHashMap::default();
+            for slot in x.all_slot_occurrences_mut() {
                 if !class_slots.contains(&slot) {
                     if let Some(v) = map.get(slot) {
                         *slot = *v;
@@ -184,7 +159,6 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
                         map.insert(slot.clone(), v.clone());
                         *slot = v;
                     }
-                    // *slot = *map.entry(slot.clone()).or_insert(Slot::fresh());
                 }
             }
 
@@ -204,34 +178,6 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         }
 
         result
-    }
-
-    // Generates fresh slots for redundant slots.
-    pub fn enodes_applied_old(&self, i: &AppliedId) -> HashSet<L> {
-        // return self.enodes_applied2(i);
-        let mut out = HashSet::default();
-        for x in self.enodes(i.id) {
-            // This is necessary, as i.slots() might collide with the private/redundant slots of our e-nodes.
-            let set: SmallHashSet<_> = x
-                .all_slot_occurrences()
-                .into_iter()
-                .collect::<SmallHashSet<_>>()
-                .difference(&self.classes[&i.id].slots);
-            let x = x.refresh_slots(set);
-
-            let red = &x.slots() - &i.m.keys();
-            let fbij = SlotMap::bijection_from_fresh_to(&red);
-            let m = fbij.inverse().union(&i.m);
-            out.insert(x.apply_slotmap(&m));
-        }
-
-        if CHECKS {
-            for x in &out {
-                assert!(self.eq(&self.lookup(x).unwrap(), &i));
-            }
-        }
-
-        out
     }
 
     // number of enodes in the egraph.

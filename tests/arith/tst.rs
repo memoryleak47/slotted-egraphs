@@ -10,7 +10,6 @@ fn t1() {
     let b = &format!("(add (var {y}) (var {x}))");
 
     assert_reaches(a, b, &get_all_rewrites()[..], 3);
-    // todo!();
 }
 
 #[test]

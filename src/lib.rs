@@ -23,7 +23,7 @@ pub type HashMap<K, V> = rustc_hash::FxHashMap<K, V>;
 pub type HashSet<T> = rustc_hash::FxHashSet<T>;
 
 pub type SmallHashSet<T> = vec_collections::VecSet<[T; 8]>;
-pub type SmallHashMap<T> = vec_collections::VecMap<[(T, T); 8]>;
+pub type SmallHashMap<T, U> = vec_collections::VecMap<[(T, U); 8]>;
 pub use vec_collections::AbstractVecMap;
 pub use vec_collections::AbstractVecSet;
 

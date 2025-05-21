@@ -86,37 +86,6 @@ impl<P: Permutation> Group<P> {
         }
     }
 
-    // pub fn all_perms2(&self) -> impl Iterator<Item = P> + '_ {
-    //     let mut ia = None;
-    //     let mut ib = None;
-    //     match &self.next {
-    //         None => {
-    //             ia = Some(std::iter::once(self.identity.clone()));
-    //         }
-    //         Some(n) => {
-    //             let left = n.ot.values().cloned().collect::<Vec<_>>();
-    //             ib = Some(
-    //                 left.into_iter()
-    //                     .flat_map(move |l| n.g.all_perms2().map(move |r| r.compose(&l))),
-    //             );
-    //         }
-    //     }
-    //     ia.into_iter().flatten().chain(ib.into_iter().flatten())
-    // }
-
-    // pub fn all_perms_new(&self) -> Box<dyn Iterator<Item = P> + '_> {
-    //     match &self.next {
-    //         None => Box::new(std::iter::once(self.identity.clone())),
-    //         Some(n) => {
-    //             let left = n.ot.values().cloned().collect::<Vec<_>>();
-    //             Box::new(
-    //                 left.into_iter()
-    //                     .flat_map(move |l| n.g.all_perms_new().map(move |r| r.compose(&l))),
-    //             )
-    //         }
-    //     }
-    // }
-
     pub fn contains(&self, p: &Perm) -> bool {
         match &self.next {
             None => p.iter().all(|(x, y)| x == y),

@@ -17,7 +17,6 @@ struct Machine {
     reg: Vec<AppliedId>,
     // a buffer to re-use for lookups
     lookup: Vec<AppliedId>,
-    // slotmap: SlotMap, // TODO do we need multiple here?
 }
 
 #[derive(Debug, Default, Copy, Clone, PartialEq, Eq, Hash, PartialOrd, Ord)]
@@ -55,7 +54,6 @@ impl Machine {
         instructions: &[Instruction<L>],
         subst: &Subst,
         yield_fn: &mut impl FnMut(&Self, &Subst, &SlotMap) -> Result,
-        // maybe use old slotmap?
         old_slotmap: &SlotMap,
     ) -> Result
     where
@@ -63,7 +61,6 @@ impl Machine {
         N: Analysis<L>,
     {
         let mut instructions = instructions.iter();
-        //     //     dbg!(&instructions);
         while let Some(instruction) = instructions.next() {
             match instruction {
                 Instruction::Bind {
@@ -93,14 +90,9 @@ impl Machine {
                                 .into_iter()
                                 .zip(pattern_node.all_slot_occurrences().into_iter())
                             {
-                                // dbg!(x, y);
                                 if !try_insert_compatible_slotmap_bij(x, y, &mut slotmap) {
-                                    //                             //     // dbg!(x, y, &st.partial_slotmap);
-                                    //                             //     dbg!(x,y)
                                     continue 'nl;
                                 }
-                                //                             // dbg!(x, y, &st.partial_slotmap);
-                                //                             dbg!(x, y);
                             }
 
                             for sid in n2.applied_id_occurrences().into_iter() {
@@ -108,39 +100,16 @@ impl Machine {
                             }
                             self.run(egraph, remaining_instructions, subst, yield_fn, &slotmap)?;
                         }
-
-                        // ematch_node(&st, eg, &n, children, &mut out, &nn);
                     }
                     return Ok(());
-
-                    // return eclass.for_each_matching_node(node, |matched| {
-                    //     self.reg.truncate(out.0 as usize);
-                    //     matched.for_each(|id| self.reg.push(id));
-                    //     self.run(egraph, remaining_instructions, subst, yield_fn)
-                    // });
                 }
                 Instruction::Scan { out: _ } => {
-                    panic!("only necessary for multipatterns which we don't have?");
-                    // let remaining_instructions = instructions.as_slice();
-                    // for class in egraph.classes() {
-                    //     self.reg.truncate(out.0 as usize);
-                    //     self.reg.push(class.id);
-                    //     self.run(egraph, remaining_instructions, subst, yield_fn)?
-                    // }
-                    // return Ok(());
+                    panic!("only necessary for multipatterns which we don't support");
                 }
                 Instruction::Compare { i, j } => {
-                    //                 //                 // dbg!(self.reg(*i), self.reg(*j));
-                    // panic!();
-                    // egraph.
                     if !egraph.eq(&self.reg(*i), &self.reg(*j)) {
                         return Ok(());
                     }
-                    // if egraph.find_applied_id(&self.reg(*i))
-                    //     != egraph.find_applied_id(&self.reg(*j))
-                    // {
-                    //     return Ok(());
-                    // }
                 }
                 // verify that a specific pattern described by term exists in the e-graph and is equivalent to the e-class represented by register i.
                 Instruction::Lookup { term, i } => {
@@ -149,8 +118,6 @@ impl Machine {
                         match node {
                             ENodeOrReg::ENode(node) => {
                                 let look = |i: &mut AppliedId| self.lookup[i.id.0 as usize].clone();
-                                // panic!()
-                                //
                                 let mut b = node.clone();
                                 b.applied_id_occurrences_mut()
                                     .into_iter()
@@ -159,28 +126,19 @@ impl Machine {
                                     Some(i) => self.lookup.push(i),
                                     None => return Ok(()),
                                 }
-                                // match egraph.lookup(node.clone().map_children(look)) {
-                                //     Some(id) => self.lookup.push(id),
-                                //     None => return Ok(()),
-                                // }
                             }
                             ENodeOrReg::Reg(r) => {
                                 self.lookup.push(egraph.find_applied_id(&self.reg(*r)));
-                                // panic!()
                             }
                         }
                     }
 
                     let id = egraph.find_applied_id(&self.reg(*i));
-                    // TODO use egraph.eq()
                     if let Some(id2) = self.lookup.last().cloned() {
                         if !egraph.eq(&id2, &id) {
                             return Ok(());
                         }
                     }
-                    // if self.lookup.last().cloned() != Some(id) {
-                    //     return Ok(());
-                    // }
                     panic!()
                 }
             }
@@ -377,17 +335,8 @@ impl<L: Language> Program<L> {
         let mut compiler = Compiler::new();
         compiler.compile(None, pattern);
         let program = compiler.extract();
-        // log::debug!("Compiled {:?} to {:?}", pattern.as_ref(), program);
         program
     }
-
-    // pub(crate) fn compile_from_multi_pat(patterns: &[(Var, PatternAstFlat<L>)]) -> Self {
-    //     let mut compiler = Compiler::new();
-    //     for (var, pattern) in patterns {
-    //         compiler.compile(Some(*var), pattern);
-    //     }
-    //     compiler.extract()
-    // }
 
     pub fn run_with_limit<A>(
         &self,
@@ -398,8 +347,6 @@ impl<L: Language> Program<L> {
     where
         A: Analysis<L>,
     {
-        // assert!(egraph.clean, "Tried to search a dirty e-graph!");
-
         if limit == 0 {
             return vec![];
         }
@@ -416,33 +363,12 @@ impl<L: Language> Program<L> {
                 &self.instructions,
                 &self.subst,
                 &mut |machine, subst, slotmap| {
-                    // if !egraph.analysis.allow_ematching_cycles() {
-                    //     if let Some((first, rest)) = machine.reg.split_first() {
-                    //         if rest.contains(first) {
-                    //             return Ok(());
-                    //         }
-                    //     }
-                    // }
-                    //                 //                 dbg!(subst);
-                    // panic!();
-
-                    // let subst_vec = subst
-                    //     .vec
-                    //     .iter()
-                    //     // HACK we are reusing AppliedIds here, this is bad
-                    //     .map(|(v, reg_id)| (*v, machine.reg(Reg(usize::from(*reg_id) as u32))))
-                    //     .collect();
-                    // TODO
                     let subst = subst
                         .iter()
                         .map(|(s, aid)| (s.clone(), machine.reg(Reg(aid.id.0 as u32))))
                         .collect();
                     let subst = final_subst(subst, slotmap.clone());
 
-                    //                 //                 dbg!(&subst);
-                    // panic!();
-
-                    // matches.push(Subst { vec: subst_vec });
                     matches.push(subst);
 
                     limit -= 1;
@@ -456,21 +382,11 @@ impl<L: Language> Program<L> {
             )
             .unwrap_or_default();
 
-        // log::trace!("Ran program, found {:?}", matches);
         matches
     }
 }
+
 fn final_subst(subst: Subst, mut slotmap: SlotMap) -> Subst {
-    // let State {
-    //     partial_subst: mut subst,
-    //     partial_slotmap: mut slotmap,
-    // } = s;
-
-    // let mut slotmap = SlotMap::new();
-    // // dbg!("BEFORE", &subst);
-    // // dbg!(&slotmap);
-    // panic!();
-
     let mut subst = subst.clone();
     // Previously, the subst uses `egraph`-based slot names.
     // Afterwards, the subst uses `pattern`-based slot names.
@@ -484,7 +400,6 @@ fn final_subst(subst: Subst, mut slotmap: SlotMap) -> Subst {
 
         *v = v.apply_slotmap(&slotmap);
     }
-    // dbg!("AFTER", &subst);
 
     subst
 }
@@ -495,13 +410,11 @@ pub fn ematch_all<L: Language, N: Analysis<L>>(
 ) -> Vec<Subst> {
     let pattern_flat = pattern_ast_to_flat(pattern);
     let program = Program::compile_from_pat(&pattern_flat);
-    // // dbg!("COMPILED", &program);
     let mut out = Vec::new();
     for i in eg.ids() {
         let i = eg.mk_sem_identity_applied_id(i);
         out.extend(program.run_with_limit(eg, i, 1000).into_iter());
     }
-    // dbg!(&out);
     out
 }
 

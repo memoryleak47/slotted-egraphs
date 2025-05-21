@@ -83,20 +83,6 @@ impl<L: Language> RecExprFlat<L> {
     /// and returns its Id
     /// This method enforces the invariant that children must come before parents
     pub fn add(&mut self, node: L) -> AppliedId {
-        // For ENodeOrVar, we need to validate child IDs if it's an ENode
-        //
-        // if let Some(children) = node_children(&node) {
-        //     // Check that all child IDs refer to nodes that already exist
-        //     for &child_id in children {
-        //         let child_idx: usize = child_id.into();
-        //         assert!(
-        //             child_idx < self.nodes.len(),
-        //             "Invalid child ID: {} (expression has {} nodes)",
-        //             child_idx,
-        //             self.nodes.len()
-        //         );
-        //     }
-        // }
         let id = AppliedId::new(Id(self.nodes.len()), SlotMap::new());
 
         debug_assert!(
@@ -109,13 +95,6 @@ impl<L: Language> RecExprFlat<L> {
         );
 
         self.nodes.push(node);
-        // }
-        // if let ENodeOrVar::ENode(elem) = node {
-        //     panic!()
-        // };
-
-        // // Add the node and return its ID
-        // self.nodes.push(node);
         id
     }
 
@@ -156,34 +135,20 @@ impl<L: Language> Index<AppliedId> for RecExprFlat<L> {
     }
 }
 
-// Implement indexing for RecExprFlat
-//
-// impl<L> std::ops::Index<AppliedId> for PatternAstFlat<L> {
-//     type Output = ENodeOrVar<L>;
-
-//     fn index(&self, id: AppliedId) -> &Self::Output {
-//         let idx: usize = id.id.0;
-//         &self.nodes[idx]
-//     }
-// }
-
 /// Converts a PatternAst to the flattened PatternAstFlat representation
 pub fn pattern_ast_to_flat<L: Language + Clone>(pattern: &PatternAst<L>) -> PatternAstFlat<L> {
     let mut result = RecExprFlat::default();
 
-    // Helper closure for post-order traversal
     fn build_flat<L: Language + Clone>(
         node: &PatternAst<L>,
         expr: &mut RecExprFlat<ENodeOrVar<L>>,
     ) -> AppliedId {
         match node {
             PatternAst::PVar(name) => {
-                // Create a variable node
                 let var = name.clone();
                 expr.add(ENodeOrVar::Var(var))
             }
             PatternAst::ENode(op, children) => {
-                // Convert children first
                 let child_ids: Vec<_> = children
                     .iter()
                     .map(|child| build_flat(child, expr))
@@ -195,22 +160,9 @@ pub fn pattern_ast_to_flat<L: Language + Clone>(pattern: &PatternAst<L>) -> Patt
                     .iter_mut()
                     .zip(child_ids)
                     .for_each(|(aid, cid)| aid.id = cid.id);
-                // self.nodes.push(ENodeOrVar::ENode(new_node));
-                // Then add this node
                 expr.add(ENodeOrVar::ENode(new_op))
             }
             PatternAst::Subst(_body, _varr, _replacementnt) => {
-                // // For substitution, we need to flatten the components in order
-                // let body_id = build_flat(body, expr);
-                // let var_id = build_flat(var, expr);
-                // let replacement_id = build_flat(replacement, expr);
-
-                // // Assuming your language has a way to encode substitutions
-                // // Either through a special operation or metadata
-                // expr.add(ENodeOrVar::ENode(
-                //     L::substitution_operator(),
-                //     vec![body_id, var_id, replacement_id],
-                // ))
                 panic!()
             }
         }
