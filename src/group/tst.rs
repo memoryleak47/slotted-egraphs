@@ -47,7 +47,7 @@ fn check_group(generators: impl IntoIterator<Item = Perm>) {
     let identity = SlotMap::identity(&omega);
     let l = Group::new(&identity, generators.clone()).all_perms();
     let r = enrich(generators);
-    assert_eq!(l, r);
+    assert_eq!(HashSet::from_iter(l), r);
 }
 
 fn enrich(perms: HashSet<Perm>) -> HashSet<Perm> {

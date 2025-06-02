@@ -80,7 +80,7 @@ pub fn define_language(input: TokenStream1) -> TokenStream1 {
         .collect();
 
     quote! {
-        #[derive(PartialEq, Eq, Hash, Clone, Debug)]
+        #[derive(PartialEq, Eq, Hash, Clone, Debug, PartialOrd, Ord)]
         #ie
 
         impl Language for #name {
