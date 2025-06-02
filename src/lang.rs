@@ -268,6 +268,10 @@ pub trait Language: Debug + Clone + Hash + Eq {
         assert_eq!(all2, all);
     }
 
+    fn is_leaf(&self) -> bool {
+        self.applied_id_occurrences().len() == 0
+    }
+
     // generated methods:
 
     #[doc(hidden)]
@@ -415,5 +419,78 @@ pub trait Language: Debug + Clone + Hash + Eq {
             }
         }
         c
+    }
+
+    fn map_children<F: FnMut(AppliedId) -> AppliedId>(mut self, mut f: F) -> Self {
+        // self.update_children(f);
+        self.applied_id_occurrences_mut()
+            .into_iter()
+            .for_each(|aid| *aid = f(aid.clone()));
+        self
+    }
+
+    // adapted from https://github.com/egraphs-good/egg/blob/0e5c466c8963753c96bd1611f253f4805f7d7c5e/src/language.rs#L175
+    fn build_recexpr<F>(&self, mut get_node: F) -> RecExprFlat<Self>
+    where
+        F: FnMut(AppliedId) -> Self,
+    {
+        self.try_build_recexpr::<_, std::convert::Infallible>(|id| Ok(get_node(id)))
+            .unwrap()
+    }
+
+    /// Same as [`Language::build_recexpr`], but fallible.
+    fn try_build_recexpr<F, Err>(&self, mut get_node: F) -> Result<RecExprFlat<Self>, Err>
+    where
+        F: FnMut(AppliedId) -> Result<Self, Err>,
+    {
+        let mut set = indexmap::IndexSet::<Self>::default();
+        let mut ids = HashMap::<Id, Id>::default();
+        let mut todo: Vec<AppliedId> = self
+            .applied_id_occurrences()
+            .iter()
+            .map(|&aid| aid.clone())
+            .collect();
+
+        while let Some(id) = todo.last().cloned() {
+            if ids.contains_key(&id.id) {
+                todo.pop();
+                continue;
+            }
+
+            let node = get_node(id.clone())?;
+
+            // check to see if we can do this node yet
+            let mut ids_has_all_children = true;
+            for child in node.applied_id_occurrences() {
+                if !ids.contains_key(&child.id) {
+                    ids_has_all_children = false;
+                    todo.push(child.clone())
+                }
+            }
+
+            // all children are processed, so we can lookup this node safely
+            if ids_has_all_children {
+                // let node = node.map_children(|id| ids[&id]);
+                let mut n2 = node.clone();
+                n2.applied_id_occurrences_mut()
+                    .iter_mut()
+                    .for_each(|id| id.id = ids[&id.id]);
+                let new_id = set.insert_full(n2).0;
+                ids.insert(id.id, Id(new_id));
+                todo.pop();
+            }
+        }
+
+        // finally, create the expression and add the root node
+        let expr: Vec<_> = set.into_iter().collect();
+        let mut expr = RecExprFlat { nodes: expr };
+        let mut nexpr = self.clone();
+        nexpr
+            .applied_id_occurrences_mut()
+            .iter_mut()
+            .for_each(|aid| aid.id = ids[&aid.id]);
+        // .map_children(|id| ids[&id]);
+        expr.add(nexpr);
+        Ok(expr)
     }
 }
