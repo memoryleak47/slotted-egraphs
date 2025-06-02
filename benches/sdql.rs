@@ -1,6 +1,6 @@
 use std::time::Duration;
 
-use criterion::{criterion_group, criterion_main, Criterion};
+use criterion::{criterion_group, Criterion};
 use sdql::*;
 use slotted_egraphs::*;
 
@@ -14,7 +14,17 @@ fn criterion_benchmark(c: &mut Criterion) {
 }
 
 criterion_group!(benches, criterion_benchmark);
-criterion_main!(benches);
+fn main() {
+    #[cfg(not(feature = "profiling"))]
+    {
+        benches();
+        criterion::Criterion::default()
+            .configure_from_args()
+            .final_summary();
+    }
+    #[cfg(feature = "profiling")]
+    batax_v7_csr_dense_unfused_esat();
+}
 
 fn batax_v7_csr_dense_unfused_esat() -> Report {
     let prog = "
