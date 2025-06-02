@@ -1,14 +1,17 @@
 use crate::*;
 use std::any::Any;
 
-mod ematch;
-pub use ematch::*;
-
 mod pattern;
 pub use pattern::*;
 
 mod subst_method;
 pub use subst_method::*;
+
+mod machine;
+pub use machine::*;
+
+mod flat;
+pub use flat::*;
 
 /// An equational rewrite rule.
 pub struct Rewrite<L: Language, N: Analysis<L> = ()> {
@@ -71,8 +74,8 @@ impl<L: Language + 'static, N: Analysis<L> + 'static> Rewrite<L, N> {
         b: &str,
         cond: impl Fn(&Subst, &EGraph<L, N>) -> bool + 'static,
     ) -> Self {
-        let a = Pattern::parse(a).unwrap();
-        let b = Pattern::parse(b).unwrap();
+        let a = PatternAst::parse(a).unwrap();
+        let b = PatternAst::parse(b).unwrap();
         let rule = rule.to_string();
         let a2 = a.clone();
         RewriteT {
@@ -87,8 +90,8 @@ impl<L: Language + 'static, N: Analysis<L> + 'static> Rewrite<L, N> {
     fn apply_substs_cond(
         substs: Vec<Subst>,
         cond: &(impl Fn(&Subst, &EGraph<L, N>) -> bool + 'static),
-        a: &Pattern<L>,
-        b: &Pattern<L>,
+        a: &PatternAst<L>,
+        b: &PatternAst<L>,
         rule: &str,
         eg: &mut EGraph<L, N>,
     ) {

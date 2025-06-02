@@ -1,6 +1,6 @@
 use std::time::Duration;
 
-use criterion::{criterion_group, criterion_main, Criterion};
+use criterion::{criterion_group, Criterion};
 use sdql::*;
 use slotted_egraphs::*;
 
@@ -14,7 +14,17 @@ fn criterion_benchmark(c: &mut Criterion) {
 }
 
 criterion_group!(benches, criterion_benchmark);
-criterion_main!(benches);
+fn main() {
+    #[cfg(not(feature = "profiling"))]
+    {
+        benches();
+        criterion::Criterion::default()
+            .configure_from_args()
+            .final_summary();
+    }
+    #[cfg(feature = "profiling")]
+    batax_v7_csr_dense_unfused_esat();
+}
 
 fn batax_v7_csr_dense_unfused_esat() -> Report {
     let prog = "
@@ -354,8 +364,8 @@ mod sdql {
     fn sum_range_2() -> SdqlRewrite {
         Rewrite::new_if(
             "sum-range-2",
-            "(sum $k $v (range ?st ?en) (ifthen (eq (var $k) ?key) ?body))",
-            "(let $k ?key (let $v (+ (var $k) (- ?st 1)) ?body))",
+            "(sum (range ?st ?en) $k $v (ifthen (eq (var $k) ?key) ?body))",
+            "(let ?key $k (let (+ (var $k) (- ?st 1)) $v ?body))",
             |subst, _| {
                 !subst["key"].slots().contains(&Slot::named("k"))
                     && !subst["key"].slots().contains(&Slot::named("v"))

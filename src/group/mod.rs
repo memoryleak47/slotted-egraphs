@@ -65,19 +65,16 @@ impl<P: Permutation> Group<P> {
     }
 
     // Should be very rarely called.
-    pub fn all_perms(&self) -> HashSet<P> {
+    pub fn all_perms(&self) -> Vec<P> {
         match &self.next {
             None => [self.identity.clone()].into_iter().collect(),
             Some(n) => {
-                let mut out = HashSet::default();
-
-                let left = n.ot.values().cloned().collect::<HashSet<_>>();
+                let left = n.ot.values().collect::<Vec<_>>();
                 let right = n.g.all_perms();
+                let mut out = Vec::with_capacity(left.len() * right.len());
 
-                for l in &left {
-                    for r in &right {
-                        out.insert(r.compose(l));
-                    }
+                for l in left {
+                    out.extend(right.iter().map(|r| r.compose(l)));
                 }
 
                 if CHECKS {
