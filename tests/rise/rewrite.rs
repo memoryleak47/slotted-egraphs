@@ -120,7 +120,7 @@ fn let_lam_diff_unopt() -> Rewrite<Rise> {
 
 fn let_const() -> Rewrite<Rise> {
     // is the const-detection at the same time as the baseline? probably not relevant.
-    let pat = PatternAst::parse("(let $1 ?c ?t)").unwrap();
+    let pat = Pattern::parse("(let $1 ?c ?t)").unwrap();
 
     let rt: RewriteT<Rise> = RewriteT {
         searcher: Box::new(|_| ()),
@@ -223,7 +223,7 @@ fn separate_dot_hv_simplified() -> Rewrite<Rise> {
 // subst using extraction
 #[allow(unused)]
 fn beta_extr() -> Rewrite<Rise> {
-    let pat = PatternAst::parse("(app (lam $1 ?b) ?t)").unwrap();
+    let pat = Pattern::parse("(app (lam $1 ?b) ?t)").unwrap();
     let s = Slot::numeric(1);
 
     let a = pat.clone();
@@ -255,7 +255,7 @@ fn beta_extr() -> Rewrite<Rise> {
 // why is this faster than beta_extr?
 // Probably because it can extract smaller terms after more rewrites?
 fn beta_extr_direct() -> Rewrite<Rise> {
-    let pat = PatternAst::parse("(app (lam $1 ?b) ?t)").unwrap();
+    let pat = Pattern::parse("(app (lam $1 ?b) ?t)").unwrap();
     let s = Slot::numeric(1);
 
     let a = pat.clone();
