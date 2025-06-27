@@ -12,16 +12,16 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         ]
         .into_iter()
         .collect();
-        let a = PatternAst::parse("?a").unwrap();
-        let b = PatternAst::parse("?b").unwrap();
+        let a = Pattern::parse("?a").unwrap();
+        let b = Pattern::parse("?b").unwrap();
 
         self.union_instantiations(&a, &b, &subst, j)
     }
 
     pub fn union_instantiations(
         &mut self,
-        from_pat: &PatternAst<L>,
-        to_pat: &PatternAst<L>,
+        from_pat: &Pattern<L>,
+        to_pat: &Pattern<L>,
         subst: &Subst,
         #[allow(unused)] justification: Option<String>,
     ) -> bool {
