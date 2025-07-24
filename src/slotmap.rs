@@ -1,6 +1,8 @@
 use std::ops::Index;
 
 #[derive(Clone, Debug, Hash, PartialEq, Eq)]
+// slotmap m maps x to m.0[x.0]
+// we require that a slotmap m has m.0 is a reordering of 0..m.len()
 pub struct SlotMap(pub Box<[Slot]>);
 
 #[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
