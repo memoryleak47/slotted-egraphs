@@ -19,7 +19,7 @@ impl SlotMap {
     }
 
     pub fn is_identity(&self) -> bool {
-        self.slice.iter().enumerate().all(|(i, x)| i as u32 == x.n)
+        self.iter_unfiltered().all(|(x, y)| x == y)
     }
 
     // corresponds to (self * other)[x] = self[other[x]], just like in the paper.
@@ -27,7 +27,7 @@ impl SlotMap {
         let ib = self.img_bound();
         let mut slice = vec![Slot::MISSING; ib.n as usize];
 
-        for (x, y) in other.iter() {
+        for (x, y) in other.iter_unfiltered() {
             slice[x.n as usize] = self[y];
         }
 
@@ -54,8 +54,7 @@ impl SlotMap {
 
     // exclusive upper bound of all img (aka value) slots.
     fn img_bound(&self) -> Slot {
-        let it = self.slice.iter().filter(|x| **x != Slot::MISSING);
-        match it.max() {
+        match self.img().max() {
             Some(Slot { n }) => Slot { n: n+1 },
             None => Slot { n: 0 },
         }
@@ -63,9 +62,12 @@ impl SlotMap {
 
     // TODO impl into_iter
     fn iter(&self) -> impl Iterator<Item=(Slot, Slot)> {
+        self.iter_unfiltered().filter(|(_, y)| *y != Slot::MISSING)
+    }
+
+    fn iter_unfiltered(&self) -> impl Iterator<Item=(Slot, Slot)> {
         self.slice.iter().enumerate()
                   .map(|(i, x)| (Slot { n: i as u32 }, *x))
-                  .filter(|(_, y)| *y != Slot::MISSING)
     }
 
     fn dom(&self) -> impl Iterator<Item=Slot> {
