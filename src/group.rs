@@ -6,6 +6,10 @@ use std::collections::HashMap;
 // https://en.wikipedia.org/wiki/Schreier%27s_lemma
 // I define "x y" = x.compose(y)
 
+// NOTE: We could use specialized implementations of .compose() and .inverse() that
+//       exploit the fact that we know dom() = img().
+//       It could even use the same SlotMap datastructure just some extra functions on it.
+
 type OT = [Option<SlotMap>];
 
 #[derive(Clone, Debug)]
