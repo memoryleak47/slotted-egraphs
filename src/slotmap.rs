@@ -16,17 +16,17 @@ use std::ops::Index;
 // -- technically, if we give it two AppliedIds, we could get the (<=) back.
 
 #[derive(Clone, Debug, Hash, PartialEq, Eq)]
-// slotmap m maps x to m.0[x.0]
+// slotmap m maps x to m.0[x.0] if it's not Slot::missing
 // we require that a slotmap m has m.0 is a reordering of 0..m.len()
 pub struct SlotMap(pub Box<[Slot]>);
 
 #[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
-pub struct Slot(pub usize);
+pub struct Slot(pub u32);
 
 impl SlotMap {
     pub fn identity(arity: usize) -> SlotMap {
-        let v: Vec<_> = (0..arity).map(Slot).collect();
-        SlotMap(v.into_boxed_slice())
+        let v: Box<[_]> = (0..arity).map(|x| Slot(x as _)).collect();
+        SlotMap(v)
     }
 
     pub fn compose(&self, other: &SlotMap) -> SlotMap {
@@ -34,15 +34,24 @@ impl SlotMap {
     }
 
     pub fn inverse(&self) -> SlotMap {
-        let v: Vec<_> = self.0.iter().copied().rev().collect();
-        SlotMap(v.into_boxed_slice())
+        // TODO handle missing entries.
+        let v: Box<[_]> = self.0.iter().copied().rev().collect();
+        SlotMap(v)
     }
 }
+
+static MISSING_REF: Slot = Slot::missing();
 
 impl Index<Slot> for SlotMap {
     type Output = Slot;
 
     fn index(&self, index: Slot) -> &Slot {
-        &self.0[index.0]
+        self.0.get(index.0 as usize).unwrap_or(&MISSING_REF)
+    }
+}
+
+impl Slot {
+    pub const fn missing() -> Slot {
+        Slot(u32::MAX)
     }
 }
