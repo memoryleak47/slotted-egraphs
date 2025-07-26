@@ -74,9 +74,9 @@ impl Group {
 
     pub fn contains(&self, p: &SlotMap) -> bool {
         match &self.next {
-            None => p.0.iter().enumerate().all(|(x, y)| Slot(x as u32) == *y),
+            None => p.is_identity(),
             Some(n) => {
-                let Some(part) = &n.ot[p[n.stab].0 as usize] else { return false };
+                let Some(part) = &n.ot[p[n.stab].n as usize] else { return false };
                 n.g.contains(&p.compose(&part.inverse()))
             }
         }
@@ -101,7 +101,7 @@ impl Next {
 
 fn build_ot(stab: Slot, arity: usize, generators: &HashSet<SlotMap>) -> Box<OT> {
     let mut ot: Box<OT> = vec![None; arity].into_boxed_slice();
-    ot[stab.0 as usize] = Some(SlotMap::identity(arity));
+    ot[stab.n as usize] = Some(SlotMap::identity(arity));
 
     loop {
         let len = ot.len();
@@ -110,8 +110,8 @@ fn build_ot(stab: Slot, arity: usize, generators: &HashSet<SlotMap>) -> Box<OT> 
             for v in ot.clone().iter().filter_map(|x| x.as_ref()) {
                 let new = v.compose(g);
                 let target = new[stab];
-                if ot[target.0 as usize].is_none() {
-                    ot[target.0 as usize] = Some(new);
+                if ot[target.n as usize].is_none() {
+                    ot[target.n as usize] = Some(new);
                 }
             }
         }
@@ -130,7 +130,7 @@ fn schreiers_lemma(stab: Slot, ot: &OT, generators: HashSet<SlotMap>) -> HashSet
         let Some(r) = r else { continue };
         for s in &generators {
             let rs = r.compose(s);
-            let Some(rs2) = &ot[rs[stab].0 as usize] else { continue };
+            let Some(rs2) = &ot[rs[stab].n as usize] else { continue };
             let rs2_inv = rs2.inverse();
             out.insert(rs.compose(&rs2_inv));
         }
@@ -142,8 +142,8 @@ fn schreiers_lemma(stab: Slot, ot: &OT, generators: HashSet<SlotMap>) -> HashSet
 fn find_lowest_nonstab(generators: &HashSet<SlotMap>) -> Option<Slot> {
     let mut min = None;
     for gen_ in generators {
-        for (x, y) in gen_.0.iter().enumerate() {
-            let x = Slot(x as u32);
+        for (x, y) in gen_.slice.iter().enumerate() {
+            let x = Slot { n: x as u32 };
             if x != *y {
                 min = min.iter().copied().chain(std::iter::once(x)).min();
             }

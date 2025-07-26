@@ -1,16 +1,25 @@
 use std::ops::Index;
 
 #[derive(Clone, Debug, Hash, PartialEq, Eq)]
-// slotmap m, has m[x] = m.0[x.0], we return Slot::missing for unmapped slots.
-pub struct SlotMap(pub Box<[Slot]>);
+// slotmap m, has m[x] = m.slice[x.n], we return Slot::missing for unmapped slots.
+// invariant: m.slice is minimal: m[m.len()-1] != Slot:missing.
+pub struct SlotMap {
+    pub slice: Box<[Slot]>
+}
 
 #[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
-pub struct Slot(pub u32);
+pub struct Slot {
+    pub n: u32,
+}
 
 impl SlotMap {
     pub fn identity(arity: usize) -> SlotMap {
-        let v: Box<[_]> = (0..arity).map(|x| Slot(x as _)).collect();
-        SlotMap(v)
+        let v: Box<[_]> = Slot::it().take(arity).collect();
+        SlotMap { slice: v }
+    }
+
+    pub fn is_identity(&self) -> bool {
+        self.slice.iter().enumerate().all(|(i, x)| i as u32 == x.n)
     }
 
     // corresponds to (self * other)[x] = self[other[x]], just like in the paper.
@@ -19,24 +28,45 @@ impl SlotMap {
     }
 
     pub fn inverse(&self) -> SlotMap {
-        // TODO handle missing entries.
-        let v: Box<[_]> = self.0.iter().copied().rev().collect();
-        SlotMap(v)
+        let ib = self.img_bound();
+        let mut slice = vec![Slot::MISSING; ib.n as usize].into_boxed_slice();
+        for (i, x) in self.slice.iter().enumerate() {
+            // we know self[i] = x.
+            // thus slice[x] = i.
+            slice[x.n as usize] = Slot { n: i as u32 };
+        }
+        SlotMap { slice }
+    }
+
+    // exclusive upper bound of all domain (aka key) slots.
+    fn dom_bound(&self) -> Slot {
+        Slot { n: self.slice.len() as u32 }
+    }
+
+    // exclusive upper bound of all img (aka value) slots.
+    fn img_bound(&self) -> Slot {
+        let it = self.slice.iter().filter(|x| **x != Slot::MISSING);
+        match it.max() {
+            Some(Slot { n }) => Slot { n: n+1 },
+            None => Slot { n: 0 },
+        }
     }
 }
-
-static MISSING_REF: Slot = Slot::missing();
 
 impl Index<Slot> for SlotMap {
     type Output = Slot;
 
     fn index(&self, index: Slot) -> &Slot {
-        self.0.get(index.0 as usize).unwrap_or(&MISSING_REF)
+        self.slice.get(index.n as usize).unwrap_or(&MISSING_REF)
     }
 }
 
+pub static MISSING_REF: Slot = Slot::MISSING;
+
 impl Slot {
-    pub const fn missing() -> Slot {
-        Slot(u32::MAX)
+    pub const MISSING: Slot = Slot { n: u32::MAX };
+
+    pub fn it() -> impl Iterator<Item=Slot> {
+        (0..).map(|n| Slot { n })
     }
 }
