@@ -24,16 +24,25 @@ impl SlotMap {
 
     // corresponds to (self * other)[x] = self[other[x]], just like in the paper.
     pub fn compose(&self, other: &SlotMap) -> SlotMap {
-        todo!()
+        let ib = self.img_bound();
+        let mut slice = vec![Slot::MISSING; ib.n as usize];
+
+        for (x, y) in other.iter() {
+            slice[x.n as usize] = self[y];
+        }
+
+        while slice.last() == Some(&Slot::MISSING) { slice.pop(); }
+        let slice = slice.into_boxed_slice();
+        SlotMap { slice }
     }
 
     pub fn inverse(&self) -> SlotMap {
         let ib = self.img_bound();
         let mut slice = vec![Slot::MISSING; ib.n as usize].into_boxed_slice();
-        for (i, x) in self.slice.iter().enumerate() {
-            // we know self[i] = x.
-            // thus slice[x] = i.
-            slice[x.n as usize] = Slot { n: i as u32 };
+        for (x, y) in self.iter() {
+            // we know self[x] = y.
+            // thus slice[y] = x.
+            slice[y.n as usize] = x;
         }
         SlotMap { slice }
     }
@@ -50,6 +59,21 @@ impl SlotMap {
             Some(Slot { n }) => Slot { n: n+1 },
             None => Slot { n: 0 },
         }
+    }
+
+    // TODO impl into_iter
+    fn iter(&self) -> impl Iterator<Item=(Slot, Slot)> {
+        self.slice.iter().enumerate()
+                  .map(|(i, x)| (Slot { n: i as u32 }, *x))
+                  .filter(|(_, y)| *y != Slot::MISSING)
+    }
+
+    fn dom(&self) -> impl Iterator<Item=Slot> {
+        self.iter().map(|(x, _)| x)
+    }
+
+    fn img(&self) -> impl Iterator<Item=Slot> {
+        self.iter().map(|(_, y)| y)
     }
 }
 
