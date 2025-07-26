@@ -36,6 +36,30 @@ impl SlotMap {
         SlotMap { slice }
     }
 
+    // (m1 * m2 * m3)[x] = m1[m2[m3[x]]]
+    // chain = [m1, m2, m3].
+    pub fn compose_chain<const N: usize>(chain: [&SlotMap; N]) -> SlotMap {
+        assert!(N >= 2);
+
+        let first: &SlotMap = chain.first().unwrap(); // first in the chain, last applied.
+        let last: &SlotMap = chain.last().unwrap(); // last in the chain, first applied.
+
+        let ib = first.img_bound();
+        let mut slice = vec![Slot::MISSING; ib.n as usize];
+
+        for (x, mut s) in last.iter_unfiltered() {
+            //       chain[0..N-1] as last[s] was already covered in the above iteration.
+            for m in chain[0..N-1].iter().rev() {
+                s = m[s];
+            }
+            slice[x.n as usize] = s;
+        }
+
+        while slice.last() == Some(&Slot::MISSING) { slice.pop(); }
+        let slice = slice.into_boxed_slice();
+        SlotMap { slice }
+    }
+
     pub fn inverse(&self) -> SlotMap {
         let ib = self.img_bound();
         let mut slice = vec![Slot::MISSING; ib.n as usize].into_boxed_slice();
