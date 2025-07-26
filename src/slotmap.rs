@@ -2,7 +2,7 @@ use std::ops::Index;
 
 #[derive(Clone, Debug, Hash, PartialEq, Eq)]
 // slotmap m, has m[x] = m.slice[x.n], we return Slot::MISSING for unmapped slots.
-// invariant: m.slice is minimal: m[m.len()-1] != Slot:MISSING.
+// invariant: m.slice is minimal: m[m.len()-1] != Slot::MISSING.
 pub struct SlotMap {
     pub slice: Box<[Slot]>
 }
