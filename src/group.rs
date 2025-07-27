@@ -17,7 +17,7 @@ pub struct Group {
     // all perms are bijections : omega -> omega.
     // omega = keys(identity) = values(identity).
     // omega = 0..arity
-    arity: usize,
+    pub arity: usize,
     next: Option<Box<Next>>,
 }
 

@@ -29,11 +29,12 @@ struct AppliedId {
     m: SlotMap,
 }
 
-struct Id(usize);
+#[derive(Clone, Copy, Hash, Debug, PartialEq, Eq, PartialOrd, Ord)]
+struct Id { n: usize }
 
 impl Unionfind {
-    pub fn add(&mut self, arity: usize) -> Id { // should this return AppliedId?
-        let i = Id(self.classes.len());
+    pub fn add(&mut self, arity: usize) -> Id {
+        let i = Id { n: self.classes.len() };
         self.classes.push(Class::Leader(LeaderClass {
             group: Group::trivial(arity),
         }));
@@ -43,6 +44,24 @@ impl Unionfind {
     // m maps from slots(x) -> slots(y).
     pub fn union(&mut self, x: Id, y: Id, m: &SlotMap) {
         todo!()
+    }
+
+    // TODO add path compression.
+    fn find(&self, x: Id) -> AppliedId {
+        match &self.classes[x.n] {
+            Class::Leader(c) => AppliedId {
+                id: x,
+                m: SlotMap::identity(c.group.arity),
+            },
+            Class::Follower(c) => {
+                let AppliedId { m, id } = &c.leader;
+                let AppliedId { m: m2, id: id2 } = self.find(*id);
+                AppliedId {
+                    id: id2,
+                    m: m.compose(&m2),
+                }
+            },
+        }
     }
 
     // m maps from slots(x) -> slots(y).
