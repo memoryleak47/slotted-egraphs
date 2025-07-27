@@ -147,7 +147,7 @@ fn find_lowest_nonstab(generators: &HashSet<SlotMap>) -> Option<Slot> {
     let mut min = None;
     for gen_ in generators {
         for (x, y) in gen_.slice.iter().enumerate() {
-            let x = Slot { n: x as u32 };
+            let x = Slot { n: x as SlotPayload };
             if x != *y {
                 min = min.iter().copied().chain(std::iter::once(x)).min();
             }

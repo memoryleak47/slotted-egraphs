@@ -7,9 +7,11 @@ pub struct SlotMap {
     pub slice: Box<[Slot]>
 }
 
+pub type SlotPayload = u16;
+
 #[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
 pub struct Slot {
-    pub n: u32,
+    pub n: SlotPayload,
 }
 
 impl SlotMap {
@@ -73,7 +75,7 @@ impl SlotMap {
 
     // exclusive upper bound of all domain (aka key) slots.
     fn dom_bound(&self) -> Slot {
-        Slot { n: self.slice.len() as u32 }
+        Slot { n: self.slice.len() as SlotPayload }
     }
 
     // exclusive upper bound of all img (aka value) slots.
@@ -91,7 +93,7 @@ impl SlotMap {
 
     fn iter_unfiltered(&self) -> impl Iterator<Item=(Slot, Slot)> {
         self.slice.iter().enumerate()
-                  .map(|(i, x)| (Slot { n: i as u32 }, *x))
+                  .map(|(i, x)| (Slot { n: i as SlotPayload }, *x))
     }
 
     fn dom(&self) -> impl Iterator<Item=Slot> {
@@ -114,7 +116,7 @@ impl Index<Slot> for SlotMap {
 pub static MISSING_REF: Slot = Slot::MISSING;
 
 impl Slot {
-    pub const MISSING: Slot = Slot { n: u32::MAX };
+    pub const MISSING: Slot = Slot { n: SlotPayload::MAX };
 
     pub fn it() -> impl Iterator<Item=Slot> {
         (0..).map(|n| Slot { n })
