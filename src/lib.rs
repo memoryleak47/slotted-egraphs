@@ -21,12 +21,8 @@ struct LeaderClass {
 }
 
 struct FollowerClass {
-    leader: AppliedId,
-}
-
-struct AppliedId {
-    id: Id,
-    m: SlotMap,
+    leader_id: Id,
+    leader_m: SlotMap,
 }
 
 #[derive(Clone, Copy, Hash, Debug, PartialEq, Eq, PartialOrd, Ord)]
@@ -44,24 +40,6 @@ impl Unionfind {
     // m maps from slots(x) -> slots(y).
     pub fn union(&mut self, x: Id, y: Id, m: &SlotMap) {
         todo!()
-    }
-
-    // TODO add path compression.
-    fn find(&self, x: Id) -> AppliedId {
-        match &self.classes[x.n] {
-            Class::Leader(c) => AppliedId {
-                id: x,
-                m: SlotMap::identity(c.group.arity),
-            },
-            Class::Follower(c) => {
-                let AppliedId { m, id } = &c.leader;
-                let AppliedId { m: m2, id: id2 } = self.find(*id);
-                AppliedId {
-                    id: id2,
-                    m: m.compose(&m2),
-                }
-            },
-        }
     }
 
     // m maps from slots(x) -> slots(y).
