@@ -40,11 +40,13 @@ impl Unionfind {
         i
     }
 
-    pub fn union(&mut self, x: &AppliedId, y: &AppliedId) {
+    // m maps from slots(x) -> slots(y).
+    pub fn union(&mut self, x: Id, y: Id, m: &SlotMap) {
         todo!()
     }
 
-    pub fn eq(&self, x: &AppliedId, y: &AppliedId) -> bool {
+    // m maps from slots(x) -> slots(y).
+    pub fn eq(&self, x: Id, y: Id, m: &SlotMap) -> bool {
         todo!()
     }
 }
