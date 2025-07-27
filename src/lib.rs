@@ -10,10 +10,18 @@ struct Unionfind {
     classes: Vec<Class>,
 }
 
-struct Class {
-    leader: AppliedId,
+enum Class {
+    Leader(LeaderClass),
+    Follower(FollowerClass),
+}
+
+struct LeaderClass {
+    // NOTE: arity of the class is stored in the group.
     group: Group,
-    arity: usize, // for now. will probably be stored somewhere else later.
+}
+
+struct FollowerClass {
+    leader: AppliedId,
 }
 
 struct AppliedId {
@@ -26,11 +34,9 @@ struct Id(usize);
 impl Unionfind {
     pub fn add(&mut self, arity: usize) -> Id { // should this return AppliedId?
         let i = Id(self.classes.len());
-        self.classes.push(Class {
-            leader: todo!(),
-            group: todo!(),
-            arity,
-        });
+        self.classes.push(Class::Leader(LeaderClass {
+            group: Group::trivial(arity),
+        }));
         i
     }
 
