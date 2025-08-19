@@ -95,9 +95,9 @@ where
     IterData: IterationData<L, N>,
     CustomErrorT: Clone,
 {
-    pub fn new() -> Self {
+    pub fn new(n: N) -> Self {
         Self {
-            egraph: EGraph::new(),
+            egraph: EGraph::new(n),
             iterations: vec![],
             stop_reason: None,
             limits: RunnerLimits {
@@ -203,12 +203,14 @@ where
     }
 }
 
-impl<L, N> Default for Runner<L, N>
+impl<L, N, IterData, CustomErrorT> Default for Runner<L, N, IterData, CustomErrorT>
 where
     L: Language,
     N: Analysis<L> + Default,
+    IterData: IterationData<L, N>,
+    CustomErrorT: Clone,
 {
     fn default() -> Self {
-        Runner::new()
+        Runner::new(Default::default())
     }
 }

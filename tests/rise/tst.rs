@@ -26,7 +26,7 @@ pub fn binomial() {
 
 #[test]
 fn small15() {
-    let eg: &mut EGraph<Rise> = &mut EGraph::new();
+    let eg: &mut EGraph<Rise> = &mut EGraph::default();
     equate("(app a (var $0))", "(app b (var $0))", eg); // a(x) = b(x)
 
     // Removing this equation, makes it work.
@@ -37,7 +37,7 @@ fn small15() {
 
 #[test]
 fn small14() {
-    let eg: &mut EGraph<Rise> = &mut EGraph::new();
+    let eg: &mut EGraph<Rise> = &mut EGraph::default();
     equate("(app (var $0) (var $1))", "(app (var $1) (var $2))", eg);
     eg.dump();
     eg.check();
@@ -50,7 +50,7 @@ fn small14() {
 
 #[test]
 fn small13() {
-    let eg: &mut EGraph<Rise> = &mut EGraph::new();
+    let eg: &mut EGraph<Rise> = &mut EGraph::default();
     equate("(app (var $0) (var $1))", "(app (var $1) (var $0))", eg);
     eg.dump();
     explain(
@@ -62,7 +62,7 @@ fn small13() {
 
 #[test]
 fn small12() {
-    let eg: &mut EGraph<Rise> = &mut EGraph::new();
+    let eg: &mut EGraph<Rise> = &mut EGraph::default();
     equate("(var $0)", "y", eg);
     eg.dump();
     explain("(lam $1 (var $1))", "(lam $0 (var $0))", eg);
@@ -71,7 +71,7 @@ fn small12() {
 
 #[test]
 fn small11() {
-    let eg: &mut EGraph<Rise> = &mut EGraph::new();
+    let eg: &mut EGraph<Rise> = &mut EGraph::default();
 
     equate("(app (var $0) (var $1))", "(app (var $0) x)", eg);
     equate("(app (var $0) (var $1))", "(app (var $1) (var $0))", eg);
@@ -81,7 +81,7 @@ fn small11() {
 
 #[test]
 fn small10() {
-    let eg: &mut EGraph<Rise> = &mut EGraph::new();
+    let eg: &mut EGraph<Rise> = &mut EGraph::default();
     equate("(app (var $0) (var $1))", "x", eg);
     eg.dump();
     explain("(app (var $0) (var $1))", "(app (var $1) (var $0))", eg);
@@ -89,7 +89,7 @@ fn small10() {
 
 #[test]
 fn small9() {
-    let eg: &mut EGraph<Rise> = &mut EGraph::new();
+    let eg: &mut EGraph<Rise> = &mut EGraph::default();
     equate("(app (var $0) x)", "y", eg);
     eg.dump();
     explain("(app (var $0) x)", "(app (var $1) x)", eg);
@@ -97,7 +97,7 @@ fn small9() {
 
 #[test]
 fn small8() {
-    let eg: &mut EGraph<Rise> = &mut EGraph::new();
+    let eg: &mut EGraph<Rise> = &mut EGraph::default();
     equate(
         "(app (app (var $0) (var $1)) x)",
         "(app (app (var $1) (var $0)) x)",
@@ -123,7 +123,7 @@ fn small8() {
 
 #[test]
 fn small7() {
-    let eg: &mut EGraph<Rise> = &mut EGraph::new();
+    let eg: &mut EGraph<Rise> = &mut EGraph::default();
     equate(
         "(app (app (var $0) (var $1)) (var $2))",
         "(app (app (var $1) (var $0)) (var $2))",
@@ -169,7 +169,7 @@ fn small7() {
 
 #[test]
 fn small6() {
-    let eg: &mut EGraph<Rise> = &mut EGraph::new();
+    let eg: &mut EGraph<Rise> = &mut EGraph::default();
     equate("(app (var $0) (var $1))", "(app (var $1) (var $0))", eg);
     eg.dump();
     explain("(app (var $0) (var $1))", "(app (var $1) (var $0))", eg);
@@ -177,7 +177,7 @@ fn small6() {
 
 #[test]
 fn small5() {
-    let eg: &mut EGraph<Rise> = &mut EGraph::new();
+    let eg: &mut EGraph<Rise> = &mut EGraph::default();
     equate("(var $0)", "(app (var $0) x)", eg);
     equate("x", "y", eg);
     eg.dump();
@@ -186,7 +186,7 @@ fn small5() {
 
 #[test]
 fn small3() {
-    let eg: &mut EGraph<Rise> = &mut EGraph::new();
+    let eg: &mut EGraph<Rise> = &mut EGraph::default();
     let x1 = id("x1", eg);
     let x2 = id("x2", eg);
     let x1x3: RecExpr<Rise> = term("(app x1 x3)");
@@ -206,7 +206,7 @@ fn small2() {
     let x2 = p("x2");
     let x3 = p("x3");
     let x4 = p("x4");
-    let mut eg: EGraph<Rise> = EGraph::new();
+    let mut eg: EGraph<Rise> = EGraph::default();
     let y1 = eg.add_expr(x1.clone());
     let y2 = eg.add_expr(x2.clone());
     let y3 = eg.add_expr(x3.clone());

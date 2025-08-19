@@ -56,6 +56,8 @@ pub struct EGraph<L: Language, N: Analysis<L> = ()> {
     pub(crate) proof_registry: ProofRegistry,
 
     pub(crate) subst_method: Option<Box<dyn SubstMethod<L, N>>>,
+
+    pub analysis: N,
 }
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
@@ -86,17 +88,23 @@ pub(crate) struct EClass<L: Language, N: Analysis<L>> {
     // TODO remove this if explanations are disabled.
     syn_enode: L,
 
-    analysis_data: N,
+    analysis_data: N::Data,
+}
+
+impl<L: Language, N: Analysis<L> + Default> Default for EGraph<L, N> {
+    fn default() -> Self {
+        EGraph::new(N::default())
+    }
 }
 
 impl<L: Language, N: Analysis<L>> EGraph<L, N> {
     /// Creates an empty e-graph.
-    pub fn new() -> Self {
-        Self::with_subst_method::<SynExprSubst>()
+    pub fn new(analysis: N) -> Self {
+        Self::with_subst_method::<SynExprSubst>(analysis)
     }
 
     /// Creates an empty e-graph, while specifying the substitution method to use.
-    pub fn with_subst_method<S: SubstMethod<L, N>>() -> Self {
+    pub fn with_subst_method<S: SubstMethod<L, N>>(analysis: N) -> Self {
         EGraph {
             unionfind: Default::default(),
             classes: Default::default(),
@@ -105,6 +113,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
             pending: Default::default(),
             proof_registry: ProofRegistry::default(),
             subst_method: Some(S::new_boxed()),
+            analysis,
         }
     }
 
@@ -116,11 +125,11 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         self.classes[&id].syn_enode.slots()
     }
 
-    pub fn analysis_data(&self, i: Id) -> &N {
+    pub fn analysis_data(&self, i: Id) -> &N::Data {
         &self.classes[&self.find_id(i)].analysis_data
     }
 
-    pub fn analysis_data_mut(&mut self, i: Id) -> &mut N {
+    pub fn analysis_data_mut(&mut self, i: Id) -> &mut N::Data {
         &mut self
             .classes
             .get_mut(&self.find_id(i))

@@ -14,7 +14,7 @@ define_language! {
 
 #[test]
 fn transitive_symmetry() {
-    let eg: &mut EGraph<Fgh> = &mut EGraph::new();
+    let eg: &mut EGraph<Fgh> = &mut EGraph::default();
     equate("(f $1 $2)", "(g $2 $1)", eg);
     equate("(g $1 $2)", "(h $1 $2)", eg);
     eg.dump();

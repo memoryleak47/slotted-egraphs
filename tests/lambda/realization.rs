@@ -10,7 +10,7 @@ pub trait Realization {
 // stops when the desired output has been reached.
 pub fn simplify_to_nf<R: Realization>(s: &str) -> String {
     let orig_re = RecExpr::parse(s).unwrap();
-    let mut eg = EGraph::new();
+    let mut eg = EGraph::default();
     let i = eg.add_syn_expr(orig_re.clone());
 
     let hook = Box::new(move |runner: &mut Runner<Lambda>| {
@@ -25,7 +25,7 @@ pub fn simplify_to_nf<R: Realization>(s: &str) -> String {
         Ok(())
     });
 
-    let mut runner = Runner::new()
+    let mut runner = Runner::default()
         .with_egraph(eg)
         .with_node_limit(NO_ENODES)
         .with_iter_limit(NO_ITERS)
@@ -41,10 +41,10 @@ pub fn simplify_to_nf<R: Realization>(s: &str) -> String {
 
 pub fn simplify<R: Realization>(s: &str) -> String {
     let re = RecExpr::parse(s).unwrap();
-    let mut eg = EGraph::new();
+    let mut eg = EGraph::default();
     let i = eg.add_syn_expr(re.clone());
 
-    let mut runner: Runner<Lambda> = Runner::new().with_egraph(eg).with_node_limit(NO_ENODES);
+    let mut runner: Runner<Lambda> = Runner::default().with_egraph(eg).with_node_limit(NO_ENODES);
     runner.run(&R::get_rewrites()[..]);
     let out = extract_ast(&runner.egraph, &i);
 
@@ -79,7 +79,7 @@ pub fn check_simplify_incomplete<R: Realization>(p: &str) {
 pub fn check_eq<R: Realization>(s1: &str, s2: &str) {
     let s1 = RecExpr::parse(s1).unwrap();
     let s2 = RecExpr::parse(s2).unwrap();
-    let mut eg = EGraph::new();
+    let mut eg = EGraph::default();
     let i1 = eg.add_syn_expr(s1.clone());
     let i2 = eg.add_syn_expr(s2.clone());
 
@@ -91,7 +91,7 @@ pub fn check_eq<R: Realization>(s1: &str, s2: &str) {
         }
         Ok(())
     });
-    let mut runner = Runner::new()
+    let mut runner = Runner::default()
         .with_egraph(eg)
         .with_node_limit(NO_ENODES)
         .with_iter_limit(NO_ITERS)

@@ -106,12 +106,12 @@ where
 fn assert_reaches<L, N>(start: &str, goal: &str, rewrites: &[Rewrite<L, N>], steps: usize)
 where
     L: Language + 'static,
-    N: Analysis<L> + 'static,
+    N: Analysis<L> + Default + 'static,
 {
     let start: RecExpr<L> = RecExpr::parse(start).unwrap();
     let goal: RecExpr<L> = RecExpr::parse(goal).unwrap();
 
-    let mut runner: Runner<L, N, (), ReachError> = Runner::new()
+    let mut runner: Runner<L, N, (), ReachError> = Runner::default()
         .with_expr(&start)
         .with_iter_limit(60)
         .with_iter_limit(steps)
