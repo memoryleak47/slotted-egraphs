@@ -53,7 +53,7 @@ fn batax_v7_csr_dense_unfused_esat() -> Report {
 ";
 
     let prog: RecExpr<Sdql> = RecExpr::parse(&prog).unwrap();
-    let mut eg = EGraph::<Sdql, SdqlKind>::new();
+    let mut eg = EGraph::<Sdql, SdqlAnalysis>::default();
     let rewrites = sdql_rules();
     let _id1 = eg.add_syn_expr(prog.clone());
     let report = run_eqsat(&mut eg, rewrites, 30, 5, move |_egraph| Ok(()));
@@ -97,6 +97,9 @@ mod sdql {
         }
     }
 
+    #[derive(Default)]
+    pub struct SdqlAnalysis;
+
     #[derive(PartialEq, Eq, Clone, Debug)]
     pub struct SdqlKind {
         pub might_be_vector: bool,
@@ -105,8 +108,10 @@ mod sdql {
         pub might_be_bool: bool,
     }
 
-    impl Analysis<Sdql> for SdqlKind {
-        fn make(_eg: &slotted_egraphs::EGraph<Sdql, Self>, enode: &Sdql) -> Self {
+    impl Analysis<Sdql> for SdqlAnalysis {
+        type Data = SdqlKind;
+
+        fn make(_eg: &slotted_egraphs::EGraph<Sdql, Self>, enode: &Sdql) -> SdqlKind {
             let mut out = SdqlKind {
                 might_be_vector: false,
                 might_be_dict: false,
@@ -134,7 +139,7 @@ mod sdql {
             out
         }
 
-        fn merge(a: Self, b: Self) -> Self {
+        fn merge(a: SdqlKind, b: SdqlKind) -> SdqlKind {
             SdqlKind {
                 might_be_vector: a.might_be_vector || b.might_be_vector,
                 might_be_dict: a.might_be_dict || b.might_be_dict,
@@ -144,7 +149,7 @@ mod sdql {
         }
     }
 
-    type SdqlRewrite = Rewrite<Sdql, SdqlKind>;
+    type SdqlRewrite = Rewrite<Sdql, SdqlAnalysis>;
 
     fn mult_assoc1() -> SdqlRewrite {
         Rewrite::new("mult-assoc1", "(* (* ?a ?b) ?c)", "(* ?a (* ?b ?c))")
