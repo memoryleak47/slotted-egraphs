@@ -47,8 +47,9 @@ fn redundancy_matching_bug() {
     let t = RecExpr::parse("(app (lam $x (var $x)) (lam $x (var $x)))").unwrap();
     eg.add_expr(t);
 
-    assert_eq!(eg.total_number_of_nodes(), 3);
+    assert_eq!(eg.ids().len(), 3);
 
+                             // NOTE: changing to    "(app (lam $x (var $x)) (lam $x2 (var $x2)))"    makes this work.
     let r: Rewrite<Lambda> = rw!("compose_identity"; "(app (lam $x (var $x)) (lam $x (var $x)))" => "(lam $x (var $x))");
     apply_rewrites(&mut eg, &[r]);
 
@@ -61,5 +62,5 @@ fn redundancy_matching_bug() {
     // (app (lam $x1 (var $x1)) (lam $x2 (var $x2)))
     // to avoid naming collisions.
 
-    assert_eq!(eg.total_number_of_nodes(), 2);
+    assert_eq!(eg.ids().len(), 2);
 }
