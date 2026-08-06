@@ -42,7 +42,7 @@ fn special() -> Rewrite<Arith2> {
 }
 
 #[test]
-fn foo() {
+fn redundancy_matching_bug2() {
     let x = "(f zero zero)";
     let y = "zero";
 
