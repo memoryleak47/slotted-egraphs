@@ -4,6 +4,9 @@ pub use std::hash::Hash;
 mod arith;
 pub use arith::*;
 
+mod arith2;
+pub use arith2::*;
+
 mod lambda;
 pub use lambda::*;
 
