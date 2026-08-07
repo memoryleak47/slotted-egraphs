@@ -49,7 +49,9 @@ fn redundancy_matching_bug3() {
 fn multipat_test() {
     let mut eg: EGraph<Arith2> = EGraph::new(());
     eg.add_expr(RecExpr::parse("(f (var $x) zero)").unwrap());
-    let _: Pattern<Arith2> = Pattern::parse("(f (var $x) zero)").unwrap();
-    let pp: MultiPattern<Arith2> = MultiPattern::parse("?x == (f ?a ?b), ?y == (var $x), ?a == zero, ?b == zero").unwrap();
-    dbg!(pp);
+    let pat: MultiPattern<Arith2> = MultiPattern::parse("?x == (f ?a ?b), ?b == zero").unwrap();
+    let matches = multi_ematch(&pat, &eg);
+    assert_eq!(matches.len(), 1);
+    dbg!(&matches);
+    assert!(false);
 }

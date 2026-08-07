@@ -82,9 +82,9 @@ fn matches_raw<L: Language>(n1: &L, n2: &L) -> bool {
 
 fn extend_subst(pv: &PVar, x: AppliedId, mut st: MultiState) -> Vec<MultiState> {
     if let Some(y) = st.subst.get(pv) {
+        todo!() // handle collision
+    } else {
         st.subst.insert(pv.clone(), x);
         vec![st]
-    } else {
-        todo!()
     }
 }
