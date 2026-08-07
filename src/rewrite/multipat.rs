@@ -109,9 +109,9 @@ fn multi_ematch_step_node<L: Language>(pv: &PVar, node: &L, children: &[PVar], m
 
 // n1 comes from the pattern, whereas n2 from the e-graph.
 fn matches_raw<L: Language>(n1: &L, n2: &L, mut st: MultiState) -> Option<MultiState> {
-    let (n1, _) = nullify_app_ids(n1).weak_shape();
-    let (n2, _) = nullify_app_ids(n2).weak_shape();
-    if n1 != n2 { return None }
+    let (n1_, _) = nullify_app_ids(n1).weak_shape();
+    let (n2_, _) = nullify_app_ids(n2).weak_shape();
+    if n1_ != n2_ { return None }
 
     for (x1, y1) in n1.all_slot_occurrences().into_iter().zip(n2.all_slot_occurrences()) {
         st.slot_kind.insert(x1, SlotKind::Pattern);
