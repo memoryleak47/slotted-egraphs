@@ -137,9 +137,10 @@ fn replace_slot(x: Slot, y: Slot, mut st: MultiState) -> Option<MultiState> {
     if let Some(xx) = st.diseq_constraints.get(&x) { if xx.contains(&y) { return None } }
     if let Some(yy) = st.diseq_constraints.get(&y) { if yy.contains(&x) { return None } }
 
-    if let Some(xx) = st.diseq_constraints.remove(&x) {
-        st.diseq_constraints.entry(y).or_default().extend(xx);
-    }
+    // At this point, neither x nor y are considered fresh anymore.
+    st.diseq_constraints.remove(&x);
+    st.diseq_constraints.remove(&y);
+
     for v in st.diseq_constraints.values_mut() {
         if let Some(i) = v.iter().position(|a| *a == x) {
             v[i] = y;
