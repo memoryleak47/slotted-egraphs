@@ -10,6 +10,9 @@ pub use pattern::*;
 mod subst_method;
 pub use subst_method::*;
 
+mod multipat;
+pub use multipat::*;
+
 /// An equational rewrite rule.
 pub struct Rewrite<L: Language, N: Analysis<L> = ()> {
     pub(crate) searcher: Box<dyn Fn(&EGraph<L, N>) -> Box<dyn Any>>,
