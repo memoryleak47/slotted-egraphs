@@ -124,3 +124,27 @@ fn multipat_test6() {
     dbg!(&matches);
     assert!(matches.is_empty());
 }
+
+#[test]
+fn multipat_test7() {
+    let mut eg: EGraph<Arith2> = EGraph::new(());
+
+    eg.add_expr(RecExpr::parse("(sub (var $x) (var $x))").unwrap());
+
+    let pat: MultiPattern<Arith2> = MultiPattern::parse("?out == (sub ?a ?a), ?a == (var $a)").unwrap();
+    let matches = multi_ematch(&pat, &eg);
+    dbg!(&matches);
+    assert_eq!(matches.len(), 1);
+}
+
+#[test]
+fn multipat_test8() {
+    let mut eg: EGraph<Arith2> = EGraph::new(());
+
+    eg.add_expr(RecExpr::parse("(sub (var $x) (var $x))").unwrap());
+
+    let pat: MultiPattern<Arith2> = MultiPattern::parse("?out == (sub ?a ?a)").unwrap();
+    let matches = multi_ematch(&pat, &eg);
+    dbg!(&matches);
+    assert_eq!(matches.len(), 1);
+}
