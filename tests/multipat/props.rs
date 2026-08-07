@@ -1,7 +1,8 @@
-//! Properties multipattern matching should have whatever the implementation
-//! does: the result must not depend on the order the atoms are written in, on
-//! the names of the slots in the program, or on an atom being repeated.  And a
-//! nested pattern must not prove more than its depth-1 flattening.
+//! Things that should hold however matching is implemented.  The answer must
+//! not change when the equations of a multipattern are written in a different
+//! order, when every slot in the program is renamed, or when an equation is
+//! written twice.  And rewriting a nested pattern into depth-1 equations must
+//! not lose any equality the nested form would have proved.
 
 use crate::multipat::*;
 use crate::*;
@@ -211,10 +212,10 @@ fn duplicate_atom_is_idempotent() {
     );
 }
 
-/// A nested pattern and its depth-1 flattening: everything the nested matcher
-/// proves, the flattened multipattern must prove too.  (Multipattern matching is
-/// allowed to prove strictly more -- it sees through redundancies that
-/// `ematch_all` does not.)
+/// Run a nested pattern and its depth-1 form to saturation and compare: every
+/// equality the nested one proves must also be proved by the depth-1 one.  The
+/// converse is deliberately not required -- the depth-1 matcher sees through
+/// redundant slots that `ematch_all` does not, which is the point of it.
 fn flattening_proves_at_least_as_much(
     build: impl Fn(&mut MPGraph),
     nested: &str,

@@ -49,8 +49,9 @@ pub fn mp_eq(eg: &MPGraph, a: &str, b: &str) -> bool {
     }
 }
 
-/// Drive equality saturation from a multipattern: every match unions the root
-/// pvar with the instantiated rhs.
+/// Run to saturation: repeatedly find every match of `atoms` and, for each one,
+/// union the class matched by `root` with the right-hand side built from that
+/// match.
 pub fn mp_saturate(eg: &mut MPGraph, atoms: &[&str], root: &str, rhs: &str) {
     let pat: MultiPattern<MP> = MultiPattern::parse(&atoms.join(", ")).unwrap();
     let from = Pattern::PVar(root.to_string());
@@ -66,8 +67,9 @@ pub fn mp_saturate(eg: &mut MPGraph, atoms: &[&str], root: &str, rhs: &str) {
     }
 }
 
-/// The equality partition induced on `probes`, plus coarse e-graph statistics.
-/// Used to compare two runs without depending on internal slot names.
+/// Groups `probes` by which ones the e-graph considers equal, and adds a few
+/// summary numbers.  Two runs can be compared by comparing these strings, which
+/// avoids depending on the internal slot names, which are not stable.
 pub fn mp_partition(eg: &MPGraph, probes: &[&str]) -> String {
     let ids: Vec<Option<AppliedId>> = probes.iter().map(|p| mp_lookup(eg, p)).collect();
     let mut groups: Vec<BTreeSet<usize>> = Vec::new();
@@ -103,9 +105,10 @@ pub fn mp_partition(eg: &MPGraph, probes: &[&str]) -> String {
     )
 }
 
-/// For every returned subst and every atom `?p == (f ?a ?b)`, rebuilding the
-/// node out of the subst must land in ?p's class.  This is the basic soundness
-/// property of a match.
+/// Checks that every match is real: for each returned substitution and each
+/// equation `?p == (f ?a ?b)`, rebuild the node from the substitution's values
+/// for `?a` and `?b` and look it up.  It has to be in the class the substitution
+/// gave `?p`.
 pub fn mp_check_sound(eg: &MPGraph, atoms: &[&str], substs: &[Subst]) -> Result<(), String> {
     for s in substs {
         for a in atoms {

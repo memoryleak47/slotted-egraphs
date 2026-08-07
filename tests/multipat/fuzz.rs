@@ -1,15 +1,18 @@
-//! Randomised multipattern testing.  Random e-graphs and random depth-1
-//! multipatterns, checked against three oracles:
+//! Randomised testing: random e-graphs and random depth-1 multipatterns, with
+//! three things checked about every result.
 //!
-//!   * soundness -- rebuilding an atom out of the returned subst must land in
-//!     the class the subst bound its root pvar to;
-//!   * inclusion -- a randomly generated *nested* pattern and its automatic
-//!     flattening: whatever the nested matcher proves equal, the flattening must
-//!     prove equal too;
-//!   * invariants -- `eg.check()` after each saturation round.
+//!   * Every match is real.  Take a returned substitution, rebuild each of the
+//!     pattern's nodes out of it, and look that node up: it has to be in the
+//!     class the substitution claimed it was in.
+//!   * Nothing is lost by rewriting a nested pattern into depth-1 equations.  A
+//!     random nested pattern and its rewritten form are each run to saturation;
+//!     every equality the nested one proves must also be proved by the other.
+//!     (The reverse is allowed to fail: the depth-1 matcher sees through
+//!     redundant slots that the nested one does not.)
+//!   * The e-graph stays well formed, via `eg.check()` after each round.
 //!
-//! The seed counts here are the ones that run quickly; `fuzz_long` is the same
-//! thing turned up and is `#[ignore]`d.
+//! The seed counts here run in a few seconds; `fuzz_long` is the same at a scale
+//! worth running by hand, and is `#[ignore]`d.
 
 use crate::multipat::*;
 use crate::*;

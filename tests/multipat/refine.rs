@@ -1,14 +1,20 @@
-//! Open question: should matching also emit *refinements* -- substitutions
-//! where slots that were merely allowed to be equal have been made equal?
+//! Open question: when matching leaves two slots free to be either equal or
+//! different, should it return both answers instead of only the one that keeps
+//! them apart?
 //!
-//! Two redundant slots reached through two different lookups may denote the same
-//! slot: Def. 8's injectivity is per-lookup, so this is allowed under the strict
-//! reading the matcher already implements.  `unify` performs exactly this merge
-//! when a pattern forces it (see `control_*` below) -- what is missing is
-//! offering it when the pattern does not force it.
+//! A redundant slot stands for "any slot", so when a match reaches two of them
+//! through two separate node lookups, setting them to the same slot is as valid
+//! an answer as setting them to different ones.  Def. 8 does require the slots
+//! of any one looked-up node to stay distinct, but that requirement applies to
+//! each lookup on its own, so it says nothing about two slots from two lookups.
 //!
-//! These are `#[ignore]`d because they describe wanted behaviour, not current
-//! behaviour.
+//! `unify` already makes exactly this merge when a pattern demands it -- see the
+//! `control_*` tests, which write the same variable in both equations.  What is
+//! missing is making it when the pattern leaves the choice open, in which case
+//! only the keep-them-apart answer is returned and the other is lost.
+//!
+//! These two tests are `#[ignore]`d: they describe what we think should happen,
+//! not what happens today.
 
 use crate::multipat::*;
 use crate::*;
@@ -75,9 +81,12 @@ fn refinement_is_needed_by_a_later_rule() {
     );
     mp_saturate(&mut eg, &["?q == (h ?x ?x)"], "q", "(g zero zero)");
 
+    // note rule 2 *does* fire, on the standalone h($0,$0) that `setup` adds --
+    // what never happens is it firing on k's class, because rule 1 only ever put
+    // an h with two *distinct* slots there.
     assert!(
         mp_eq(&eg, "(k zero zero)", "(g zero zero)"),
-        "the second rule never fires, because the first could not produce h($s,$s)"
+        "rule 2 did not fire on k's class, because rule 1 could not produce h($s,$s) there"
     );
 }
 

@@ -79,21 +79,20 @@ fn same_node_redundant_slots_stay_distinct() {
     assert_eq!(multi_ematch(&apart, &eg).len(), 1);
 }
 
-/// Disequality constraints must not be lost when one slot is constrained by two
-/// different atoms.
+/// A class's own live slots are distinct, so a pattern that would have to
+/// identify two of them does not match.
 #[test]
-fn disequalities_survive_several_atoms() {
+fn live_slots_of_one_class_stay_distinct() {
     let mut eg = MPGraph::default();
-    mp_union(&mut eg, "(k (var $0) (var $1))", "zero");
-    mp_add(&mut eg, "(h zero zero)");
+    mp_add(&mut eg, "(k (var $0) (var $1))"); // k keeps both slots -- no union, no redundancy
 
-    let pat: MultiPattern<MP> =
-        MultiPattern::parse("?p == (h ?a ?b), ?a == (k ?u ?v), ?b == (k ?u ?w)").unwrap();
-    for s in multi_ematch(&pat, &eg) {
-        assert_ne!(
-            s["v"].m.values(),
-            s["w"].m.values(),
-            "?v and ?w are the two distinct live slots of one k node"
-        );
-    }
+    let apart: MultiPattern<MP> = MultiPattern::parse("?p == (k ?u ?v)").unwrap();
+    assert_eq!(multi_ematch(&apart, &eg).len(), 1);
+
+    let together: MultiPattern<MP> = MultiPattern::parse("?p == (k ?u ?u)").unwrap();
+    assert_eq!(
+        multi_ematch(&together, &eg).len(),
+        0,
+        "k's two live slots are distinct, so ?u cannot be both"
+    );
 }
