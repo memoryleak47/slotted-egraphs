@@ -84,3 +84,19 @@ fn multipat_test3() {
     let m = &matches[0];
     assert_eq!(m["out"].m.values(), std::iter::once(Slot::named("y")).collect());
 }
+
+#[test]
+fn multipat_test4() {
+    let mut eg: EGraph<Arith2> = EGraph::new(());
+
+    eg.add_expr(RecExpr::parse("(f (var $x) (sub (var $y) (var $y)))").unwrap());
+
+    let a = eg.add_expr(RecExpr::parse("(sub (var $z) (var $z))").unwrap());
+    let b = eg.add_expr(RecExpr::parse("zero").unwrap());
+    eg.union(&a, &b);
+
+    let pat: MultiPattern<Arith2> = MultiPattern::parse("?out == (f ?a ?b), ?b == (sub ?c ?a), ?c == (var $x)").unwrap();
+    let matches = multi_ematch(&pat, &eg);
+    dbg!(&matches);
+    assert_eq!(matches.len(), 1);
+}
