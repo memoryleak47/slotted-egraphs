@@ -89,7 +89,9 @@ fn multi_ematch_step_node<L: Language>(pv: &PVar, node: &L, children: &[PVar], m
 }
 
 fn matches_raw<L: Language>(n1: &L, n2: &L) -> bool {
-    nullify_app_ids(n1) == nullify_app_ids(n2)
+    let n1 = nullify_app_ids(n1).weak_shape().0;
+    let n2 = nullify_app_ids(n2).weak_shape().0;
+    n1 == n2
 }
 
 fn extend_subst<L: Language>(pv: &PVar, x: AppliedId, mut st: MultiState, eg: &EGraph<L>) -> Vec<MultiState> {

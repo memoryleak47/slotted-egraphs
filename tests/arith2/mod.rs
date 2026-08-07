@@ -70,3 +70,17 @@ fn multipat_test2() {
     dbg!(&matches);
     assert_eq!(matches.len(), 1);
 }
+
+#[test]
+fn multipat_test3() {
+    let mut eg: EGraph<Arith2> = EGraph::new(());
+
+    eg.add_expr(RecExpr::parse("(var $x)").unwrap());
+
+    let pat: MultiPattern<Arith2> = MultiPattern::parse("?out == (var $y)").unwrap();
+    let matches = multi_ematch(&pat, &eg);
+    dbg!(&matches);
+    assert_eq!(matches.len(), 1);
+    let m = &matches[0];
+    assert_eq!(m["out"].m.values(), std::iter::once(Slot::named("y")).collect());
+}
