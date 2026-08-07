@@ -12,39 +12,33 @@ define_language! {
     }
 }
 
-pub fn get_all_rewrites2() -> Vec<Rewrite<Arith2>> {
-    vec![
-        special(),
-        subxx(),
-        subxx2(),
-    ]
-}
-
-fn subxx() -> Rewrite<Arith2> {
-    let pat = "(sub ?x ?x)";
-    let outpat = "zero";
-
-    Rewrite::new("subxx", pat, outpat)
-}
-
-fn subxx2() -> Rewrite<Arith2> {
-    let pat = "zero";
-    let outpat = "(sub (var $x) (var $x))";
-
-    Rewrite::new("subxx2", pat, outpat)
-}
-
-fn special() -> Rewrite<Arith2> {
-    let pat = "(f (sub ?x ?x) (sub ?x ?x))";
-    let outpat = "zero";
-
-    Rewrite::new("special", pat, outpat)
-}
+fn subxx() -> Rewrite<Arith2> { Rewrite::new("subxx", "(sub ?x ?x)", "zero") }
+fn subxx2() -> Rewrite<Arith2> { Rewrite::new("subxx2", "zero", "(sub (var $x) ($var x))") }
+fn special() -> Rewrite<Arith2> { Rewrite::new("special", "(f (sub ?x ?x) (sub ?x ?x))", "zero") }
+fn special2() -> Rewrite<Arith2> { Rewrite::new("special2", "(f ?x (sub ?x ?x))", "zero") }
 
 #[test]
 fn redundancy_matching_bug2() {
     let x = "(f zero zero)";
     let y = "zero";
 
-    assert_reaches(x, y, &get_all_rewrites2()[..], 3);
+    let rewrites = &[
+        special(),
+        subxx(),
+        subxx2(),
+    ];
+    assert_reaches(x, y, rewrites, 3);
+}
+
+#[test]
+// In this version of the bug, a fresh/redundant variable has to alias a non-redundant variable. So that is also possible.
+fn redundancy_matching_bug3() {
+    let x = "(f (var $x) zero)";
+    let y = "zero";
+
+    let rewrites = &[
+        subxx(),
+        special2(),
+    ];
+    assert_reaches(x, y, rewrites, 3);
 }
