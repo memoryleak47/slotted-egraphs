@@ -67,7 +67,7 @@ fn multi_ematch_step_node<L: Language>(pv: &PVar, node: &L, children: &[PVar], m
         let mut accum = vec![state.clone()];
         for (child_pvar, child_gid) in children.iter().zip(n.applied_id_occurrences()) {
             for st in std::mem::take(&mut accum) {
-                accum.extend(extend_subst(child_pvar, child_gid.clone(), st));
+                accum.extend(extend_subst(child_pvar, child_gid.clone(), st, eg));
             }
         }
         out.extend(accum);
@@ -80,15 +80,52 @@ fn matches_raw<L: Language>(n1: &L, n2: &L) -> bool {
     nullify_app_ids(n1) == nullify_app_ids(n2)
 }
 
-fn extend_subst(pv: &PVar, x: AppliedId, mut st: MultiState) -> Vec<MultiState> {
+fn extend_subst<L: Language>(pv: &PVar, x: AppliedId, mut st: MultiState, eg: &EGraph<L>) -> Vec<MultiState> {
     if let Some(y) = st.subst.get(pv).cloned() {
-        unify(&x, &y, st)
+        unify(&x, &y, st, eg)
     } else {
         st.subst.insert(pv.clone(), x);
         vec![st]
     }
 }
 
-fn unify(x: &AppliedId, y: &AppliedId, mut st: MultiState) -> Vec<MultiState> {
-    todo!()
+fn unify<L: Language>(x: &AppliedId, y: &AppliedId, mut st: MultiState, eg: &EGraph<L>) -> Vec<MultiState> {
+    if x.id != y.id { return Vec::new() }
+
+    let xslots: HashSet<Slot> = x.m.values().iter().copied().collect();
+    let yslots: HashSet<Slot> = y.m.values().iter().copied().collect();
+    let xonly = &xslots - &yslots;
+    let yonly = &yslots - &xslots;
+
+    assert_eq!(xonly.len(), yonly.len());
+    if xonly.is_empty() {
+        if eg.eq(x, y) {
+            vec![st]
+        } else {
+            Vec::new()
+        }
+    } else {
+        let &xx = xonly.iter().next().unwrap();
+        let mut out = Vec::new();
+
+        for &yy in yonly.iter() {
+            let st = st.clone();
+            if let Some(st) = replace_slot(xx, yy, st) {
+                out.extend(unify(x, y, st, eg));
+            }
+        }
+
+        out
+    }
+}
+
+fn replace_slot(x: Slot, y: Slot, mut st: MultiState) -> Option<MultiState> {
+    for v in st.subst.values_mut() {
+        for xx in v.m.values_mut() {
+            if x == *xx {
+                *xx = y;
+            }
+        }
+    }
+    Some(st)
 }
