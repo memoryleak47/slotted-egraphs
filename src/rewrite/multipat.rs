@@ -14,6 +14,8 @@ pub struct MultiPattern<L: Language> {
 
 #[derive(Clone)]
 struct MultiState {
+    // only fresh slots that came from redundant vars have an entry in this map.
+    // only those slots are allowed to be merged into other slots.
     diseq_constraints: HashMap<Slot, Vec<Slot>>,
     subst: Subst,
 }
@@ -64,7 +66,15 @@ fn multi_ematch_step_node<L: Language>(pv: &PVar, node: &L, children: &[PVar], m
     for n in eg.enodes_applied(gid) {
         if !matches_raw(node, &n) { continue }
 
-        let mut accum = vec![state.clone()];
+        let mut state = state.clone();
+        for slot in n.all_slot_occurrences().into_iter().collect::<HashSet<Slot>>() {
+            if !gid.m.values().contains(&slot) {
+                // At this point, we know that `slot` is a fresh slot coming from some redundant variable.
+                state.diseq_constraints.insert(slot, gid.m.values().into_iter().collect());
+            }
+        }
+
+        let mut accum = vec![state];
         for (child_pvar, child_gid) in children.iter().zip(n.applied_id_occurrences()) {
             for st in std::mem::take(&mut accum) {
                 accum.extend(extend_subst(child_pvar, child_gid.clone(), st, eg));
@@ -119,7 +129,23 @@ fn unify<L: Language>(x: &AppliedId, y: &AppliedId, mut st: MultiState, eg: &EGr
     }
 }
 
+// We replace x -> y, if allowed.
 fn replace_slot(x: Slot, y: Slot, mut st: MultiState) -> Option<MultiState> {
+    // We need at least one of the two to be a fresh slot from a redundant variable.
+    if !st.diseq_constraints.contains_key(&x) && !st.diseq_constraints.contains_key(&y) { return None }
+
+    if let Some(xx) = st.diseq_constraints.get(&x) { if xx.contains(&y) { return None } }
+    if let Some(yy) = st.diseq_constraints.get(&y) { if yy.contains(&x) { return None } }
+
+    if let Some(xx) = st.diseq_constraints.remove(&x) {
+        st.diseq_constraints.entry(y).or_default().extend(xx);
+    }
+    for v in st.diseq_constraints.values_mut() {
+        if let Some(i) = v.iter().position(|a| *a == x) {
+            v[i] = y;
+        }
+    }
+
     for v in st.subst.values_mut() {
         for xx in v.m.values_mut() {
             if x == *xx {
