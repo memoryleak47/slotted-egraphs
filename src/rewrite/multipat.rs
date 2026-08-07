@@ -102,6 +102,9 @@ fn extend_subst<L: Language>(pv: &PVar, x: AppliedId, mut st: MultiState, eg: &E
 }
 
 fn unify<L: Language>(x: &AppliedId, y: &AppliedId, mut st: MultiState, eg: &EGraph<L>) -> Vec<MultiState> {
+    let x = &state_appid_find(x.clone(), &st);
+    let y = &state_appid_find(y.clone(), &st);
+
     if x.id != y.id { return Vec::new() }
 
     let xslots: HashSet<Slot> = x.m.values().iter().copied().collect();
@@ -153,7 +156,7 @@ fn union_slot(x: Slot, y: Slot, mut st: MultiState) -> Option<MultiState> {
 fn update_state(st: &mut MultiState) {
     let mut subst = st.subst.clone();
     for v in subst.values_mut() {
-        for xx in v.m.values_mut() { *xx = state_find(*xx, st); }
+        *v = state_appid_find(v.clone(), st);
     }
     st.subst = subst;
 
@@ -173,6 +176,13 @@ fn update_state(st: &mut MultiState) {
 fn state_find(mut x: Slot, st: &MultiState) -> Slot {
     while let Some(y) = st.slot_uf.get(&x) {
         x = *y;
+    }
+    x
+}
+
+fn state_appid_find(mut x: AppliedId, st: &MultiState) -> AppliedId {
+    for xx in x.m.values_mut() {
+        *xx = state_find(*xx, st);
     }
     x
 }
