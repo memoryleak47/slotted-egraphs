@@ -12,12 +12,6 @@ pub struct MultiPattern<L: Language> {
     pub(crate) pats: Vec<(PVar, L, Vec<PVar>)>,
 }
 
-#[derive(Clone, Copy, Debug)]
-enum SlotKind {
-    Flexible,
-    Pattern,
-}
-
 #[derive(Clone, Debug)]
 struct MultiState {
     // There are two kinds of slots here:
@@ -27,8 +21,7 @@ struct MultiState {
     // flexible slots are allowed to be replaced by other slots, pattern slots don't allow that.
     // this merging should always merge by choosing the pattern slots as leaders, as you want the final subst to contain the pattern slots.
 
-    slot_kind: HashMap<Slot, SlotKind>,
-    diseq_constraints: HashMap<Slot, Vec<Slot>>,
+    diseq_constraints: HashMap<Slot, Vec<Slot>>, // A slot should be flexible iff it exists as a key in diseq_constraints.
     subst: Subst,
     slot_uf: HashMap<Slot, Slot>,
 }
@@ -37,7 +30,6 @@ pub fn multi_ematch<L: Language>(pat: &MultiPattern<L>, eg: &EGraph<L>) -> Vec<S
     let mut states: Vec<MultiState> = vec![MultiState {
         diseq_constraints: HashMap::default(),
         subst: Subst::default(),
-        slot_kind: HashMap::default(),
         slot_uf: HashMap::default(),
     }];
 
@@ -68,7 +60,8 @@ fn multi_ematch_step_class<L: Language>(pv: &PVar, node: &L, children: &[PVar], 
 
         let slots = &eg.slots(x);
         let m = SlotMap::bijection_from_fresh_to(&slots).inverse();
-        for xx in m.values() { state.slot_kind.insert(xx, SlotKind::Flexible); }
+        add_disjointness_constraint(m.values().into_iter().collect(), &mut state);
+
         state.subst.insert(pv.clone(), AppliedId::new(x, m));
         out.push(state);
     }
@@ -80,15 +73,11 @@ fn multi_ematch_step_node<L: Language>(pv: &PVar, node: &L, children: &[PVar], m
     let mut out = Vec::new();
 
     for n in eg.enodes_applied(gid) {
-        let Some(mut state) = matches_raw(node, &n, state.clone()) else { continue };
+        let mut state = state.clone();
+        let set = n.all_slot_occurrences().into_iter().collect::<HashSet<Slot>>();
+        add_disjointness_constraint(set, &mut state);
 
-        for slot in n.all_slot_occurrences().into_iter().collect::<HashSet<Slot>>() {
-            if !gid.m.values().contains(&slot) {
-                // At this point, we know that `slot` is a fresh slot coming from some redundant variable.
-                state.diseq_constraints.insert(slot, gid.m.values().into_iter().collect());
-                state.slot_kind.insert(slot, SlotKind::Flexible);
-            }
-        }
+        let Some(mut state) = matches_raw(node, &n, state.clone()) else { continue };
 
         let mut accum = vec![state];
         for (child_pvar, child_gid) in children.iter().zip(n.applied_id_occurrences()) {
@@ -113,7 +102,6 @@ fn matches_raw<L: Language>(n1: &L, n2: &L, mut st: MultiState) -> Option<MultiS
 
     // as we've done nullify_app_ids, the only remaining slots are the slots not stored in AppliedIds.
     for (x1, y1) in n1.all_slot_occurrences().into_iter().zip(n2.all_slot_occurrences()) {
-        st.slot_kind.insert(x1, SlotKind::Pattern);
         st = union_slot(x1, y1, st)?;
     }
     Some(st)
@@ -162,8 +150,8 @@ fn unify<L: Language>(x: &AppliedId, y: &AppliedId, mut st: MultiState, eg: &EGr
 }
 
 // whether we allow x -> y replacement.
-fn allows_directed_union(x: Slot, y: Slot, st: &MultiState) -> bool {
-    matches!(st.slot_kind[&x], SlotKind::Flexible)
+fn allows_directed_union(x: Slot, st: &MultiState) -> bool {
+    st.diseq_constraints.contains_key(&x)
 }
 
 // We replace x -> y, if allowed.
@@ -176,8 +164,8 @@ fn union_slot(x: Slot, y: Slot, mut st: MultiState) -> Option<MultiState> {
     if let Some(xx) = st.diseq_constraints.get(&x) { if xx.contains(&y) { return None } }
     if let Some(yy) = st.diseq_constraints.get(&y) { if yy.contains(&x) { return None } }
 
-    if !allows_directed_union(x, y, &st) { (x, y) = (y, x); }
-    if !allows_directed_union(x, y, &st) { return None }
+    if !allows_directed_union(x, &st) { (x, y) = (y, x); }
+    if !allows_directed_union(x, &st) { return None }
 
     st.slot_uf.insert(x, y);
 
@@ -217,4 +205,12 @@ fn state_appid_find(mut x: AppliedId, st: &MultiState) -> AppliedId {
         *xx = state_find(*xx, st);
     }
     x
+}
+
+fn add_disjointness_constraint(set: HashSet<Slot>, st: &mut MultiState) {
+    for x in &set {
+        let mut rest = set.clone();
+        rest.remove(&x);
+        st.diseq_constraints.entry(*x).or_default().extend(rest.into_iter());
+    }
 }
