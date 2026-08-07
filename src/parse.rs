@@ -109,6 +109,30 @@ impl<L: Language> RecExpr<L> {
     }
 }
 
+impl<L: Language> MultiPattern<L> {
+    // "?a == pat, ?b == pat, ..."
+    pub fn parse(s: &str) -> Result<Self, ParseError> {
+        let mut out = Vec::new();
+        for x in s.split(",") {
+            let x = x.trim();
+            if x.is_empty() { continue }
+
+            let v: Box<[&str]> = x.split("==").collect();
+            assert_eq!(v.len(), 2);
+            let var: Pattern<L> = Pattern::parse(v[0])?;
+            let rhs: Pattern<L> = Pattern::parse(v[1])?;
+            let Pattern::PVar(v) = var else { panic!("{var} isn't a PVar") };
+            let Pattern::ENode(n, children) = rhs else { panic!("{rhs} isn't an e-node") };
+            let children = children.into_iter().map(|x| {
+                let Pattern::PVar(xx) = x else { panic!("child {x} isn't a PVar") };
+                xx
+            }).collect();
+            out.push((v, n, children));
+        }
+        Ok(MultiPattern { pats: out })
+    }
+}
+
 fn parse_pattern<L: Language>(tok: &[Token]) -> Result<(Pattern<L>, &[Token]), ParseError> {
     let (mut pat, mut tok) = parse_pattern_nosubst(tok)?;
     while let Some(Token::LBracket) = tok.get(0) {
@@ -270,6 +294,28 @@ impl<L: Language> std::fmt::Debug for RecExpr<L> {
         write!(f, "{:?}", re_to_pattern(self))
     }
 }
+
+
+impl<L: Language> std::fmt::Display for MultiPattern<L> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        for (i, (pv, n, children)) in self.pats.iter().enumerate() {
+            let children = children.iter().map(|x| Pattern::PVar(x.clone())).collect();
+            let pat = Pattern::ENode(n.clone(), children);
+            write!(f, "{pv} == {pat}")?;
+            if i != self.pats.len()-1 {
+                write!(f, ", ")?;
+            }
+        }
+        Ok(())
+    }
+}
+
+impl<L: Language> std::fmt::Debug for MultiPattern<L> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self)
+    }
+}
+
 
 fn to_vec<T: Clone>(t: &[T]) -> Vec<T> {
     t.iter().cloned().collect()

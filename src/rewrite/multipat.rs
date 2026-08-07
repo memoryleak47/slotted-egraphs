@@ -9,7 +9,7 @@ pub struct MultiPattern<L: Language> {
     // - nesting depth 0 `(= ?a ?b)` can be solved via pre-processing, and
     // - nesting depth >1 `(= ?a (f (f ?x)))` can be solved via flattening `(= ?a (f ?b)), (= ?b (f ?x))`.
     // variables are allowed to come up multiple times on the left and right.
-    pats: Vec<(PVar, L, Vec<PVar>)>,
+    pub(crate) pats: Vec<(PVar, L, Vec<PVar>)>,
 }
 
 #[derive(Clone)]
