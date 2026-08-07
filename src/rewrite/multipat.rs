@@ -24,7 +24,7 @@ struct MultiState {
     // flexible slots also spawn with disequality constraints among other flexible slots.
     // pattern slots can inherit disequality constraints from flexible slots though (without becoming flexible themselves).
 
-    flexible: HashSet<Slot>, // the set of flexible slots.
+    pattern_slots: HashSet<Slot>, // the set of pattern slots.
     diseq_constraints: HashMap<Slot, HashSet<Slot>>,
     subst: Subst,
     slot_uf: HashMap<Slot, Slot>,
@@ -32,7 +32,7 @@ struct MultiState {
 
 pub fn multi_ematch<L: Language>(pat: &MultiPattern<L>, eg: &EGraph<L>) -> Vec<Subst> {
     let mut states: Vec<MultiState> = vec![MultiState {
-        flexible: HashSet::default(),
+        pattern_slots: HashSet::default(),
         diseq_constraints: HashMap::default(),
         subst: Subst::default(),
         slot_uf: HashMap::default(),
@@ -107,6 +107,7 @@ fn matches_raw<L: Language>(n1: &L, n2: &L, mut st: MultiState) -> Option<MultiS
 
     // as we've done nullify_app_ids, the only remaining slots are the slots not stored in AppliedIds.
     for (x1, y1) in n1.all_slot_occurrences().into_iter().zip(n2.all_slot_occurrences()) {
+        st.pattern_slots.insert(x1);
         st = union_slot(x1, y1, st)?;
     }
     Some(st)
@@ -156,7 +157,7 @@ fn unify<L: Language>(x: &AppliedId, y: &AppliedId, mut st: MultiState, eg: &EGr
 
 // whether we allow x -> y replacement.
 fn allows_directed_union(x: Slot, st: &MultiState) -> bool {
-    st.flexible.contains(&x)
+    !st.pattern_slots.contains(&x)
 }
 
 // We replace x -> y, if allowed.
@@ -210,8 +211,6 @@ fn state_appid_find(mut x: AppliedId, st: &MultiState) -> AppliedId {
 }
 
 fn add_disjointness_constraint(set: HashSet<Slot>, st: &mut MultiState) {
-    st.flexible.extend(set.iter().copied());
-
     for x in &set {
         let mut rest = set.clone();
         rest.remove(&x);
