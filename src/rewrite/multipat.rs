@@ -58,6 +58,33 @@ fn multi_ematch_step_class<L: Language>(pv: &PVar, node: &L, children: &[PVar], 
 }
 
 fn multi_ematch_step_node<L: Language>(pv: &PVar, node: &L, children: &[PVar], mut state: MultiState, eg: &EGraph<L>) -> Vec<MultiState> {
-    // TODO
-    vec![state]
+    let gid = &state.subst[pv];
+    let mut out = Vec::new();
+
+    for n in eg.enodes_applied(gid) {
+        if !matches_raw(node, &n) { continue }
+
+        let mut accum = vec![state.clone()];
+        for (child_pvar, child_gid) in children.iter().zip(n.applied_id_occurrences()) {
+            for st in std::mem::take(&mut accum) {
+                accum.extend(extend_subst(child_pvar, child_gid.clone(), st));
+            }
+        }
+        out.extend(accum);
+    }
+
+    out
+}
+
+fn matches_raw<L: Language>(n1: &L, n2: &L) -> bool {
+    nullify_app_ids(n1) == nullify_app_ids(n2)
+}
+
+fn extend_subst(pv: &PVar, x: AppliedId, mut st: MultiState) -> Vec<MultiState> {
+    if let Some(y) = st.subst.get(pv) {
+        st.subst.insert(pv.clone(), x);
+        vec![st]
+    } else {
+        todo!()
+    }
 }
