@@ -65,7 +65,6 @@ fn multi_ematch_step_class<L: Language>(pv: &PVar, node: &L, children: &[PVar], 
 
         let slots = &eg.slots(x);
         let m = SlotMap::bijection_from_fresh_to(&slots).inverse();
-        add_disjointness_constraint(m.values().into_iter().collect(), &mut state);
 
         state.subst.insert(pv.clone(), AppliedId::new(x, m));
         out.push(state);
