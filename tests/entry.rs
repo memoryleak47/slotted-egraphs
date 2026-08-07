@@ -25,6 +25,9 @@ pub use sdql::*;
 mod array;
 pub use array::*;
 
+mod multipat;
+pub use multipat::*;
+
 mod misc;
 
 pub fn singleton_set<T: Eq + Hash + Ord>(t: T) -> SmallHashSet<T> {
