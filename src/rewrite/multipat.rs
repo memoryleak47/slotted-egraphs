@@ -14,26 +14,24 @@ pub struct MultiPattern<L: Language> {
 
 #[derive(Clone, Copy, Debug)]
 enum SlotKind {
-    Global,
     Redundant,
+    Global,
     Pattern,
 }
 
 #[derive(Clone, Debug)]
 struct MultiState {
     // There are three kinds of slots here:
-    // 1. redundant slots, they are keys in the diseq_constraints map.
-    // 2. global_slots, which are the slots freshly generated for the public slots of some ?-variable.
+    // 1. redundant slots, they come from some nodes with redundant variables.
+    // 2. global slots, which are the fresh slots that we renamed some pvar to point to.
     // 3. pattern slots, slots that come up in the actual pattern.
 
     // They form a hierarchy. Any lower slot can be merged into a higher slot, but not the other way around.
-    // redundant slots are allowed to alias other redundant slots, global_slots and pattern slots.
-    // global_slots are allowed to alias other global slots and pattern slots.
+    // redundant slots are allowed to alias other redundant slots, global slots and pattern slots.
+    // global slots are allowed to alias other global slots and pattern slots.
     // pattern slots can't alias anything.
     // the slot_uf needs to respect this directionality.
 
-    // only fresh slots that came from redundant vars have an entry in this map.
-    // only those slots are allowed to be merged into other slots.
     slot_kind: HashMap<Slot, SlotKind>,
     diseq_constraints: HashMap<Slot, Vec<Slot>>,
     subst: Subst,
