@@ -5,6 +5,7 @@ use crate::*;
 use std::collections::BTreeSet;
 
 mod fuzz;
+mod known_bugs;
 mod props;
 mod refine;
 mod regress;
