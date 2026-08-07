@@ -51,7 +51,22 @@ fn multipat_test() {
     eg.add_expr(RecExpr::parse("(f (var $x) zero)").unwrap());
     let pat: MultiPattern<Arith2> = MultiPattern::parse("?x == (f ?a ?b), ?b == zero").unwrap();
     let matches = multi_ematch(&pat, &eg);
-    assert_eq!(matches.len(), 1);
     dbg!(&matches);
-    assert!(false);
+    assert_eq!(matches.len(), 1);
+}
+
+#[test]
+fn multipat_test2() {
+    let mut eg: EGraph<Arith2> = EGraph::new(());
+
+    eg.add_expr(RecExpr::parse("(f (var $x) (sub (var $y) (var $y)))").unwrap());
+
+    let a = eg.add_expr(RecExpr::parse("(sub (var $z) (var $z))").unwrap());
+    let b = eg.add_expr(RecExpr::parse("zero").unwrap());
+    eg.union(&a, &b);
+
+    let pat: MultiPattern<Arith2> = MultiPattern::parse("?out == (f ?a ?b), ?b == (sub ?a ?a)").unwrap();
+    let matches = multi_ematch(&pat, &eg);
+    dbg!(&matches);
+    assert_eq!(matches.len(), 1);
 }
