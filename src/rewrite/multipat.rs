@@ -18,12 +18,14 @@ struct MultiState {
     // only those slots are allowed to be merged into other slots.
     diseq_constraints: HashMap<Slot, Vec<Slot>>,
     subst: Subst,
+    slot_uf: HashMap<Slot, Slot>,
 }
 
 pub fn multi_ematch<L: Language>(pat: &MultiPattern<L>, eg: &EGraph<L>) -> Vec<Subst> {
     let mut states: Vec<MultiState> = vec![MultiState {
         diseq_constraints: HashMap::default(),
         subst: Subst::default(),
+        slot_uf: HashMap::default(),
     }];
 
     for (v, n, ch) in &pat.pats {
@@ -120,7 +122,7 @@ fn unify<L: Language>(x: &AppliedId, y: &AppliedId, mut st: MultiState, eg: &EGr
 
         for &yy in yonly.iter() {
             let st = st.clone();
-            if let Some(st) = replace_slot(xx, yy, st) {
+            if let Some(st) = union_slot(xx, yy, st) {
                 out.extend(unify(x, y, st, eg));
             }
         }
@@ -130,29 +132,47 @@ fn unify<L: Language>(x: &AppliedId, y: &AppliedId, mut st: MultiState, eg: &EGr
 }
 
 // We replace x -> y, if allowed.
-fn replace_slot(x: Slot, y: Slot, mut st: MultiState) -> Option<MultiState> {
-    // We need at least one of the two to be a fresh slot from a redundant variable.
-    if !st.diseq_constraints.contains_key(&x) && !st.diseq_constraints.contains_key(&y) { return None }
+fn union_slot(x: Slot, y: Slot, mut st: MultiState) -> Option<MultiState> {
+    let mut x = state_find(x, &st);
+    let mut y = state_find(y, &st);
+
+    if x == y { return Some(st) }
+
+    if !st.diseq_constraints.contains_key(&x) { (x, y) = (y, x); }
+    if !st.diseq_constraints.contains_key(&x) { return None }
 
     if let Some(xx) = st.diseq_constraints.get(&x) { if xx.contains(&y) { return None } }
     if let Some(yy) = st.diseq_constraints.get(&y) { if yy.contains(&x) { return None } }
 
-    // At this point, neither x nor y are considered fresh anymore.
-    st.diseq_constraints.remove(&x);
-    st.diseq_constraints.remove(&y);
+    st.slot_uf.insert(x, y);
 
-    for v in st.diseq_constraints.values_mut() {
-        if let Some(i) = v.iter().position(|a| *a == x) {
-            v[i] = y;
-        }
-    }
-
-    for v in st.subst.values_mut() {
-        for xx in v.m.values_mut() {
-            if x == *xx {
-                *xx = y;
-            }
-        }
-    }
+    update_state(&mut st);
     Some(st)
+}
+
+fn update_state(st: &mut MultiState) {
+    let mut subst = st.subst.clone();
+    for v in subst.values_mut() {
+        for xx in v.m.values_mut() { *xx = state_find(*xx, st); }
+    }
+    st.subst = subst;
+
+    let mut diseq_constraints = HashMap::default();
+    for (xx, vs) in st.diseq_constraints.iter() {
+        let xx = state_find(*xx, st);
+        let vs: Vec<Slot> = vs.iter().map(|a| state_find(*a, st)).collect();
+        let vv: &mut Vec<_> = diseq_constraints.entry(xx).or_default();
+        vv.extend(vs);
+        vv.sort();
+        vv.dedup();
+    }
+
+    st.diseq_constraints = diseq_constraints;
+}
+
+fn state_find(mut x: Slot, st: &MultiState) -> Slot {
+    while let Some(y) = st.slot_uf.get(&x) {
+        x = *y;
+    }
+    x
 }
