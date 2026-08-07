@@ -12,10 +12,29 @@ pub struct MultiPattern<L: Language> {
     pub(crate) pats: Vec<(PVar, L, Vec<PVar>)>,
 }
 
-#[derive(Clone)]
+#[derive(Clone, Copy, Debug)]
+enum SlotKind {
+    Global,
+    Redundant,
+    Pattern,
+}
+
+#[derive(Clone, Debug)]
 struct MultiState {
+    // There are three kinds of slots here:
+    // 1. redundant slots, they are keys in the diseq_constraints map.
+    // 2. global_slots, which are the slots freshly generated for the public slots of some ?-variable.
+    // 3. pattern slots, slots that come up in the actual pattern.
+
+    // They form a hierarchy. Any lower slot can be merged into a higher slot, but not the other way around.
+    // redundant slots are allowed to alias other redundant slots, global_slots and pattern slots.
+    // global_slots are allowed to alias other global slots and pattern slots.
+    // pattern slots can't alias anything.
+    // the slot_uf needs to respect this directionality.
+
     // only fresh slots that came from redundant vars have an entry in this map.
     // only those slots are allowed to be merged into other slots.
+    slot_kind: HashMap<Slot, SlotKind>,
     diseq_constraints: HashMap<Slot, Vec<Slot>>,
     subst: Subst,
     slot_uf: HashMap<Slot, Slot>,
@@ -25,6 +44,7 @@ pub fn multi_ematch<L: Language>(pat: &MultiPattern<L>, eg: &EGraph<L>) -> Vec<S
     let mut states: Vec<MultiState> = vec![MultiState {
         diseq_constraints: HashMap::default(),
         subst: Subst::default(),
+        slot_kind: HashMap::default(),
         slot_uf: HashMap::default(),
     }];
 
@@ -34,7 +54,6 @@ pub fn multi_ematch<L: Language>(pat: &MultiPattern<L>, eg: &EGraph<L>) -> Vec<S
         }
     }
 
-    // TODO final_subst?
     states.into_iter().map(|x| x.subst).collect()
 }
 
@@ -52,9 +71,11 @@ fn multi_ematch_step_class<L: Language>(pv: &PVar, node: &L, children: &[PVar], 
 
     let mut out = Vec::new();
     for x in eg.ids() {
+        let mut state = state.clone();
+
         let slots = &eg.slots(x);
         let m = SlotMap::bijection_from_fresh_to(&slots).inverse();
-        let mut state = state.clone();
+        for xx in m.values() { state.slot_kind.insert(xx, SlotKind::Global); }
         state.subst.insert(pv.clone(), AppliedId::new(x, m));
         out.push(state);
     }
@@ -66,13 +87,13 @@ fn multi_ematch_step_node<L: Language>(pv: &PVar, node: &L, children: &[PVar], m
     let mut out = Vec::new();
 
     for n in eg.enodes_applied(gid) {
-        if !matches_raw(node, &n) { continue }
+        let Some(mut state) = matches_raw(node, &n, state.clone()) else { continue };
 
-        let mut state = state.clone();
         for slot in n.all_slot_occurrences().into_iter().collect::<HashSet<Slot>>() {
             if !gid.m.values().contains(&slot) {
                 // At this point, we know that `slot` is a fresh slot coming from some redundant variable.
                 state.diseq_constraints.insert(slot, gid.m.values().into_iter().collect());
+                state.slot_kind.insert(slot, SlotKind::Redundant);
             }
         }
 
@@ -88,10 +109,17 @@ fn multi_ematch_step_node<L: Language>(pv: &PVar, node: &L, children: &[PVar], m
     out
 }
 
-fn matches_raw<L: Language>(n1: &L, n2: &L) -> bool {
-    let n1 = nullify_app_ids(n1).weak_shape().0;
-    let n2 = nullify_app_ids(n2).weak_shape().0;
-    n1 == n2
+// n1 comes from the pattern, whereas n2 from the e-graph.
+fn matches_raw<L: Language>(n1: &L, n2: &L, mut st: MultiState) -> Option<MultiState> {
+    let (n1, _) = nullify_app_ids(n1).weak_shape();
+    let (n2, _) = nullify_app_ids(n2).weak_shape();
+    if n1 != n2 { return None }
+
+    for (x1, y1) in n1.all_slot_occurrences().into_iter().zip(n2.all_slot_occurrences()) {
+        st.slot_kind.insert(x1, SlotKind::Pattern);
+        st = union_slot(x1, y1, st)?;
+    }
+    Some(st)
 }
 
 fn extend_subst<L: Language>(pv: &PVar, x: AppliedId, mut st: MultiState, eg: &EGraph<L>) -> Vec<MultiState> {
@@ -136,6 +164,16 @@ fn unify<L: Language>(x: &AppliedId, y: &AppliedId, mut st: MultiState, eg: &EGr
     }
 }
 
+// whether we allow x -> y replacement.
+fn allows_directed_union(x: Slot, y: Slot, st: &MultiState) -> bool {
+    match (st.slot_kind[&x], st.slot_kind[&y]) {
+        (SlotKind::Redundant, _) => true,
+        (SlotKind::Pattern, _) => false,
+        (SlotKind::Global, SlotKind::Global|SlotKind::Pattern) => true,
+        (SlotKind::Global, SlotKind::Redundant) => false,
+    }
+}
+
 // We replace x -> y, if allowed.
 fn union_slot(x: Slot, y: Slot, mut st: MultiState) -> Option<MultiState> {
     let mut x = state_find(x, &st);
@@ -143,11 +181,11 @@ fn union_slot(x: Slot, y: Slot, mut st: MultiState) -> Option<MultiState> {
 
     if x == y { return Some(st) }
 
-    if !st.diseq_constraints.contains_key(&x) { (x, y) = (y, x); }
-    if !st.diseq_constraints.contains_key(&x) { return None }
-
     if let Some(xx) = st.diseq_constraints.get(&x) { if xx.contains(&y) { return None } }
     if let Some(yy) = st.diseq_constraints.get(&y) { if yy.contains(&x) { return None } }
+
+    if !allows_directed_union(x, y, &st) { (x, y) = (y, x); }
+    if !allows_directed_union(x, y, &st) { return None }
 
     st.slot_uf.insert(x, y);
 
