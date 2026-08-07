@@ -14,8 +14,7 @@ pub struct MultiPattern<L: Language> {
 
 #[derive(Clone, Copy, Debug)]
 enum SlotKind {
-    Redundant,
-    Global,
+    Flexible,
     Pattern,
 }
 
@@ -73,7 +72,7 @@ fn multi_ematch_step_class<L: Language>(pv: &PVar, node: &L, children: &[PVar], 
 
         let slots = &eg.slots(x);
         let m = SlotMap::bijection_from_fresh_to(&slots).inverse();
-        for xx in m.values() { state.slot_kind.insert(xx, SlotKind::Global); }
+        for xx in m.values() { state.slot_kind.insert(xx, SlotKind::Flexible); }
         state.subst.insert(pv.clone(), AppliedId::new(x, m));
         out.push(state);
     }
@@ -91,7 +90,7 @@ fn multi_ematch_step_node<L: Language>(pv: &PVar, node: &L, children: &[PVar], m
             if !gid.m.values().contains(&slot) {
                 // At this point, we know that `slot` is a fresh slot coming from some redundant variable.
                 state.diseq_constraints.insert(slot, gid.m.values().into_iter().collect());
-                state.slot_kind.insert(slot, SlotKind::Redundant);
+                state.slot_kind.insert(slot, SlotKind::Flexible);
             }
         }
 
@@ -168,12 +167,7 @@ fn unify<L: Language>(x: &AppliedId, y: &AppliedId, mut st: MultiState, eg: &EGr
 
 // whether we allow x -> y replacement.
 fn allows_directed_union(x: Slot, y: Slot, st: &MultiState) -> bool {
-    match (st.slot_kind[&x], st.slot_kind[&y]) {
-        (SlotKind::Redundant, _) => true,
-        (SlotKind::Pattern, _) => false,
-        (SlotKind::Global, SlotKind::Global|SlotKind::Pattern) => true,
-        (SlotKind::Global, SlotKind::Redundant) => false,
-    }
+    matches!(st.slot_kind[&x], SlotKind::Flexible)
 }
 
 // We replace x -> y, if allowed.
