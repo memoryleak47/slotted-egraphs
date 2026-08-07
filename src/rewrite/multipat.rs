@@ -20,16 +20,12 @@ enum SlotKind {
 
 #[derive(Clone, Debug)]
 struct MultiState {
-    // There are three kinds of slots here:
-    // 1. redundant slots, they come from some nodes with redundant variables.
-    // 2. global slots, which are the fresh slots that we renamed some pvar to point to.
-    // 3. pattern slots, slots that come up in the actual pattern.
+    // There are two kinds of slots here:
+    // 1. flexible slots, they come from some nodes with redundant variables, or from fresh slots allocated for some pvars.
+    // 2. pattern slots, slots that come up in the actual pattern.
 
-    // They form a hierarchy. Any lower slot can be merged into a higher slot, but not the other way around.
-    // redundant slots are allowed to alias other redundant slots, global slots and pattern slots.
-    // global slots are allowed to alias other global slots and pattern slots.
-    // pattern slots can't alias anything.
-    // the slot_uf needs to respect this directionality.
+    // flexible slots are allowed to be replaced by other slots, pattern slots don't allow that.
+    // this merging should always merge by choosing the pattern slots as leaders, as you want the final subst to contain the pattern slots.
 
     slot_kind: HashMap<Slot, SlotKind>,
     diseq_constraints: HashMap<Slot, Vec<Slot>>,
