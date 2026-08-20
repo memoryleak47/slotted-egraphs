@@ -153,10 +153,14 @@ impl<T, L: Language, N: Analysis<L>> Cond<L, N> for T where
 {
 }
 
+/// Holds when `slot` is free in whatever the pattern variable `var` matched.
+///
+/// Negate it at the call site for "not free in", as the `eta` and `let-unused`
+/// rules in `tests/array` do.
 pub fn slot_free_in<L: Language, N: Analysis<L>>(slot: &str, var: &str) -> impl Cond<L, N> {
     let s: Slot = Slot::named(slot);
     let var = var.to_string();
-    move |subst, _| !subst[&*var].slots().contains(&s)
+    move |subst, _| subst[&*var].slots().contains(&s)
 }
 
 pub fn or<L: Language, N: Analysis<L>>(x: impl Cond<L, N>, y: impl Cond<L, N>) -> impl Cond<L, N> {
