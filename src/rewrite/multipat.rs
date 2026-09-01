@@ -59,7 +59,7 @@ fn final_refine(mut state: MultiState) -> Vec<MultiState> {
             if x == y { continue }
             let Some(st_merge) = union_slot(x, y, state.clone()) else { continue };
 
-            // NOTE: This code gets reached only very rarely. None of the tests reach it yet.
+            // NOTE: This code gets reached only very rarely.
             let mut st_different = state;
             st_different.diseq_constraints.entry(x).or_default().insert(y);
             st_different.diseq_constraints.entry(y).or_default().insert(x);

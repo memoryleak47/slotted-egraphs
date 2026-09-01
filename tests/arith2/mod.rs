@@ -148,3 +148,20 @@ fn multipat_test8() {
     dbg!(&matches);
     assert_eq!(matches.len(), 1);
 }
+
+#[test]
+fn multipat_test9() {
+    let mut eg: EGraph<Arith2> = EGraph::new(());
+
+    eg.add_expr(RecExpr::parse("(f (var $x) (sub (var $y) (var $y)))").unwrap());
+
+    let a = eg.add_expr(RecExpr::parse("(sub (var $z) (var $z))").unwrap());
+    let b = eg.add_expr(RecExpr::parse("zero").unwrap());
+    eg.union(&a, &b);
+
+    let pat: MultiPattern<Arith2> = MultiPattern::parse("?out == (f ?a ?b), ?b == (sub ?c ?c)").unwrap();
+    let matches = multi_ematch(&pat, &eg);
+    dbg!(&matches);
+    assert_eq!(matches.len(), 2);
+    // There are two matches because ?a and ?c can agree or disagree on their slot. f($x, $y-$y) versus f($x, $x-$x).
+}
