@@ -135,6 +135,8 @@ fn matches_raw<L: Language>(n1: &L, n2: &L, mut st: MultiState) -> Option<MultiS
 }
 
 fn extend_subst<L: Language>(pv: &PVar, x: AppliedId, mut st: MultiState, eg: &EGraph<L>) -> Vec<MultiState> {
+    let x = state_appid_find(x.clone(), &st); // bugfix found by oflatt-claude!
+
     if let Some(y) = st.subst.get(pv).cloned() {
         unify(&x, &y, st, eg)
     } else {

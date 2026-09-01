@@ -8,6 +8,7 @@ define_language! {
         Var(Slot) = "var",
         F(AppliedId, AppliedId) = "f",
         Sub(AppliedId, AppliedId) = "sub",
+        Lam(Bind<AppliedId>) = "lam",
         Zero() = "zero",
     }
 }
@@ -164,4 +165,22 @@ fn multipat_test9() {
     dbg!(&matches);
     assert_eq!(matches.len(), 2);
     // There are two matches because ?a and ?c can agree or disagree on their slot. f($x, $y-$y) versus f($x, $x-$x).
+}
+
+#[test]
+fn multipat_test10() { // testcase found by oflatt-claude.
+    let mut eg: EGraph<Arith2> = EGraph::new(());
+
+    eg.add_expr(RecExpr::parse("(lam $x (var $x))").unwrap());
+
+    let pat: MultiPattern<Arith2> = MultiPattern::parse("?out == (lam $v ?b)").unwrap();
+    let matches = multi_ematch(&pat, &eg);
+    dbg!(&matches);
+    assert_eq!(matches.len(), 1);
+
+    let m = &matches[0];
+    let vals = &m["b"].m.values();
+    let correct_vals = std::iter::once(Slot::named("v")).collect();
+
+    assert_eq!(*vals, correct_vals);
 }
