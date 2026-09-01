@@ -91,6 +91,7 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
             final_cap = &final_cap - &grp.orbit(d);
         }
 
+        let cap = final_cap; // bugfix found by oflatt-claude.
         c.slots = cap.clone();
         let generators = c.group.generators();
         let _ = c;
