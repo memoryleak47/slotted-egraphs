@@ -44,7 +44,29 @@ pub fn multi_ematch<L: Language>(pat: &MultiPattern<L>, eg: &EGraph<L>) -> Vec<S
         }
     }
 
+    for state in std::mem::take(&mut states) {
+        states.extend(final_refine(state));
+    }
+
     states.into_iter().map(|x| x.subst).collect()
+}
+
+// for the slot-pairs whose equality hasn't been decided yet: branch on both possibilities.
+fn final_refine(mut state: MultiState) -> Vec<MultiState> {
+    let slots: HashSet<Slot> = state.subst.values().map(|x| x.slots()).flatten().collect();
+    for &x in &slots {
+        for &y in &slots {
+            if x == y { continue }
+            let Some(st_merge) = union_slot(x, y, state.clone()) else { continue };
+
+            // NOTE: This code gets reached only very rarely. None of the tests reach it yet.
+            let mut st_different = state;
+            st_different.diseq_constraints.entry(x).or_default().insert(y);
+            st_different.diseq_constraints.entry(y).or_default().insert(x);
+            return final_refine(st_merge).into_iter().chain(final_refine(st_different).into_iter()).collect()
+        }
+    }
+    vec![state]
 }
 
 fn multi_ematch_step<L: Language>(pv: &PVar, node: &L, children: &[PVar], mut state: MultiState, eg: &EGraph<L>) -> Vec<MultiState> {
