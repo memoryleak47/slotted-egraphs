@@ -74,8 +74,19 @@ impl<L: Language, CF: CostFunction<L>> Extractor<L, CF> {
 
         let mut children = Vec::new();
 
-        // do I need to refresh some slots here?
-        let l = self.map[&i.id].0.apply_slotmap(&i.m);
+        // The chosen node may name slots its class does not -- a redundant slot, which
+        // the class is free to leave unnamed -- and `i.m` is keyed on the CLASS's slots,
+        // so it does not cover them. Give each such slot a fresh name, once per slot
+        // rather than once per occurrence: a redundant slot appearing twice in one node
+        // is the same slot, and freshening the occurrences apart would change the term.
+        let node = &self.map[&i.id].0;
+        let mut m = i.m.clone();
+        for s in node.slots() {
+            if !m.contains_key(s) {
+                m.insert(s, Slot::fresh());
+            }
+        }
+        let l = node.apply_slotmap(&m);
         for child in l.applied_id_occurrences() {
             let n = self.extract(&child, eg);
             children.push(n);
