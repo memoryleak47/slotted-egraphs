@@ -61,9 +61,6 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
             assert_eq!(from.id, proof.l.id);
         }
 
-        let origcap = cap.iter().map(|x| from.m.inverse()[*x]).collect();
-        self.record_redundancy_witness(from.id, &origcap, proof);
-
         let (id, cap) = {
             // from.m :: slots(from.id) -> X
             // cap :: set X
@@ -79,19 +76,27 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
 
         // cap :: set slots(id)
 
+        // The class ends up smaller than the requested cap whenever a newly redundant
+        // slot has a non-trivial orbit: the class is invariant under its own group, so
+        // if `d` is redundant then everything `d`'s orbit reaches is too. Work that out
+        // BEFORE recording the witness, or nothing outside this function learns that
+        // those slots went away -- `proven_find_applied_id` keeps handing back an
+        // `AppliedId` carrying them, and `union_leaders` concludes there is nothing left
+        // to shrink.
+        let cap = {
+            let c = &self.classes[&id];
+            let mut final_cap = cap.clone();
+            for d in &c.slots - &cap {
+                final_cap = &final_cap - &c.group.orbit(d);
+            }
+            final_cap
+        };
+
+        let origcap = cap.clone();
+        self.record_redundancy_witness(from.id, &origcap, proof);
+
         let syn_slots = &self.syn_slots(id);
         let c = self.classes.get_mut(&id).unwrap();
-        let grp = &c.group;
-
-        let mut final_cap = cap.clone();
-
-        // d is a newly redundant slot.
-        for d in &c.slots - &cap {
-            // if d is redundant, then also the orbit of d is redundant.
-            final_cap = &final_cap - &grp.orbit(d);
-        }
-
-        let cap = final_cap; // bugfix found by oflatt-claude.
         c.slots = cap.clone();
         let generators = c.group.generators();
         let _ = c;
