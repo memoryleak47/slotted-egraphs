@@ -202,9 +202,16 @@ impl<L: LanguageChildren> LanguageChildren for Bind<L> {
 
     fn weak_shape_impl(&mut self, m: &mut (SlotMap, u32)) {
         let s = self.slot;
+        // A binder may use the same concrete name as a free slot in an earlier
+        // sibling, or as an enclosing binder. Its mapping is only shadowed while
+        // traversing the binder's body; restore it when leaving that scope.
+        let shadowed = m.0.get(s);
         add_slot(&mut self.slot, m);
         self.elem.weak_shape_impl(m);
         m.0.remove(s);
+        if let Some(s2) = shadowed {
+            m.0.insert(s, s2);
+        }
     }
 }
 
