@@ -184,3 +184,51 @@ fn multipat_test10() { // testcase found by oflatt-claude.
 
     assert_eq!(*vals, correct_vals);
 }
+
+#[test]
+// `final_refine` may read a binder's bound slot as the name of one of the term's free
+// variables. As a MATCH that is a fine alpha-variant of the term. But a rewrite whose
+// right-hand side rebinds that slot over a variable matched outside the binder then
+// captures it. The nested matcher never does this: its bound slots stay injective.
+//
+//     (f (lam $0 (sub (var $0) (var $0))) (var $2))          the term
+//     (f (lam $y ?body) ?e)  =>  (lam $y (f ?body ?e))       the rewrite
+//
+// With `$y` read as `$2` the right-hand side is `(lam $2 (f (sub $2 $2) $2))`: `?e`
+// captured, a closed term, and the class stops depending on `$2`. On the paper's
+// array language the same happens through `let-lam-diff` at zero parameters, six
+// rounds in, after which every class is one class.
+fn multipat_rhs_binder_captures_a_free_variable() {
+    let term = "(f (lam $0 (sub (var $0) (var $0))) (var $2))";
+    let lhs = "(f (lam $y ?body) ?e)";
+    let rhs = "(lam $y (f ?body ?e))";
+    let sound = "(lam $1 (f (sub (var $1) (var $1)) (var $2)))";
+    let captured = "(lam $1 (f (sub (var $1) (var $1)) (var $1)))";
+
+    // nested matcher: the sound result, and nothing else
+    let mut eg: EGraph<Arith2> = EGraph::new(());
+    let start = eg.add_expr(RecExpr::parse(term).unwrap());
+    apply_rewrites(&mut eg, &[Rewrite::new("push", lhs, rhs)]);
+    let sound_id = eg.add_expr(RecExpr::parse(sound).unwrap());
+    let captured_id = eg.add_expr(RecExpr::parse(captured).unwrap());
+    assert!(eg.eq(&start, &sound_id));
+    assert!(!eg.eq(&start, &captured_id));
+
+    // multipattern matcher: the same rule, flattened
+    let mut eg: EGraph<Arith2> = EGraph::new(());
+    let start = eg.add_expr(RecExpr::parse(term).unwrap());
+    let pat: MultiPattern<Arith2> = MultiPattern::parse("?p == (f ?l ?e), ?l == (lam $y ?body)").unwrap();
+    let matches = multi_ematch(&pat, &eg);
+    let (from, to) = (Pattern::PVar("p".to_string()), Pattern::parse(rhs).unwrap());
+    for s in &matches {
+        eg.union_instantiations(&from, &to, s, None);
+    }
+    let sound_id = eg.add_expr(RecExpr::parse(sound).unwrap());
+    let captured_id = eg.add_expr(RecExpr::parse(captured).unwrap());
+    assert!(eg.eq(&start, &sound_id));
+    assert!(
+        !eg.eq(&start, &captured_id),
+        "{} matches, one reading the binder as the free $2: {matches:?}",
+        matches.len()
+    );
+}
