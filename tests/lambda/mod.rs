@@ -49,17 +49,18 @@ fn redundancy_matching_bug() {
 
     assert_eq!(eg.ids().len(), 3);
 
-    // The pattern writes one `$x` for two independent binders. E-matching freshens each
-    // binder's bound slot, so the two occurrences meet different egraph slots:
-    // (app (lam $x (var $x)) (lam $x (var $x)))  is matched against
-    // (app (lam $x1 (var $x1)) (lam $x2 (var $x2))).
-    // Identifying $x1 with $x2 is a renaming, both being bound, so the rule does fire;
-    // `ematch` keeps only the pattern's FREE slots injective.
+                             // NOTE: changing to    "(app (lam $x (var $x)) (lam $x2 (var $x2)))"    makes this work.
     let r: Rewrite<Lambda> = rw!("compose_identity"; "(app (lam $x (var $x)) (lam $x (var $x)))" => "(lam $x (var $x))");
     apply_rewrites(&mut eg, &[r]);
 
     eg.dump();
 
-    // `compose_identity` fired, so the `app` class and the identity `lam` are one.
+    // NOTE: this is a bug. The rule `compose_identity` didn't fire even though it precisely matches the added term `t`.
+    // The reason for that is that during e-matching
+    // (app (lam $x (var $x)) (lam $x (var $x)))
+    // gets rewritten to
+    // (app (lam $x1 (var $x1)) (lam $x2 (var $x2)))
+    // to avoid naming collisions.
+
     assert_eq!(eg.ids().len(), 2);
 }

@@ -75,25 +75,15 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         };
 
         // cap :: set slots(id)
+        let c = &self.classes[&id];
+        let mut final_cap = cap.clone();
+        for d in &c.slots - &cap {
+            // TODO: This orbit restriction requires a corresponding redundancy witness for proof production.
+            final_cap = &final_cap - &c.group.orbit(d);
+        }
+        let cap = final_cap;
 
-        // The class ends up smaller than the requested cap whenever a newly redundant
-        // slot has a non-trivial orbit: the class is invariant under its own group, so
-        // if `d` is redundant then everything `d`'s orbit reaches is too. Work that out
-        // BEFORE recording the witness, or nothing outside this function learns that
-        // those slots went away -- `proven_find_applied_id` keeps handing back an
-        // `AppliedId` carrying them, and `union_leaders` concludes there is nothing left
-        // to shrink.
-        let cap = {
-            let c = &self.classes[&id];
-            let mut final_cap = cap.clone();
-            for d in &c.slots - &cap {
-                final_cap = &final_cap - &c.group.orbit(d);
-            }
-            final_cap
-        };
-
-        let origcap = cap.clone();
-        self.record_redundancy_witness(from.id, &origcap, proof);
+        self.record_redundancy_witness(from.id, &cap, proof);
 
         let syn_slots = &self.syn_slots(id);
         let c = self.classes.get_mut(&id).unwrap();
