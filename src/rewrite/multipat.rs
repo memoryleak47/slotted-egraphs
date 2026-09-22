@@ -98,20 +98,26 @@ fn multi_ematch_step_node<L: Language>(pv: &PVar, node: &L, children: &[PVar], m
     let gid = &state.subst[pv];
     let mut out = Vec::new();
 
-    for n in eg.enodes_applied(gid) {
-        let mut state = state.clone();
-        let set = n.all_slot_occurrences().into_iter().collect::<HashSet<Slot>>();
-        add_disjointness_constraint(set, &mut state);
+    // A class with a symmetry group has more readings than stored e-nodes: each node
+    // stands for its whole orbit under the group. Match every group-compatible variant,
+    // as `ematch_node` does, or a reading whose stored spelling a side condition refuses
+    // is never offered in the spelling it would accept.
+    for stored in eg.enodes_applied(gid) {
+        for n in eg.get_group_compatible_weak_variants(&stored) {
+            let mut state = state.clone();
+            let set = n.all_slot_occurrences().into_iter().collect::<HashSet<Slot>>();
+            add_disjointness_constraint(set, &mut state);
 
-        let Some(mut state) = matches_raw(node, &n, state.clone()) else { continue };
+            let Some(mut state) = matches_raw(node, &n, state.clone()) else { continue };
 
-        let mut accum = vec![state];
-        for (child_pvar, child_gid) in children.iter().zip(n.applied_id_occurrences()) {
-            for st in std::mem::take(&mut accum) {
-                accum.extend(extend_subst(child_pvar, child_gid.clone(), st, eg));
+            let mut accum = vec![state];
+            for (child_pvar, child_gid) in children.iter().zip(n.applied_id_occurrences()) {
+                for st in std::mem::take(&mut accum) {
+                    accum.extend(extend_subst(child_pvar, child_gid.clone(), st, eg));
+                }
             }
+            out.extend(accum);
         }
-        out.extend(accum);
     }
 
     out
