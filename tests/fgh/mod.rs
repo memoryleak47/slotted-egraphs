@@ -37,3 +37,21 @@ fn shrink_with_symmetry() {
     // After all, as (f $0 $1) is self-symmetric, making $0 redundant should make $1 redundant too.
     assert_eq!(eg.slots(ids[0]).len(), 0);
 }
+
+// Extracting from a class whose cheapest node names a slot the class does not.
+// `(f $0 $1)` equated with `(g $1 $1)` leaves `$0` redundant, so the class keeps a node
+// wider than itself -- which Def. 4 permits -- and extraction has to name that slot.
+#[test]
+fn extract_with_redundant_slot() {
+    let eg: &mut EGraph<Fgh> = &mut EGraph::default();
+    equate("(f $0 $1)", "(g $1 $1)", eg);
+
+    let ids = eg.ids();
+    assert_eq!(ids.len(), 1);
+
+    // the class invoked on its own slots
+    let id = AppliedId::new(ids[0], SlotMap::identity(&eg.slots(ids[0])));
+    let out = ast_size_extract(&id, eg);
+    // whichever node is cheapest, extraction must produce a term rather than panic
+    assert!(!out.to_string().is_empty());
+}
