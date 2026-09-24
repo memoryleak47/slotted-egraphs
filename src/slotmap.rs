@@ -173,10 +173,10 @@ impl SlotMap {
         out
     }
 
-    pub fn remove(&mut self, x: Slot) {
+    pub fn remove(&mut self, x: Slot) -> Option<Slot> {
         if let Ok(i) = self.search(x) {
-            self.map.remove(i);
-        }
+            Some(self.map.remove(i).1)
+        } else { None }
     }
 
     pub fn from_pairs(pairs: &[(Slot, Slot)]) -> SlotMap {

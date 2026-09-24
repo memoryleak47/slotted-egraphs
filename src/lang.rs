@@ -201,10 +201,19 @@ impl<L: LanguageChildren> LanguageChildren for Bind<L> {
     }
 
     fn weak_shape_impl(&mut self, m: &mut (SlotMap, u32)) {
+        // This needs to canonize `let $x := $x in $x` to `let $0 := $1 in $0`.
+        // We want binders to not have slot collisions within a node.
+
         let s = self.slot;
+        // We remove the old meaning of `s` and re-add it afterwards.
+        // This way the "bound s" can work in isolation from any previously defined occurrences of s.
+        let old_s_val = m.0.remove(s);
         add_slot(&mut self.slot, m);
         self.elem.weak_shape_impl(m);
         m.0.remove(s);
+        if let Some(v) = old_s_val {
+            m.0.insert(s, v);
+        }
     }
 }
 

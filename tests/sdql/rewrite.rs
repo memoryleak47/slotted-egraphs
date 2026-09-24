@@ -30,3 +30,21 @@ fn t1() {
     eprintln!("{}", re.to_string());
     eprintln!("{}", term.to_string());
 }
+
+#[test]
+fn let_canon() {
+    let mut eg: EGraph<Sdql> = EGraph::default();
+
+    let root = eg.add_syn_expr(RecExpr::parse("(let (var $x) $x (var $x))").unwrap());
+    let nodes = eg.enodes(root.id);
+    assert_eq!(nodes.len(), 1);
+    let node = nodes.into_iter().next().unwrap();
+    let (node, _) = node.weak_shape();
+    let Sdql::Let(var, Bind { slot, elem }) = node else { panic!() };
+
+    assert_eq!(slot, Slot::numeric(1));
+    assert_eq!(var.m.values().into_iter().collect::<Vec<_>>(), vec![Slot::numeric(0)]);
+    assert_eq!(elem.m.values().into_iter().collect::<Vec<_>>(), vec![Slot::numeric(1)]);
+
+    eg.check();
+}
