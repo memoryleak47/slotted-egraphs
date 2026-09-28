@@ -12,5 +12,6 @@ define_language! {
         Var(Slot) = "var",
         Sing(AppliedId, AppliedId) = "sing",
         Sum(AppliedId, Bind<Bind<AppliedId>>) = "sum",
+        Let(AppliedId, Bind<AppliedId>) = "let",
     }
 }
