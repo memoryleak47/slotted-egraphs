@@ -52,6 +52,7 @@ pub fn apply_rewrites<L: Language, N: Analysis<L>>(
     rewrites: &[Rewrite<L, N>],
 ) -> bool {
     let prog = eg.progress();
+    eg.begin_round();
 
     let ts: Vec<Box<dyn Any>> = rewrites.iter().map(|rw| (*rw.searcher)(eg)).collect();
     for (rw, t) in rewrites.iter().zip(ts.into_iter()) {

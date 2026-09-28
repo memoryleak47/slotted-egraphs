@@ -122,6 +122,14 @@ impl<L: Language, N: Analysis<L>> EGraph<L, N> {
         }
     }
 
+    /// Tells the substitution method a round of rewrites is about to be applied; see
+    /// [SubstMethod::begin_round]. [apply_rewrites] calls this itself.
+    pub fn begin_round(&mut self) {
+        let mut method = self.subst_method.take().unwrap();
+        method.begin_round(self);
+        self.subst_method = Some(method);
+    }
+
     pub fn slots(&self, id: Id) -> SmallHashSet<Slot> {
         self.classes[&id].slots.clone()
     }
